@@ -2,178 +2,21 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { fmtNumber } from "@/lib/formatters";
 import { Search, Sparkles } from "lucide-react";
+import {
+  CustomerProductItem,
+  DailyPricingProps,
+  CustomerMatrixRow,
+  ProductStat,
+  ProcessedPricingData,
+  TARGET_PRICING_PRODUCTS,
+  mapToTargetPricingProduct,
+} from "./daily-pricing/pricing-types";
+import { PricingKpiStrip } from "./daily-pricing/PricingKpiStrip";
+import { PricingMatrixTable } from "./daily-pricing/PricingMatrixTable";
+import { PricingAnalyticsTables } from "./daily-pricing/PricingAnalyticsTables";
 
-export interface CustomerProductItem {
-  customer_name: string;
-  product_name: string;
-  quantity: number;
-  total_amount: number;
-  unit_price?: number;
-}
-
-export interface DailyPricingProps {
-  reportDate: string;
-  customerProducts: CustomerProductItem[];
-  customersList?: Array<{
-    customer_name: string;
-    sales_amount: number;
-    total_qty?: number;
-  }>;
-}
-
-// The exact specified commodities in standard display order
-const TARGET_PRICING_PRODUCTS = [
-  "ذرة صفراء",
-  "نخالة",
-  "صويا 46%",
-  "رجيعة",
-  "دي دي جي",
-  "كسب النور",
-];
-
-function normalizeRawProductName(raw: string): string {
-  return raw
-    .trim()
-    .replace(/[أإآ]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي")
-    .replace(/٤/g, "4")
-    .replace(/٦/g, "6")
-    .replace(/٪/g, "%")
-    .toLowerCase();
-}
-
-function mapToTargetPricingProduct(rawName: string): string | null {
-  if (!rawName) return null;
-  const norm = normalizeRawProductName(rawName);
-
-  // 1. Check for Full Fat Soy (صويا فولفات) - MUST NEVER BE CLASSIFIED AS صويا 46%
-  const isFullFat =
-    norm.includes("فولفات") ||
-    norm.includes("فول فات") ||
-    norm.includes("فولفيت") ||
-    norm.includes("fullfat") ||
-    norm.includes("full fat") ||
-    norm.includes("full_fat");
-
-  if (isFullFat) {
-    // صويا فولفات منتج منفصل تماماً عن صويا 46 ولا يدخل معه نهائياً
-    return null;
-  }
-
-  // 2. Check for Soy 44% (صويا 44%) - Exclude from 46%
-  if (norm.includes("44") && (norm.includes("صويا") || norm.includes("فول"))) {
-    return null;
-  }
-
-  // 3. Exact matching for صويا 46% (فول صويا 46% / كسب صويا 46%)
-  // يجب قراءة الاسم كاملاً والتأكد من وجود نسبة 46% وأنه صويا وليس فولفات
-  if (
-    norm.includes("46") &&
-    (norm.includes("صويا") || norm.includes("فول") || norm.includes("كسب"))
-  ) {
-    return "صويا 46%";
-  }
-
-  // 4. Exact matching for ذرة صفراء (Yellow Corn)
-  const isCornExcluded =
-    norm.includes("بذر") ||
-    norm.includes("بزر") ||
-    norm.includes("كتان") ||
-    norm.includes("جلوتين") ||
-    norm.includes("جنين") ||
-    norm.includes("قشر") ||
-    norm.includes("كسب") ||
-    norm.includes("نشا") ||
-    norm.includes("زيت") ||
-    norm.includes("مستخلص") ||
-    norm.includes("ابيض") ||
-    norm.includes("بيضاء") ||
-    norm.includes("فشار") ||
-    norm.includes("سيلاج") ||
-    norm.includes("علف");
-
-  if (!isCornExcluded) {
-    if (
-      norm.includes("ذره صفراء") ||
-      norm.includes("ذرة صفراء") ||
-      norm.includes("ذره ارجنتين") ||
-      norm.includes("ذرة ارجنتين") ||
-      norm.includes("ذره برازيل") ||
-      norm.includes("ذرة برازيل") ||
-      norm.includes("ذره اوكران") ||
-      norm.includes("ذرة اوكران") ||
-      norm.includes("ذره صب") ||
-      norm.includes("ذرة صب") ||
-      norm.includes("ذره مستورد") ||
-      norm.includes("ذرة مستورد") ||
-      norm.includes("ذره محلي") ||
-      norm.includes("ذرة محلي") ||
-      norm === "ذره" ||
-      norm === "ذرة" ||
-      norm === "الذره" ||
-      norm === "الذرة" ||
-      norm.startsWith("ذره ") ||
-      norm.startsWith("ذرة ") ||
-      norm.endsWith(" ذره") ||
-      norm.endsWith(" ذرة")
-    ) {
-      return "ذرة صفراء";
-    }
-  }
-
-  // 5. Exact matching for نخالة (Wheat Bran / ردة)
-  if (
-    (norm.includes("نخال") || norm.includes("رده") || norm.includes("ردة")) &&
-    !norm.includes("علف") &&
-    !norm.includes("مركز")
-  ) {
-    return "نخالة";
-  }
-
-  // 6. Exact matching for رجيعة (Rice Bran / رجيع كون)
-  if (norm.includes("رجيع") && !norm.includes("علف")) {
-    return "رجيعة";
-  }
-
-  // 7. Exact matching for دي دي جي (DDGS)
-  if (norm.includes("دي دي") || norm.includes("ddg")) {
-    return "دي دي جي";
-  }
-
-  // 8. Exact matching for كسب النور (Sunflower/linseed meal / كسب)
-  // التأكد من استبعاد الأعلاف المصنعة التامة مثل علف النور تسمين وعلف النور حلاب
-  const isFinishedFeed =
-    norm.includes("علف") ||
-    norm.includes("تسمين") ||
-    norm.includes("حلاب") ||
-    norm.includes("بياض") ||
-    norm.includes("بادئ") ||
-    norm.includes("نامي") ||
-    norm.includes("ناهي") ||
-    norm.includes("دواجن") ||
-    norm.includes("مواشي");
-
-  const isSoy = norm.includes("صويا") || norm.includes("فول");
-
-  if (!isFinishedFeed && !isSoy) {
-    if (
-      norm.includes("كسب النور") ||
-      norm.includes("كسب عباد") ||
-      norm.includes("كسب بذره") ||
-      norm.includes("كسب بذرة") ||
-      norm.includes("كسب قطن") ||
-      norm.includes("كسب سمسم") ||
-      norm === "كسب"
-    ) {
-      return "كسب النور";
-    }
-  }
-
-  return null;
-}
+export type { CustomerProductItem, DailyPricingProps };
 
 export function DailyPricingReport({
   reportDate,
@@ -183,7 +26,7 @@ export function DailyPricingReport({
   const [search, setSearch] = useState("");
 
   // Process products, customers, matrix, and statistics
-  const data = useMemo(() => {
+  const data: ProcessedPricingData = useMemo(() => {
     // 1. Filter and map strictly to the target allowed commodities
     const validItems: CustomerProductItem[] = [];
     for (const cp of customerProducts) {
@@ -208,15 +51,7 @@ export function DailyPricingReport({
     );
 
     // 3. Group by customer
-    const customerMap = new Map<
-      string,
-      {
-        name: string;
-        products: Map<string, { qty: number; total: number; price: number }>;
-        totalSales: number;
-        totalQty: number;
-      }
-    >();
+    const customerMap = new Map<string, CustomerMatrixRow>();
 
     // Seed customer map
     for (const c of customersList) {
@@ -261,20 +96,7 @@ export function DailyPricingReport({
     activeCustomers.sort((a, b) => a.name.localeCompare(b.name, "ar"));
 
     // 4. Calculate for each product: Min, Max, Avg, and who got Min & Max
-    const productStatsMap = new Map<
-      string,
-      {
-        product: string;
-        minPrice: number;
-        minCustomer: string;
-        maxPrice: number;
-        maxCustomer: string;
-        avgPrice: number;
-        totalQty: number;
-        totalAmount: number;
-        hasPriceSpread: boolean;
-      }
-    >();
+    const productStatsMap = new Map<string, ProductStat>();
 
     let overallMinPrice = Infinity;
     let overallMaxPrice = -Infinity;
@@ -403,11 +225,6 @@ export function DailyPricingReport({
       (max, c) => Math.max(max, (c.name || "").trim().length),
       0,
     );
-    // Dynamic formula:
-    // If longest name is 10 chars: ~16%
-    // If longest name is 20 chars: ~20%
-    // If longest name is 28 chars: ~23.5%
-    // Clamped comfortably between 16% and 26%
     const computed = 11 + maxChars * 0.45;
     return Math.max(16, Math.min(26, parseFloat(computed.toFixed(1))));
   }, [filteredCustomers]);
@@ -602,431 +419,35 @@ export function DailyPricingReport({
         )}
       </div>
 
-      {/* PRINTABLE CONTAINER: FIT ACROSS PAGE WITH ZERO GAP */}
+      {/* PRINTABLE CONTAINER */}
       <div className="pricing-main-card w-full max-w-6xl mx-auto bg-white text-slate-900 border border-slate-300 rounded-xl overflow-hidden shadow-xs print:max-w-none print:w-full print:border-none print:shadow-none print:m-0">
         {/* 1. Header Banner */}
         <div className="pricing-banner bg-[#46634c] text-white text-center py-2.5 px-3 font-bold text-base sm:text-lg tracking-wide flex items-center justify-center gap-2">
           <span>تقرير الأسعار اليومية - بتاريخ {formattedDate}</span>
         </div>
 
-        {/* 2. Top Summary KPI Strip - Proportional & legible */}
-        <div className="pricing-kpi-strip grid grid-cols-[repeat(5,minmax(0,1fr))_minmax(0,1.2fr)_minmax(0,1.8fr)] border-b border-slate-300 bg-slate-50 text-center divide-x divide-x-reverse divide-slate-200">
-          {/* إجمالي العملاء */}
-          <div className="pricing-kpi-item p-1 sm:p-1.5 flex flex-col items-center justify-center text-center">
-            <div className="pricing-kpi-label text-xs sm:text-sm font-bold text-slate-600 leading-tight">
-              إجمالي العملاء
-            </div>
-            <div className="pricing-kpi-val text-sm sm:text-base font-black text-[#2e7d32] leading-tight mt-0.5 whitespace-nowrap">
-              عميل {data.kpis.totalCustomers}
-            </div>
-          </div>
-
-          {/* إجمالي الفواتير */}
-          <div className="pricing-kpi-item p-1 sm:p-1.5 flex flex-col items-center justify-center text-center">
-            <div className="pricing-kpi-label text-xs sm:text-sm font-bold text-slate-600 leading-tight">
-              إجمالي الفواتير
-            </div>
-            <div className="pricing-kpi-val text-sm sm:text-base font-black text-slate-900 leading-tight mt-0.5 whitespace-nowrap">
-              {fmtNumber(data.kpis.totalSales, 0)}
-            </div>
-          </div>
-
-          {/* متوسط سعر البيع */}
-          <div className="pricing-kpi-item p-1 sm:p-1.5 flex flex-col items-center justify-center text-center">
-            <div className="pricing-kpi-label text-xs sm:text-sm font-bold text-slate-600 leading-tight">
-              متوسط السعر
-            </div>
-            <div className="pricing-kpi-val text-sm sm:text-base font-black text-slate-900 leading-tight mt-0.5 whitespace-nowrap">
-              {data.kpis.avgPrice.toFixed(2)}
-            </div>
-          </div>
-
-          {/* أعلى سعر بيع اليوم */}
-          <div className="pricing-kpi-item p-1 sm:p-1.5 flex flex-col items-center justify-center text-center">
-            <div className="pricing-kpi-label text-xs sm:text-sm font-bold text-slate-600 leading-tight">
-              أعلى سعر بيع
-            </div>
-            <div className="pricing-kpi-val text-sm sm:text-base font-black text-slate-900 leading-tight mt-0.5 whitespace-nowrap">
-              {data.kpis.highestPrice.toFixed(1)}
-            </div>
-          </div>
-
-          {/* أقل سعر بيع اليوم */}
-          <div className="pricing-kpi-item p-1 sm:p-1.5 flex flex-col items-center justify-center text-center">
-            <div className="pricing-kpi-label text-xs sm:text-sm font-bold text-slate-600 leading-tight">
-              أقل سعر بيع
-            </div>
-            <div className="pricing-kpi-val text-sm sm:text-base font-black text-slate-900 leading-tight mt-0.5 whitespace-nowrap">
-              {data.kpis.lowestPrice.toFixed(1)}
-            </div>
-          </div>
-
-          {/* الصنف الأكثر مبيعاً */}
-          <div className="pricing-kpi-item p-1 sm:p-1.5 flex flex-col items-center justify-center text-center">
-            <div className="pricing-kpi-label text-xs sm:text-sm font-bold text-slate-600 leading-tight">
-              الأكثر مبيعاً
-            </div>
-            <div className="pricing-kpi-val text-xs sm:text-sm md:text-base font-black text-[#2e7d32] leading-snug mt-0.5 whitespace-normal break-words text-center px-0.5">
-              {data.kpis.topProduct}
-            </div>
-          </div>
-
-          {/* العميل الأكثر سحباً - يظهر كاملاً دون أي اقتطاع */}
-          <div className="pricing-kpi-item p-1 sm:p-1.5 flex flex-col items-center justify-center text-center">
-            <div className="pricing-kpi-label text-xs sm:text-sm font-bold text-slate-600 leading-tight">
-              الأكثر سحباً
-            </div>
-            <div
-              className="pricing-kpi-val text-xs sm:text-sm md:text-base font-black text-[#2e7d32] leading-snug mt-0.5 whitespace-normal break-words text-center px-1"
-              title={data.kpis.topCustomer}
-            >
-              {data.kpis.topCustomer}
-            </div>
-          </div>
-        </div>
+        {/* 2. Top Summary KPI Strip */}
+        <PricingKpiStrip kpis={data.kpis} />
 
         {/* 3. Section Title */}
         <div className="pricing-section-title bg-[#46634c] text-white text-center py-2 px-3 font-bold text-sm sm:text-base border-t border-b border-[#3b5340]">
           أسعار البيع الفعلية لكل صنف لكل عميل خلال اليوم
         </div>
 
-        {/* 4. The Matrix Table - Exact proportional widths, larger fonts, zero gap */}
-        <div className="overflow-x-auto">
-          <table
-            className="pricing-table w-full border-collapse text-center"
-            style={{ tableLayout: "fixed" }}
-          >
-            <colgroup>
-              <col style={{ width: "3.5%" }} />
-              <col style={{ width: `${dynamicCustColWidthPercent}%` }} />
-              {data.products.map((p) => (
-                <React.Fragment key={`col-${p}`}>
-                  <col style={{ width: productSubColWidth }} />
-                  <col style={{ width: productSubColWidth }} />
-                </React.Fragment>
-              ))}
-            </colgroup>
-            <thead>
-              {/* Product Names (Top Header Row) */}
-              <tr className="bg-slate-100 text-slate-800 font-bold border-b-2 border-slate-400">
-                <th
-                  rowSpan={2}
-                  className="border-l-2 border-r-2 border-slate-400 py-2 px-1 bg-slate-200/90 text-slate-900 font-bold text-center text-sm sm:text-base"
-                >
-                  م
-                </th>
-                <th
-                  rowSpan={2}
-                  className="border-l-2 border-slate-400 py-2 px-2 text-right font-black bg-slate-200/90 text-slate-900 text-sm sm:text-base whitespace-nowrap"
-                >
-                  العميل
-                </th>
-                {data.products.map((p, pIdx) => (
-                  <th
-                    key={p}
-                    colSpan={2}
-                    className={`border-l-2 border-slate-400 py-2 px-1 font-black text-sm sm:text-base text-slate-900 ${
-                      pIdx % 2 === 0 ? "bg-slate-200/80" : "bg-slate-100"
-                    }`}
-                  >
-                    {p}
-                  </th>
-                ))}
-              </tr>
-
-              {/* Sub Header: Quantity & Price */}
-              <tr className="bg-slate-50 text-slate-800 font-bold border-b-2 border-slate-400 text-xs sm:text-sm">
-                {data.products.map((p, pIdx) => (
-                  <React.Fragment key={`${p}-sub`}>
-                    <th
-                      className={`border-l border-slate-300 py-1 px-1 font-extrabold text-xs sm:text-sm ${
-                        pIdx % 2 === 0 ? "bg-slate-100/70" : "bg-slate-50"
-                      }`}
-                    >
-                      الكمية
-                    </th>
-                    <th
-                      className={`border-l-2 border-slate-400 py-1 px-1 font-extrabold text-xs sm:text-sm ${
-                        pIdx % 2 === 0 ? "bg-slate-100/70" : "bg-slate-50"
-                      }`}
-                    >
-                      سعر البيع
-                    </th>
-                  </React.Fragment>
-                ))}
-              </tr>
-            </thead>
-
-            <tbody className="divide-y divide-slate-200">
-              {filteredCustomers.map((cust, idx) => (
-                <tr
-                  key={cust.name}
-                  className="hover:bg-slate-100/60 transition-colors odd:bg-white even:bg-slate-50/50"
-                >
-                  {/* Sequence Number */}
-                  <td className="border-l-2 border-r-2 border-slate-400 py-2 px-1 font-bold text-slate-700 bg-slate-100/60 text-center text-sm sm:text-base">
-                    {idx + 1}
-                  </td>
-
-                  {/* Customer Name - Dynamic width, NO truncation so full name always displays */}
-                  <td
-                    className="border-l-2 border-slate-400 py-2 px-2.5 text-right font-bold text-slate-900 whitespace-nowrap text-sm sm:text-base"
-                    title={cust.name}
-                  >
-                    {cust.name}
-                  </td>
-
-                  {/* Product Columns (Qty & Price) */}
-                  {data.products.map((p, pIdx) => {
-                    const prod = cust.products.get(p);
-                    const stats = data.productStats.get(p);
-                    const colBg = pIdx % 2 === 0 ? "bg-slate-50/25" : "";
-
-                    if (!prod || prod.qty <= 0) {
-                      return (
-                        <React.Fragment key={`${cust.name}-${p}`}>
-                          <td
-                            className={`border-l border-slate-200 py-2 px-1 text-slate-300 text-sm sm:text-base text-center ${colBg}`}
-                          >
-                            -
-                          </td>
-                          <td
-                            className={`border-l-2 border-slate-400 py-2 px-1 text-slate-300 text-sm sm:text-base text-center ${colBg}`}
-                          >
-                            -
-                          </td>
-                        </React.Fragment>
-                      );
-                    }
-
-                    const isMin =
-                      stats?.hasPriceSpread &&
-                      Math.abs(prod.price - stats.minPrice) < 0.05;
-                    const isMax =
-                      stats?.hasPriceSpread &&
-                      Math.abs(prod.price - stats.maxPrice) < 0.05;
-
-                    // Color highlighting matching original Excel pastel format
-                    let priceCellClass = "font-bold text-slate-900";
-                    if (isMin) {
-                      priceCellClass =
-                        "bg-[#f4cccc] text-[#900000] font-black border border-[#ea9999]";
-                    } else if (isMax) {
-                      priceCellClass =
-                        "bg-[#d9ead3] text-[#274e13] font-black border border-[#b6d7a8]";
-                    }
-
-                    return (
-                      <React.Fragment key={`${cust.name}-${p}`}>
-                        <td
-                          className={`border-l border-slate-200 py-2 px-1 text-slate-800 font-semibold text-sm sm:text-base tabular-nums text-center ${colBg}`}
-                        >
-                          {fmtNumber(prod.qty, prod.qty % 1 === 0 ? 0 : 1)}
-                        </td>
-                        <td
-                          className={`border-l-2 border-slate-400 py-2 px-1 text-sm sm:text-base tabular-nums text-center ${priceCellClass}`}
-                          title={`السعر: ${prod.price.toFixed(2)}`}
-                        >
-                          {prod.price % 1 === 0
-                            ? prod.price
-                            : prod.price.toFixed(2)}
-                        </td>
-                      </React.Fragment>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        {/* 4. The Matrix Table */}
+        <PricingMatrixTable
+          products={data.products}
+          customers={filteredCustomers}
+          productStats={data.productStats}
+          dynamicCustColWidthPercent={dynamicCustColWidthPercent}
+          productSubColWidth={productSubColWidth}
+        />
 
         {/* 5. Bottom 3 Analytical Comparison Tables */}
-        <div className="pricing-bottom-grid grid grid-cols-1 md:grid-cols-3 border-t-2 border-slate-400 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-slate-300 bg-white">
-          {/* Table 1: أقل سعر لكل صنف (الأحمر) */}
-          <div className="overflow-hidden flex flex-col">
-            <div className="pricing-bottom-title h-9 bg-[#b71c1c] text-white flex items-center justify-center px-2 font-bold text-sm sm:text-base">
-              أقل سعر لكل صنف
-            </div>
-            <table
-              className="pricing-bottom-table w-full text-xs sm:text-sm text-center border-collapse flex-1"
-              style={{ tableLayout: "fixed" }}
-            >
-              <colgroup>
-                <col style={{ width: "30%" }} />
-                <col style={{ width: "42%" }} />
-                <col style={{ width: "28%" }} />
-              </colgroup>
-              <thead>
-                <tr className="bg-red-50 text-red-950 font-bold border-b border-red-200 h-8">
-                  <th className="h-8 py-1 px-1 border-l border-red-200 align-middle text-center whitespace-nowrap text-xs sm:text-sm">
-                    الصنف
-                  </th>
-                  <th className="h-8 py-1 px-1 border-l border-red-200 text-center align-middle whitespace-nowrap text-xs sm:text-sm">
-                    العميل
-                  </th>
-                  <th className="h-8 py-1 px-1 text-center align-middle whitespace-nowrap text-xs sm:text-sm">
-                    السعر
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-red-100">
-                {data.products.map((p) => {
-                  const s = data.productStats.get(p);
-                  const hasData = s && s.totalQty > 0;
-                  return (
-                    <tr
-                      key={`min-${p}`}
-                      className="h-8 hover:bg-red-50/50 odd:bg-white even:bg-red-50/20"
-                    >
-                      <td className="h-8 py-1 px-1 font-bold border-l border-red-200 text-slate-900 whitespace-nowrap align-middle text-xs sm:text-sm">
-                        {p}
-                      </td>
-                      <td
-                        className="h-8 py-1 px-1 border-l border-red-200 text-slate-800 truncate text-center font-medium align-middle text-xs sm:text-sm"
-                        title={hasData ? s.minCustomer : "-"}
-                      >
-                        {hasData ? s.minCustomer : "-"}
-                      </td>
-                      <td className="h-8 py-1 px-1 font-black text-[#c62828] bg-red-50/70 align-middle text-xs sm:text-sm">
-                        {hasData
-                          ? s.minPrice % 1 === 0
-                            ? s.minPrice
-                            : s.minPrice.toFixed(2)
-                          : "-"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table 2: أعلى سعر لكل صنف (الأخضر) */}
-          <div className="overflow-hidden flex flex-col">
-            <div className="pricing-bottom-title h-9 bg-[#2e7d32] text-white flex items-center justify-center px-2 font-bold text-sm sm:text-base">
-              أعلى سعر لكل صنف
-            </div>
-            <table
-              className="pricing-bottom-table w-full text-xs sm:text-sm text-center border-collapse flex-1"
-              style={{ tableLayout: "fixed" }}
-            >
-              <colgroup>
-                <col style={{ width: "30%" }} />
-                <col style={{ width: "42%" }} />
-                <col style={{ width: "28%" }} />
-              </colgroup>
-              <thead>
-                <tr className="bg-emerald-50 text-emerald-950 font-bold border-b border-emerald-200 h-8">
-                  <th className="h-8 py-1 px-1 border-l border-emerald-200 align-middle text-center whitespace-nowrap text-xs sm:text-sm">
-                    الصنف
-                  </th>
-                  <th className="h-8 py-1 px-1 border-l border-emerald-200 text-center align-middle whitespace-nowrap text-xs sm:text-sm">
-                    العميل
-                  </th>
-                  <th className="h-8 py-1 px-1 text-center align-middle whitespace-nowrap text-xs sm:text-sm">
-                    السعر
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-emerald-100">
-                {data.products.map((p) => {
-                  const s = data.productStats.get(p);
-                  const hasData = s && s.totalQty > 0;
-                  return (
-                    <tr
-                      key={`max-${p}`}
-                      className="h-8 hover:bg-emerald-50/50 odd:bg-white even:bg-emerald-50/20"
-                    >
-                      <td className="h-8 py-1 px-1 font-bold border-l border-emerald-200 text-slate-900 whitespace-nowrap align-middle text-xs sm:text-sm">
-                        {p}
-                      </td>
-                      <td
-                        className="h-8 py-1 px-1 border-l border-emerald-200 text-slate-800 truncate text-center font-medium align-middle text-xs sm:text-sm"
-                        title={hasData ? s.maxCustomer : "-"}
-                      >
-                        {hasData ? s.maxCustomer : "-"}
-                      </td>
-                      <td className="h-8 py-1 px-1 font-black text-[#2e7d32] bg-emerald-50/70 align-middle text-xs sm:text-sm">
-                        {hasData
-                          ? s.maxPrice % 1 === 0
-                            ? s.maxPrice
-                            : s.maxPrice.toFixed(2)
-                          : "-"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table 3: ملخص الأسعار لكل صنف (الأزرق) */}
-          <div className="overflow-hidden flex flex-col">
-            <div className="pricing-bottom-title h-9 bg-[#1565c0] text-white flex items-center justify-center px-2 font-bold text-sm sm:text-base">
-              ملخص الأسعار لكل صنف
-            </div>
-            <table
-              className="pricing-bottom-table w-full text-xs sm:text-sm text-center border-collapse flex-1"
-              style={{ tableLayout: "fixed" }}
-            >
-              <colgroup>
-                <col style={{ width: "28%" }} />
-                <col style={{ width: "24%" }} />
-                <col style={{ width: "24%" }} />
-                <col style={{ width: "24%" }} />
-              </colgroup>
-              <thead>
-                <tr className="bg-blue-50 text-blue-950 font-bold border-b border-blue-200 h-8">
-                  <th className="h-8 py-1 px-1 border-l border-blue-200 align-middle text-center whitespace-nowrap text-xs sm:text-sm">
-                    الصنف
-                  </th>
-                  <th className="h-8 py-1 px-1 border-l border-blue-200 text-red-700 align-middle text-center whitespace-nowrap text-xs sm:text-sm">
-                    أقل سعر
-                  </th>
-                  <th className="h-8 py-1 px-1 border-l border-blue-200 text-emerald-700 align-middle text-center whitespace-nowrap text-xs sm:text-sm">
-                    أعلى سعر
-                  </th>
-                  <th className="h-8 py-1 px-1 text-blue-800 text-center align-middle whitespace-nowrap text-xs sm:text-sm">
-                    متوسط السعر
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-blue-100">
-                {data.products.map((p) => {
-                  const s = data.productStats.get(p);
-                  const hasData = s && s.totalQty > 0;
-                  return (
-                    <tr
-                      key={`sum-${p}`}
-                      className="h-8 hover:bg-blue-50/50 odd:bg-white even:bg-blue-50/20"
-                    >
-                      <td className="h-8 py-1 px-1 font-bold border-l border-blue-200 text-slate-900 whitespace-nowrap align-middle text-xs sm:text-sm">
-                        {p}
-                      </td>
-                      <td className="h-8 py-1 px-1 font-black text-red-700 border-l border-blue-200 align-middle text-xs sm:text-sm">
-                        {hasData
-                          ? s.minPrice % 1 === 0
-                            ? s.minPrice
-                            : s.minPrice.toFixed(2)
-                          : "-"}
-                      </td>
-                      <td className="h-8 py-1 px-1 font-black text-emerald-700 border-l border-blue-200 align-middle text-xs sm:text-sm">
-                        {hasData
-                          ? s.maxPrice % 1 === 0
-                            ? s.maxPrice
-                            : s.maxPrice.toFixed(2)
-                          : "-"}
-                      </td>
-                      <td className="h-8 py-1 px-1 font-black text-blue-800 bg-blue-50/50 align-middle text-xs sm:text-sm">
-                        {hasData ? s.avgPrice.toFixed(2) : "-"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <PricingAnalyticsTables
+          products={data.products}
+          productStats={data.productStats}
+        />
       </div>
     </div>
   );

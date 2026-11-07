@@ -2,9 +2,8 @@ import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Upload, Loader2, CloudDownload } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import { parseAndImportReport } from "@/lib/excel-parser.functions";
-import { forceInjectFromDrive } from "@/lib/auto-inject";
 
 interface Props {
   onUploaded: () => void;
@@ -34,7 +33,6 @@ export function UploadDialog({ onUploaded }: Props) {
   const invoicesRef = useRef<HTMLInputElement>(null);
   const inventoryRef = useRef<HTMLInputElement>(null);
   const isMounted = useRef(false);
-  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     isMounted.current = true;
@@ -42,23 +40,6 @@ export function UploadDialog({ onUploaded }: Props) {
       isMounted.current = false;
     };
   }, []);
-
-  async function handleForceSync() {
-    setSyncing(true);
-    try {
-      await forceInjectFromDrive();
-      toast.success("تم تحديث البيانات من جوجل درايف بنجاح");
-      if (isMounted.current) {
-        onUploaded();
-      }
-    } catch (e: any) {
-      toast.error("فشل التحديث من جوجل درايف: " + e.message);
-    } finally {
-      if (isMounted.current) {
-        setSyncing(false);
-      }
-    }
-  }
 
   async function handleUpload() {
     if (!collections || !invoices) {
@@ -155,23 +136,9 @@ export function UploadDialog({ onUploaded }: Props) {
       </div>
       <div className="flex gap-2 w-full md:w-auto">
         <Button
-          onClick={handleForceSync}
-          disabled={syncing || loading}
-          variant="outline"
-          className="flex-1 md:flex-none border-[3px] border-info text-info hover:bg-info/10 shadow-sm"
-        >
-          {syncing ? (
-            <Loader2 className="h-4 w-4 animate-spin ml-2" />
-          ) : (
-            <CloudDownload className="h-4 w-4 ml-2" />
-          )}
-          درايف
-        </Button>
-
-        <Button
           onClick={handleUpload}
-          disabled={loading || syncing}
-          className="flex-1 md:flex-none"
+          disabled={loading}
+          className="flex-1 md:flex-none shadow-sm font-bold px-6"
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin ml-2" />

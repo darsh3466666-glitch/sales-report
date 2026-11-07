@@ -75,7 +75,11 @@ export async function getLocalReports() {
               set(DB_PREFIX + id, item).catch(() => {});
             }
           }
-        } else if (staticData && staticData.report && staticData.report.report_date) {
+        } else if (
+          staticData &&
+          staticData.report &&
+          staticData.report.report_date
+        ) {
           const id = staticData.report.id || "latest";
           if (id !== "latest" && id !== "rep_20261107") {
             staticData.report.id = id;
@@ -91,19 +95,30 @@ export async function getLocalReports() {
 
   // 3. Live sync with cloud Firestore
   try {
-    const snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
-    if (!snap.empty) {
-      for (const docSnap of snap.docs) {
-        const data = docSnap.data();
-        if (data && data.report && data.report.report_date) {
-          const id = data.report.id || docSnap.id;
-          data.report.id = id;
-          reportsMap.set(id, data);
-          if (typeof window !== "undefined") {
-            set(DB_PREFIX + id, data).catch(() => {});
+    const fetchFirestore = async () => {
+      const snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
+      if (!snap.empty) {
+        for (const docSnap of snap.docs) {
+          const data = docSnap.data();
+          if (data && data.report && data.report.report_date) {
+            const id = data.report.id || docSnap.id;
+            data.report.id = id;
+            reportsMap.set(id, data);
+            if (typeof window !== "undefined") {
+              set(DB_PREFIX + id, data).catch(() => {});
+            }
           }
         }
       }
+    };
+
+    if (typeof window === "undefined") {
+      await Promise.race([
+        fetchFirestore(),
+        new Promise((resolve) => setTimeout(resolve, 4000)),
+      ]);
+    } else {
+      await fetchFirestore();
     }
   } catch (error: any) {
     console.warn("Firestore sync warning:", error);
@@ -187,7 +202,15 @@ export async function saveLocalReport(reportData: any) {
 
   // 2. Sync to cloud Firestore
   try {
-    await setDoc(doc(db, FIRESTORE_COLLECTION, id), reportData);
+    const savePromise = setDoc(doc(db, FIRESTORE_COLLECTION, id), reportData);
+    if (typeof window === "undefined") {
+      await Promise.race([
+        savePromise,
+        new Promise((resolve) => setTimeout(resolve, 4000)),
+      ]);
+    } else {
+      await savePromise;
+    }
   } catch (err) {
     console.warn("Firestore save warning:", err);
   }
