@@ -28,3 +28,8 @@ Scope: Automated extraction of 3 local Excel files, real-time sync, and continuo
   CHECK: python scripts/verify_live_url.py
   EXPECT: SUCCESS_LIVE_REPORT_ONLINE
   EVIDENCE: Output verified: SUCCESS_LIVE_REPORT_ONLINE (HTTP 200 OK for HTML and sales_data.json at https://darsh3466666-glitch.github.io/sales-report/).
+
+- [x] G6: Historical Data Restoration & Full Accounting Engine Integration
+  CHECK: Automated test querying GitHub Pages sales_data.json
+  EXPECT: 91 historical reports, accurate opening balance (~27.48M EGP), 13 invoices, 14,308 EGP average invoice, active historical comparisons
+  EVIDENCE: Verified: 91 reports deployed to GitHub Pages (HTTP 200). Opening balance 27,481,992 EGP, receivables 27,241,372 EGP, sales 186,000 EGP, collections 138,320 EGP, invoice count 13, avg invoice 14,308 EGP. IndexedDB bad cache auto-purge implemented in local-db.ts.
