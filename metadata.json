@@ -1,0 +1,6 @@
+{
+  "name": "File Playtime Local",
+  "description": "Local offline-first version of the financial reports app",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

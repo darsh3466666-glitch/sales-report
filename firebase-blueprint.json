@@ -1,0 +1,42 @@
+{
+  "collections": [
+    {
+      "name": "reports",
+      "description": "Stores daily sales and collection reports with their full data.",
+      "fields": [
+        {
+          "name": "report",
+          "type": "map",
+          "description": "Summary metadata of the report"
+        },
+        {
+          "name": "customers",
+          "type": "array",
+          "description": "List of customer data in this report"
+        },
+        {
+          "name": "products",
+          "type": "array",
+          "description": "List of product aggregates in this report"
+        },
+        {
+          "name": "customerProducts",
+          "type": "array",
+          "description": "List of products by customer in this report"
+        },
+        {
+          "name": "invoices",
+          "type": "array",
+          "description": "List of invoices in this report"
+        }
+      ],
+      "access_rules": [
+        {
+          "condition": "true",
+          "description": "Anyone can read and write reports (public app)",
+          "roles": ["read", "write"]
+        }
+      ]
+    }
+  ]
+}

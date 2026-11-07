@@ -1,0 +1,9 @@
+*.zip
+node_modules/
+build/
+.output/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
