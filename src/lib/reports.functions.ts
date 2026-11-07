@@ -490,7 +490,11 @@ export async function deleteReport(args: { data: { reportId: string } }) {
 export async function updateOpeningBalance(args: {
   data: { reportId: string; openingBalance: number };
 }) {
-  const reportData = await getLocalReport(args.data.reportId);
+  let reportData = await getLocalReport(args.data.reportId);
+  if (!reportData) {
+    const all = await getLocalReports();
+    reportData = all.find((r) => r.report.id === args.data.reportId) || all[0];
+  }
   if (reportData) {
     reportData.report.opening_balance = args.data.openingBalance;
     reportData.report.total_receivables =

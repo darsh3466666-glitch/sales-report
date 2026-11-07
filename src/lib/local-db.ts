@@ -45,6 +45,14 @@ export async function getLocalReports() {
             await del(key);
             continue;
           }
+          // Discard corrupted or zero opening balances for 2026-11-05 so it restores clean
+          if (
+            data.report.report_date === "2026-11-05" &&
+            (data.report.opening_balance <= 0 || data.report.total_receivables < 0)
+          ) {
+            await del(key);
+            continue;
+          }
           const id = data.report.id || String(key).replace(DB_PREFIX, "");
           data.report.id = id;
           reportsMap.set(id, data);
@@ -55,8 +63,16 @@ export async function getLocalReports() {
     }
   }
 
-  // 2. Fetch static bundled reports if IndexedDB is empty or has very few reports (<10)
-  if (reportsMap.size < 10 && typeof window !== "undefined") {
+  // 2. Fetch static bundled reports if IndexedDB is empty or missing valid opening balance
+  const latestExisting = reportsMap.size > 0 ? Array.from(reportsMap.values())[0] : null;
+  const needsRefresh =
+    reportsMap.size < 10 ||
+    !latestExisting ||
+    !latestExisting.report ||
+    (latestExisting.report.opening_balance || 0) <= 0 ||
+    (latestExisting.report.total_receivables || 0) < 0;
+
+  if (needsRefresh && typeof window !== "undefined") {
     try {
       const basePath = window.location.pathname.includes("/sales-report")
         ? "/sales-report/"
@@ -71,20 +87,12 @@ export async function getLocalReports() {
             if (item && item.report && item.report.report_date) {
               const id = item.report.id || item.report.report_date;
               item.report.id = id;
-              reportsMap.set(id, item);
-              set(DB_PREFIX + id, item).catch(() => {});
+              const cur = reportsMap.get(id);
+              if (!cur || (cur.report.opening_balance || 0) <= 0) {
+                reportsMap.set(id, item);
+                set(DB_PREFIX + id, item).catch(() => {});
+              }
             }
-          }
-        } else if (
-          staticData &&
-          staticData.report &&
-          staticData.report.report_date
-        ) {
-          const id = staticData.report.id || "latest";
-          if (id !== "latest" && id !== "rep_20261107") {
-            staticData.report.id = id;
-            reportsMap.set(id, staticData);
-            set(DB_PREFIX + id, staticData).catch(() => {});
           }
         }
       }
@@ -93,7 +101,7 @@ export async function getLocalReports() {
     }
   }
 
-  // 3. Live sync with cloud Firestore
+  // 3. Live sync with cloud Firestore (with non-blocking 1.5s timeout)
   try {
     const fetchFirestore = async () => {
       const snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
@@ -112,14 +120,10 @@ export async function getLocalReports() {
       }
     };
 
-    if (typeof window === "undefined") {
-      await Promise.race([
-        fetchFirestore(),
-        new Promise((resolve) => setTimeout(resolve, 4000)),
-      ]);
-    } else {
-      await fetchFirestore();
-    }
+    await Promise.race([
+      fetchFirestore(),
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]);
   } catch (error: any) {
     console.warn("Firestore sync warning:", error);
   }
@@ -145,22 +149,7 @@ export async function getLocalReport(id: string) {
     }
   }
 
-  // 2. Try Firestore fallback
-  try {
-    const docSnap = await getDoc(doc(db, FIRESTORE_COLLECTION, id));
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      if (!data.report.id) data.report.id = docSnap.id;
-      if (typeof window !== "undefined") {
-        set(DB_PREFIX + id, data).catch(() => {});
-      }
-      return data;
-    }
-  } catch (error: any) {
-    console.warn("Firestore getDoc failed:", error);
-  }
-
-  // 3. Fallback to sales_data.json
+  // 2. Fallback to sales_data.json next (instant)
   if (typeof window !== "undefined") {
     try {
       const basePath = window.location.pathname.includes("/sales-report")
@@ -171,13 +160,45 @@ export async function getLocalReport(id: string) {
       });
       if (res.ok) {
         const staticData = await res.json();
-        if (staticData && staticData.report) {
+        if (Array.isArray(staticData)) {
+          const match = staticData.find(
+            (item) =>
+              item?.report?.id === id || item?.report?.report_date === id,
+          );
+          if (match) return match;
+        } else if (
+          staticData &&
+          (staticData.report?.id === id || staticData.report?.report_date === id)
+        ) {
           return staticData;
         }
       }
     } catch (e) {
       // ignore
     }
+  }
+
+  // 3. Try Firestore fallback with 1.5s timeout
+  try {
+    const fetchDoc = async () => {
+      const docSnap = await getDoc(doc(db, FIRESTORE_COLLECTION, id));
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (!data.report.id) data.report.id = docSnap.id;
+        if (typeof window !== "undefined") {
+          set(DB_PREFIX + id, data).catch(() => {});
+        }
+        return data;
+      }
+      return null;
+    };
+    const res = await Promise.race([
+      fetchDoc(),
+      new Promise((resolve) => setTimeout(() => resolve(null), 1500)),
+    ]);
+    if (res) return res;
+  } catch (error: any) {
+    console.warn("Firestore getDoc failed:", error);
   }
 
   return undefined;
@@ -200,17 +221,13 @@ export async function saveLocalReport(reportData: any) {
     }
   }
 
-  // 2. Sync to cloud Firestore
+  // 2. Sync to cloud Firestore with 1.5s timeout so it never hangs
   try {
     const savePromise = setDoc(doc(db, FIRESTORE_COLLECTION, id), reportData);
-    if (typeof window === "undefined") {
-      await Promise.race([
-        savePromise,
-        new Promise((resolve) => setTimeout(resolve, 4000)),
-      ]);
-    } else {
-      await savePromise;
-    }
+    await Promise.race([
+      savePromise,
+      new Promise((resolve) => setTimeout(resolve, 1500)),
+    ]);
   } catch (err) {
     console.warn("Firestore save warning:", err);
   }
