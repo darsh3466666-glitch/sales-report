@@ -9,6 +9,7 @@ const InputSchema = z.object({
   reportDate: z.string().optional(), // YYYY-MM-DD override
   isManual: z.boolean().optional(),
   inventoryB64: z.string().optional(),
+  existingReports: z.array(z.any()).optional(),
 });
 
 function num(v: unknown): number {
@@ -671,7 +672,7 @@ export async function parseAndImportReport(args: { data: any }) {
     }
   }
 
-  const existingReports = await getLocalReports();
+  const existingReports = (data.existingReports && data.existingReports.length > 0) ? data.existingReports : await getLocalReports();
   // Dual verification sets:
   // 1) sabeqRegistrySet: 'أرصدة سابقة' list (current workbook + stored reports + any prior non-zero prev_balance)
   // 2) currentCustomerDbSet: Current customer database (prior transactions, invoices, products, and established customer registry)

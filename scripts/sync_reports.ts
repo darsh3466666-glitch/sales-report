@@ -17,6 +17,21 @@ const WATCHED_FILES = {
 async function main() {
   console.log('[sync_reports] Starting auto-sync...');
   let allReports: any[] = [];
+  const publicPath = path.join(rootDir, 'public', 'sales_data.json');
+  const distPath = path.join(rootDir, 'dist', 'sales_data.json');
+
+  // Preload existing reports so historical data and previous day balances are ALWAYS preserved
+  let preloadedReports: any[] = [];
+  if (fs.existsSync(publicPath)) {
+    try {
+      const raw = fs.readFileSync(publicPath, 'utf8');
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        preloadedReports = parsed;
+        allReports = parsed;
+      }
+    } catch {}
+  }
 
   if (fs.existsSync(WATCHED_FILES.collections) && fs.existsSync(WATCHED_FILES.invoices)) {
     console.log('[sync_reports] Reading local files from D:\\Mostafa Ibrahim...');
@@ -33,12 +48,17 @@ async function main() {
         invoicesB64,
         inventoryB64,
         isManual: true,
+        existingReports: preloadedReports,
       },
     });
 
     console.log(`[sync_reports] Processed ${res.reportDate}: Sales ${res.totalSales}, Invoices ${res.invoiceCount}`);
     if (res.allReports && res.allReports.length > 0) {
-      allReports = res.allReports;
+      const newReport = res.allReports[0];
+      const olderReports = preloadedReports.filter(
+        (r) => r.report?.report_date !== newReport.report?.report_date
+      );
+      allReports = [newReport, ...olderReports];
     }
   }
 
@@ -48,8 +68,6 @@ async function main() {
   }
 
   console.log(`[sync_reports] Writing ${allReports.length} reports to public/dist sales_data.json...`);
-  const publicPath = path.join(rootDir, 'public', 'sales_data.json');
-  const distPath = path.join(rootDir, 'dist', 'sales_data.json');
   const jsonStr = JSON.stringify(allReports);
 
   fs.writeFileSync(publicPath, jsonStr, 'utf8');
