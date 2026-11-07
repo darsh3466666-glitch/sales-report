@@ -28,7 +28,7 @@ CREATE_NO_WINDOW = 0x08000000
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 LOG_FILE = os.path.join(REPO_DIR, 'watcher.log')
 MTIMES_FILE = os.path.join(REPO_DIR, '.last_mtimes.json')
-EXTRACTOR_SCRIPT = os.path.join(REPO_DIR, 'scripts', 'sales_extractor.py')
+SYNC_SCRIPT = os.path.join(REPO_DIR, 'scripts', 'sync_reports.ts')
 
 WATCHED_FILES = [
     r'D:\Mostafa Ibrahim\شيت تحصيل.xlsm',
@@ -74,20 +74,22 @@ def run_once(force=False):
 
         log(f"Detected file changes or force run. Extracting sales data...")
 
-        # 1. Run extractor
+        # 1. Run official accounting sync script
+        npx_cmd = 'npx.cmd' if os.name == 'nt' else 'npx'
         ext_res = subprocess.run(
-            [sys.executable, EXTRACTOR_SCRIPT],
+            [npx_cmd, 'tsx', SYNC_SCRIPT],
             cwd=REPO_DIR,
             capture_output=True,
             text=True,
             encoding='utf-8',
-            creationflags=CREATE_NO_WINDOW
+            shell=(os.name == 'nt'),
+            creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0
         )
         if ext_res.returncode != 0:
-            log(f"Extraction ERROR: {ext_res.stderr}")
+            log(f"Sync ERROR: {ext_res.stderr or ext_res.stdout}")
             return False
 
-        log("Data extracted successfully. Updating build assets...")
+        log(f"Sync completed successfully. Output:\n{ext_res.stdout.strip()}")
 
         # 2. Re-build client SPA assets if needed, or update dist/sales_data.json
         dist_json = os.path.join(REPO_DIR, 'dist', 'sales_data.json')

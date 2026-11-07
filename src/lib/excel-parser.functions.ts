@@ -1072,6 +1072,15 @@ export async function parseAndImportReport(args: { data: any }) {
 
   const reportId = await saveLocalReport(reportPayload);
 
+  const updatedReports = [
+    reportPayload,
+    ...existingReports.filter((r: any) => r.report?.report_date !== reportDate),
+  ].sort(
+    (a: any, b: any) =>
+      new Date(b.report.report_date).getTime() -
+      new Date(a.report.report_date).getTime(),
+  );
+
   return {
     reportId,
     reportDate,
@@ -1079,6 +1088,7 @@ export async function parseAndImportReport(args: { data: any }) {
     totalCollected,
     customerCount,
     invoiceCount: invoiceCountTotal,
+    allReports: updatedReports,
   };
 }
 

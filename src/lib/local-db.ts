@@ -21,7 +21,7 @@ const FIRESTORE_COLLECTION = "reports";
 export async function getLocalReports() {
   const reportsMap = new Map<string, any>();
 
-  // 1. Always load from local IndexedDB first (lightning fast, zero network latency)
+  // 1. Load from local IndexedDB first (lightning fast, zero network latency)
   if (typeof window !== "undefined") {
     try {
       const allKeys = await keys();
@@ -30,6 +30,11 @@ export async function getLocalReports() {
       );
 
       for (const key of reportKeys) {
+        // Clean up invalid or corrupted dummy keys from previous tests
+        if (key === DB_PREFIX + "latest" || key === DB_PREFIX + "rep_20261107") {
+          await del(key);
+          continue;
+        }
         const data = await get(key);
         if (data && data.report && data.report.report_date) {
           const id = data.report.id || String(key).replace(DB_PREFIX, "");
@@ -42,20 +47,8 @@ export async function getLocalReports() {
     }
   }
 
-  // 2. If IndexedDB has reports, return them immediately!
-  // No waiting, no freezing, instant UI response.
-  if (reportsMap.size > 0) {
-    const reports = Array.from(reportsMap.values());
-    reports.sort(
-      (a, b) =>
-        new Date(b.report.report_date).getTime() -
-        new Date(a.report.report_date).getTime(),
-    );
-    return reports;
-  }
-
-  // 3. Fallback to bundled static sales_data.json (for instant loading on GitHub Pages)
-  if (typeof window !== "undefined") {
+  // 2. Fetch static bundled reports if IndexedDB is empty or has very few reports (<10)
+  if (reportsMap.size < 10 && typeof window !== "undefined") {
     try {
       const basePath = window.location.pathname.includes("/sales-report")
         ? "/sales-report/"
@@ -65,11 +58,22 @@ export async function getLocalReports() {
       });
       if (res.ok) {
         const staticData = await res.json();
-        if (staticData && staticData.report && staticData.report.report_date) {
+        if (Array.isArray(staticData)) {
+          for (const item of staticData) {
+            if (item && item.report && item.report.report_date) {
+              const id = item.report.id || item.report.report_date;
+              item.report.id = id;
+              reportsMap.set(id, item);
+              set(DB_PREFIX + id, item).catch(() => {});
+            }
+          }
+        } else if (staticData && staticData.report && staticData.report.report_date) {
           const id = staticData.report.id || "latest";
-          staticData.report.id = id;
-          reportsMap.set(id, staticData);
-          set(DB_PREFIX + id, staticData).catch(() => {});
+          if (id !== "latest" && id !== "rep_20261107") {
+            staticData.report.id = id;
+            reportsMap.set(id, staticData);
+            set(DB_PREFIX + id, staticData).catch(() => {});
+          }
         }
       }
     } catch (e) {
@@ -77,7 +81,7 @@ export async function getLocalReports() {
     }
   }
 
-  // 4. Fallback to Firestore only if local cache is completely empty (e.g. new browser/device)
+  // 3. Live sync with cloud Firestore
   try {
     const snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
     if (!snap.empty) {
@@ -94,7 +98,7 @@ export async function getLocalReports() {
       }
     }
   } catch (error: any) {
-    console.warn("Firestore fallback fetch error:", error);
+    console.warn("Firestore sync warning:", error);
   }
 
   const reports = Array.from(reportsMap.values());
@@ -173,10 +177,12 @@ export async function saveLocalReport(reportData: any) {
     }
   }
 
-  // 2. Sync to cloud Firestore in background without blocking UI
-  setDoc(doc(db, FIRESTORE_COLLECTION, id), reportData).catch((err) => {
-    console.warn("Background Firestore save warning:", err);
-  });
+  // 2. Sync to cloud Firestore
+  try {
+    await setDoc(doc(db, FIRESTORE_COLLECTION, id), reportData);
+  } catch (err) {
+    console.warn("Firestore save warning:", err);
+  }
 
   return id;
 }
@@ -191,10 +197,12 @@ export async function deleteLocalReport(id: string) {
     }
   }
 
-  // 2. Delete from Firestore in background
-  deleteDoc(doc(db, FIRESTORE_COLLECTION, id)).catch((err) => {
-    console.warn("Background Firestore delete warning:", err);
-  });
+  // 2. Delete from Firestore
+  try {
+    await deleteDoc(doc(db, FIRESTORE_COLLECTION, id));
+  } catch (err) {
+    console.warn("Firestore delete warning:", err);
+  }
 }
 
 export async function resetLocalDb() {
