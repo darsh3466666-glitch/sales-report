@@ -140,7 +140,8 @@ function toISO(d: unknown): string | null {
   if (!d) return null;
   if (d instanceof Date) {
     if (isNaN(d.getTime())) return null;
-    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    // Add 2 hours buffer to prevent UTC evening dates (e.g. 21:59:51) from slipping to previous day
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000 + 7200000);
     return local.toISOString();
   }
   if (typeof d === "number") {
@@ -430,12 +431,40 @@ export async function parseAndImportReport(args: { data: any }) {
   let reportDate = data.reportDate;
 
   if (!reportDate) {
-    const headerRow = salesRows[0] || [];
-    for (const cell of headerRow) {
-      const iso = toISO(cell);
-      if (iso) {
-        reportDate = iso.slice(0, 10);
-        break;
+    // 1. Prioritize invoice file date (wb2) - most reliable source of daily transactions
+    if (custReportName) {
+      const custRows = sheetRows(wb2, custReportName);
+      for (let i = 0; i < Math.min(6, custRows.length); i++) {
+        for (const cell of custRows[i] || []) {
+          const strCell = str(cell);
+          const mIso = strCell.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+          if (mIso) {
+            reportDate = `${mIso[1]}-${mIso[2].padStart(2, "0")}-${mIso[3].padStart(2, "0")}`;
+            break;
+          }
+        }
+        if (reportDate) break;
+      }
+    }
+
+    // 2. Fallback to invoice transaction date in wb1 (فواتير sheet)
+    if (!reportDate && invName) {
+      const invRowsCheck = sheetRows(wb1, invName);
+      if (invRowsCheck.length > 1 && invRowsCheck[1]) {
+        const invIso = toISO(invRowsCheck[1][1]);
+        if (invIso) reportDate = invIso.slice(0, 10);
+      }
+    }
+
+    // 3. Fallback to header row of sales sheet
+    if (!reportDate) {
+      const headerRow = salesRows[0] || [];
+      for (const cell of headerRow) {
+        const iso = toISO(cell);
+        if (iso) {
+          reportDate = iso.slice(0, 10);
+          break;
+        }
       }
     }
   }

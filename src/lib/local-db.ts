@@ -31,12 +31,20 @@ export async function getLocalReports() {
 
       for (const key of reportKeys) {
         // Clean up invalid or corrupted dummy keys from previous tests
-        if (key === DB_PREFIX + "latest" || key === DB_PREFIX + "rep_20261107") {
+        if (
+          key === DB_PREFIX + "latest" ||
+          key === DB_PREFIX + "rep_20261107" ||
+          key === DB_PREFIX + "c8decb47-c483-4209-90cf-5466d2dab49f"
+        ) {
           await del(key);
           continue;
         }
         const data = await get(key);
         if (data && data.report && data.report.report_date) {
+          if (data.report.report_date === "2026-11-06") {
+            await del(key);
+            continue;
+          }
           const id = data.report.id || String(key).replace(DB_PREFIX, "");
           data.report.id = id;
           reportsMap.set(id, data);
