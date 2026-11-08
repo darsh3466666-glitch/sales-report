@@ -7,3 +7,5 @@ coverage/
 *.log
 .env*
 !.env.example
+.watcher_heartbeat
+.last_mtimes.json

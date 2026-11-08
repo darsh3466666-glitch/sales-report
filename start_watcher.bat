@@ -1,3 +1,4 @@
 @echo off
 cd /d "%~dp0"
-python sales_watcher.py
+call start_supervisor.bat
+exit /b %ERRORLEVEL%

@@ -33,3 +33,9 @@ Scope: Automated extraction of 3 local Excel files, real-time sync, and continuo
   CHECK: Automated test querying GitHub Pages sales_data.json
   EXPECT: 91 historical reports, accurate opening balance (~27.48M EGP), 13 invoices, 14,308 EGP average invoice, active historical comparisons
   EVIDENCE: Verified: 91 reports deployed to GitHub Pages (HTTP 200). Opening balance 27,481,992 EGP, receivables 27,241,372 EGP, sales 186,000 EGP, collections 138,320 EGP, invoice count 13, avg invoice 14,308 EGP. IndexedDB bad cache auto-purge implemented in local-db.ts.
+
+
+- [x] G7: Bulletproof Auto-Reviving Watcher & Task Scheduler Service
+  CHECK: powershell -ExecutionPolicy Bypass -File scripts/verify_watcher_resilience.ps1
+  EXPECT: SUCCESS_WATCHER_RESILIENCE_VERIFIED
+  EVIDENCE: Output verified: SUCCESS_WATCHER_RESILIENCE_VERIFIED (Task Scheduler job SalesReportWatcher_Nour registered and running every 1 minute with interactive principal; startup fail-safe shortcut confirmed; crash auto-recovery supervisor verified; live file change detection and full extraction-sync cycle executed cleanly).
