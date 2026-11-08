@@ -1,20 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { CashFlowCustomer, saveCustomerOverride } from "@/lib/cashflow.functions";
 import { fmtMoney } from "@/lib/formatters";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Pin, Save, User, Wallet } from "lucide-react";
+import { Pin, Save, User, Wallet, X, Calendar, DollarSign } from "lucide-react";
 
 interface CashFlowEditModalProps {
   customer: CashFlowCustomer | null;
@@ -29,146 +22,223 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
   onClose,
   onSaved,
 }) => {
-  const [expectedAmount, setExpectedAmount] = useState<number>(0);
+  const [expectedAmount, setExpectedAmount] = useState<string>("0");
   const [isPinned, setIsPinned] = useState<boolean>(false);
   const [notes, setNotes] = useState<string>("");
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
   useEffect(() => {
     if (customer) {
-      setExpectedAmount(customer.expectedAmount || 0);
+      setExpectedAmount(String(customer.expectedAmount || 0));
       setIsPinned(Boolean(customer.isPinned));
       setNotes(customer.notes || "");
     }
   }, [customer]);
 
-  if (!customer) return null;
+  // Handle ESC key to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
 
-  const handleSave = () => {
+  if (!isOpen || !customer) return null;
+
+  const handleSave = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setIsSaving(true);
     try {
+      const parsedAmount = parseFloat(expectedAmount) || 0;
       saveCustomerOverride(customer.customerName, {
-        expectedAmount: Number(expectedAmount) || 0,
+        expectedAmount: parsedAmount,
         isPinned,
-        notes,
+        notes: notes.trim(),
       });
       toast.success(`تم حفظ بيانات العميل: ${customer.customerName}`);
       onSaved();
       onClose();
     } catch (err) {
       console.error(err);
-      toast.error("حدث خطأ أثناء الحفظ");
+      toast.error("حدث خطأ أثناء حفظ التعديلات");
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-md" dir="rtl">
-        <DialogHeader>
-          <DialogTitle className="text-lg font-bold flex items-center gap-2 text-foreground">
-            <User className="h-5 w-5 text-primary" />
-            <span>تعديل إعدادات الكاش فلو للعميل</span>
-          </DialogTitle>
-        </DialogHeader>
+  const handleSetCurrentBalanceAsExpected = () => {
+    setExpectedAmount(String(customer.currentBalance || 0));
+  };
 
-        <div className="space-y-4 py-2">
-          {/* Customer info card */}
-          <div className="p-3 bg-muted/50 rounded-xl space-y-1.5 border border-border">
-            <div className="text-sm font-black text-foreground">
-              {customer.customerName}
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+      dir="rtl"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div
+        className="relative w-full max-w-lg bg-card border-2 border-primary/30 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5 animate-in zoom-in-95 duration-150"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-primary/10 rounded-xl text-primary">
+              <User className="h-5 w-5" />
             </div>
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Wallet className="h-3.5 w-3.5 text-primary" />
-                الرصيد الحالي في الماستر داتا:
-              </span>
-              <span className="font-bold text-foreground">
+            <div>
+              <h2 id="modal-title" className="text-lg font-black text-foreground">
+                تعديل بيانات الكاش فلو
+              </h2>
+              <p className="text-xs text-muted-foreground font-medium">
+                تعديل المبلغ المستهدف وتثبيت القسط الأسبوعي
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
+            title="إغلاق"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        {/* Customer Info Card */}
+        <div className="p-3.5 bg-muted/60 rounded-xl border border-primary/20 space-y-2">
+          <div className="text-base font-black text-foreground">
+            {customer.customerName}
+          </div>
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+              <Wallet className="h-4 w-4 text-primary" />
+              <span>الرصيد في الماستر:</span>
+              <span className="font-extrabold text-foreground tabular-nums text-sm">
                 {fmtMoney(customer.currentBalance)}
               </span>
             </div>
             {customer.dueDate && (
-              <div className="text-xs text-muted-foreground flex justify-between">
+              <div className="flex items-center gap-1.5 text-muted-foreground font-medium">
+                <Calendar className="h-4 w-4 text-primary" />
                 <span>موعد السداد:</span>
-                <span className="font-semibold text-foreground">
+                <span className="font-bold text-foreground tabular-nums">
                   {customer.dueDate}
                 </span>
               </div>
             )}
           </div>
+        </div>
 
-          {/* Expected Amount Input */}
+        {/* Form Body */}
+        <form onSubmit={handleSave} className="space-y-4">
+          {/* Expected Amount Field */}
           <div className="space-y-1.5">
-            <Label htmlFor="expected-amount" className="text-xs font-bold">
-              المبلغ المتوقع للأسبوع الحالي (ج.م)
-            </Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="expected-amount-input" className="text-sm font-black text-foreground">
+                المبلغ المتوقع للأسبوع الحالي (ج.م)
+              </Label>
+              {customer.currentBalance > 0 && (
+                <button
+                  type="button"
+                  onClick={handleSetCurrentBalanceAsExpected}
+                  className="text-xs text-primary font-bold hover:underline cursor-pointer"
+                >
+                  استخدام كامل الرصيد الحالي
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Input
-                id="expected-amount"
+                id="expected-amount-input"
                 type="number"
                 min="0"
                 step="500"
                 value={expectedAmount}
-                onChange={(e) => setExpectedAmount(Number(e.target.value))}
-                className="text-left font-mono font-bold text-base"
+                onChange={(e) => setExpectedAmount(e.target.value)}
+                className="text-left font-mono font-black text-lg h-11 pr-3 pl-12 bg-background border-2 border-primary/30 focus:border-primary"
                 dir="ltr"
+                autoFocus
               />
-              <span className="absolute left-3 top-2.5 text-xs text-muted-foreground pointer-events-none">
-                EGP
+              <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground pointer-events-none">
+                ج.م
               </span>
             </div>
-            <p className="text-[11px] text-muted-foreground">
-              إذا كان العميل كاش، يمكن الافتراض برصيده الحالي (
-              {fmtMoney(customer.currentBalance)}) لتسوية الحساب بالكامل.
-            </p>
           </div>
 
-          {/* Pin Fixed Amount Checkbox */}
-          <div className="flex items-start gap-3 p-3 bg-primary/5 rounded-xl border border-primary/20">
+          {/* Pin Checkbox */}
+          <div
+            onClick={() => setIsPinned(!isPinned)}
+            className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition ${
+              isPinned
+                ? "bg-primary/10 border-primary shadow-xs"
+                : "bg-muted/30 border-border hover:border-primary/40"
+            }`}
+          >
             <Checkbox
-              id="pin-weekly"
+              id="pin-weekly-cb"
               checked={isPinned}
               onCheckedChange={(checked) => setIsPinned(Boolean(checked))}
               className="mt-0.5"
             />
-            <div className="space-y-1 leading-none">
+            <div className="space-y-1 select-none">
               <label
-                htmlFor="pin-weekly"
-                className="text-xs font-bold text-foreground cursor-pointer flex items-center gap-1"
+                htmlFor="pin-weekly-cb"
+                className="text-sm font-black text-foreground flex items-center gap-1.5 cursor-pointer"
               >
-                <Pin className="h-3.5 w-3.5 text-primary rotate-45" />
-                تثبيت هذا المبلغ أسبوعياً
+                <Pin className="h-4 w-4 text-primary rotate-45" />
+                <span>تثبيت هذا المبلغ أسبوعياً (قسط أسبوعي ثابت)</span>
               </label>
-              <p className="text-[11px] text-muted-foreground">
-                للعملاء الذين يدفعون أقساطاً أسبوعية ثابتة (مثل 200,000 ج.م أو 350,000 ج.م)
-                ليتم إدراجه تلقائياً كل أربعاء.
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                للعملاء الذين يدفعون مبالغ ثابتة كل أسبوع (لتسجيله تلقائياً كل أربعاء).
               </p>
             </div>
           </div>
 
-          {/* Notes textarea */}
+          {/* Notes */}
           <div className="space-y-1.5">
-            <Label htmlFor="customer-notes" className="text-xs font-bold">
+            <Label htmlFor="notes-input" className="text-sm font-black text-foreground">
               ملاحظات التحصيل
             </Label>
             <Textarea
-              id="customer-notes"
+              id="notes-input"
               rows={2}
-              placeholder="مثال: تحويل بنكي أسبوعي، وعد بالسداد الأحد..."
+              placeholder="مثال: تحويل بنكي أسبوعي، وعد بالسداد يوم الأحد..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="text-sm"
+              className="text-sm bg-background border-border"
             />
           </div>
-        </div>
 
-        <DialogFooter className="gap-2 sm:gap-0">
-          <Button variant="outline" onClick={onClose} size="sm">
-            إلغاء
-          </Button>
-          <Button onClick={handleSave} size="sm" className="gap-1.5 font-bold">
-            <Save className="h-4 w-4" />
-            <span>حفظ التعديلات</span>
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={isSaving}
+              className="px-4 font-bold rounded-xl"
+            >
+              إلغاء
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSaving}
+              className="px-6 font-black rounded-xl gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer"
+            >
+              <Save className="h-4 w-4" />
+              <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 };

@@ -34,22 +34,22 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
   return (
     <div className="space-y-4">
       {/* Top Banner: Title & Live Treasury Indicator */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-4 rounded-2xl border border-primary/20 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-4 rounded-2xl border-2 border-primary/20 shadow-sm">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-xl text-primary">
-            <TrendingUp className="h-6 w-6" />
+            <TrendingUp className="h-7 w-7" />
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl font-black text-foreground">
                 التدفقات النقدية الأسبوعية (Cash Flow)
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300">
-                <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-                مباشر مع الخزينة
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-2 border-emerald-400 shadow-2xs">
+                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                مباشر مع الخزينة ⚡
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-muted-foreground flex items-center gap-1.5 mt-1 font-medium">
+            <p className="text-xs sm:text-sm text-foreground/80 flex items-center gap-1.5 mt-1 font-bold">
               <Calendar className="h-4 w-4 text-primary" />
               {summary.weekLabel}
             </p>
@@ -59,8 +59,8 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
         {/* Live sync status & refresh button */}
         <div className="flex items-center gap-2 mr-auto">
           <div className="text-left text-xs text-muted-foreground hidden sm:block">
-            <div>آخر تحديث: {lastUpdatedTime}</div>
-            <div className="text-emerald-600 dark:text-emerald-400 font-semibold">
+            <div className="font-semibold">آخر تحديث: {lastUpdatedTime}</div>
+            <div className="text-emerald-600 dark:text-emerald-400 font-bold">
               تحديث تلقائي كل 30 ثانية
             </div>
           </div>
@@ -69,7 +69,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             size="sm"
             onClick={onRefresh}
             disabled={isFetching}
-            className="rounded-full gap-2 border-primary/30 hover:bg-primary/10 font-bold"
+            className="rounded-full gap-2 border-2 border-primary/30 hover:bg-primary/10 font-black h-10 px-4 text-xs sm:text-sm cursor-pointer shadow-xs"
           >
             <RefreshCw
               className={`h-4 w-4 text-primary ${isFetching ? "animate-spin" : ""}`}
@@ -80,45 +80,45 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
       </div>
 
       {/* 4 Million Weekly Goal Big Target Card */}
-      <div className="bg-gradient-to-r from-emerald-500/10 via-primary/10 to-teal-500/10 border-2 border-emerald-500/30 rounded-2xl p-4 sm:p-5 shadow-sm relative overflow-hidden">
+      <div className="bg-gradient-to-r from-emerald-500/15 via-primary/15 to-teal-500/15 border-3 border-emerald-500/40 rounded-2xl p-4 sm:p-6 shadow-md relative overflow-hidden">
         <div className="flex flex-wrap items-center justify-between gap-4 relative z-10">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+              <Target className="h-6 w-6 text-emerald-700 dark:text-emerald-400" />
+              <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-foreground/80">
                 المستهدف الأسبوعي العام (Target)
               </span>
             </div>
-            <div className="text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400">
+            <div className="text-3xl sm:text-4xl font-black text-emerald-800 dark:text-emerald-300 font-mono tracking-tight">
               {fmtMoney(summary.weeklyGoal)}
-              <span className="text-xs font-normal text-muted-foreground mr-2">
+              <span className="text-xs sm:text-sm font-bold text-foreground/70 mr-2">
                 (مطلوب 4 مليون أسبوعياً)
               </span>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-left">
+          <div className="flex items-center gap-4 sm:gap-6 text-left flex-wrap">
             <div>
-              <div className="text-xs text-muted-foreground">المحصل حتى الآن</div>
-              <div className="text-lg sm:text-xl font-bold text-foreground">
+              <div className="text-xs sm:text-sm text-foreground/70 font-bold">المحصل حتى الآن</div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
                 {fmtMoney(summary.totalCollected)}
               </div>
               {summary.collectedFromTreasury > 0 && (
-                <div className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                  <Zap className="h-3 w-3 fill-emerald-500" />
+                <div className="text-xs font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1 mt-0.5">
+                  <Zap className="h-3.5 w-3.5 fill-emerald-500" />
                   منها {fmtMoney(summary.collectedFromTreasury)} من الخزينة مباشر
                 </div>
               )}
             </div>
-            <div className="border-r border-primary/20 pr-4">
-              <div className="text-xs text-muted-foreground">المتبقي للمستهدف</div>
-              <div className="text-lg sm:text-xl font-bold text-destructive">
+            <div className="border-r-2 border-primary/30 pr-4 sm:pr-6">
+              <div className="text-xs sm:text-sm text-foreground/70 font-bold">المتبقي للمستهدف</div>
+              <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
                 {fmtMoney(summary.remainingToTarget)}
               </div>
             </div>
-            <div className="text-center bg-card/80 px-3 py-1.5 rounded-xl border border-primary/20">
-              <div className="text-xs text-muted-foreground">نسبة الإنجاز</div>
-              <div className="text-lg font-black text-emerald-600">
+            <div className="text-center bg-card px-4 py-2 rounded-xl border-2 border-emerald-500/40 shadow-xs">
+              <div className="text-xs text-muted-foreground font-bold">نسبة الإنجاز</div>
+              <div className="text-xl sm:text-2xl font-black text-emerald-600 font-mono">
                 {targetAchievedPct.toFixed(1)}%
               </div>
             </div>
@@ -127,8 +127,8 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
 
         {/* Target Progress Bar */}
         <div className="mt-4 space-y-1.5 relative z-10">
-          <Progress value={targetAchievedPct} className="h-3.5 bg-muted" />
-          <div className="flex justify-between text-[11px] text-muted-foreground font-medium">
+          <Progress value={targetAchievedPct} className="h-4 bg-muted border border-border" />
+          <div className="flex justify-between text-xs text-foreground/80 font-bold">
             <span>0 ج.م</span>
             <span>2,000,000 ج.م (50%)</span>
             <span>4,000,000 ج.م (الهدف)</span>
@@ -137,34 +137,34 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
         {/* Card 1: Total Expected */}
-        <div className="bg-card p-3 sm:p-4 rounded-xl border border-primary/20 shadow-sm">
-          <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
+        <div className="bg-card p-4 rounded-2xl border-2 border-primary/20 shadow-xs hover:border-primary/40 transition">
+          <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
             <span>إجمالي المتوقع</span>
-            <Target className="h-4 w-4 text-primary" />
+            <Target className="h-5 w-5 text-primary" />
           </div>
-          <div className="text-lg sm:text-xl font-bold text-foreground">
+          <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
             {fmtMoney(summary.totalExpected)}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">
+          <div className="text-xs text-muted-foreground font-bold mt-1">
             {summary.customerCount} عميل مستحق
           </div>
         </div>
 
         {/* Card 2: Total Collected */}
-        <div className="bg-card p-3 sm:p-4 rounded-xl border border-emerald-500/20 shadow-sm">
-          <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
+        <div className="bg-card p-4 rounded-2xl border-2 border-emerald-500/30 shadow-xs hover:border-emerald-500/50 transition">
+          <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
             <span>إجمالي المحصل</span>
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
+            <TrendingUp className="h-5 w-5 text-emerald-500" />
           </div>
-          <div className="text-lg sm:text-xl font-bold text-emerald-600">
+          <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
             {fmtMoney(summary.totalCollected)}
           </div>
-          <div className="text-[11px] text-emerald-700/80 dark:text-emerald-400 mt-1 flex items-center gap-1">
+          <div className="text-xs text-emerald-700 dark:text-emerald-300 font-bold mt-1 flex items-center gap-1">
             <span>شيت: {fmtMoney(summary.collectedFromSheet)}</span>
             {summary.collectedFromTreasury > 0 && (
-              <span className="font-bold">
+              <span className="font-black">
                 + خزينة: {fmtMoney(summary.collectedFromTreasury)}
               </span>
             )}
@@ -172,43 +172,43 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
         </div>
 
         {/* Card 3: Collection Rate */}
-        <div className="bg-card p-3 sm:p-4 rounded-xl border border-teal-500/20 shadow-sm">
-          <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
+        <div className="bg-card p-4 rounded-2xl border-2 border-teal-500/30 shadow-xs hover:border-teal-500/50 transition">
+          <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
             <span>نسبة التحصيل</span>
-            <span className="font-mono text-xs text-teal-600 font-bold">%</span>
+            <span className="font-mono text-sm text-teal-600 font-black">%</span>
           </div>
-          <div className="text-lg sm:text-xl font-bold text-teal-600">
+          <div className="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 font-mono">
             {fmtPct(summary.collectionRate)}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">
+          <div className="text-xs text-muted-foreground font-bold mt-1">
             من إجمالي المستحق
           </div>
         </div>
 
         {/* Card 4: Remaining Expected */}
-        <div className="bg-card p-3 sm:p-4 rounded-xl border border-destructive/20 shadow-sm">
-          <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
+        <div className="bg-card p-4 rounded-2xl border-2 border-rose-500/30 shadow-xs hover:border-rose-500/50 transition">
+          <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
             <span>المتبقي تحصيله</span>
-            <Clock className="h-4 w-4 text-destructive" />
+            <Clock className="h-5 w-5 text-rose-500" />
           </div>
-          <div className="text-lg sm:text-xl font-bold text-destructive">
+          <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
             {fmtMoney(Math.max(0, summary.totalExpected - summary.totalCollected))}
           </div>
-          <div className="text-[11px] text-muted-foreground mt-1">
-            مطلوب تحصيلها
+          <div className="text-xs text-muted-foreground font-bold mt-1">
+            مطلوب تحصيلها للأسبوع
           </div>
         </div>
 
         {/* Card 5: Overdue Count */}
-        <div className="bg-card p-3 sm:p-4 rounded-xl border border-amber-500/20 shadow-sm col-span-2 md:col-span-1">
-          <div className="flex items-center justify-between text-muted-foreground text-xs mb-1">
+        <div className="bg-card p-4 rounded-2xl border-2 border-amber-500/30 shadow-xs hover:border-amber-500/50 transition col-span-2 md:col-span-1">
+          <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
             <span>عملاء متأخرون</span>
-            <AlertCircle className="h-4 w-4 text-amber-500" />
+            <AlertCircle className="h-5 w-5 text-amber-500" />
           </div>
-          <div className="text-lg sm:text-xl font-bold text-amber-600">
+          <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">
             {summary.overdueCount} عميل
           </div>
-          <div className="text-[11px] text-amber-700/80 dark:text-amber-400 mt-1">
+          <div className="text-xs text-amber-700 dark:text-amber-300 font-bold mt-1">
             تجاوزوا موعد السداد
           </div>
         </div>
