@@ -1,11 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useState, useMemo } from "react";
-import { getLiveCashFlowData } from "@/lib/cashflow.functions";
+import { useEffect, useState, useMemo, useCallback } from "react";
+import {
+  getLiveCashFlowData,
+  recalculateCashFlowSummary,
+  saveCustomerOverride,
+  type CashFlowSummary,
+} from "@/lib/cashflow.functions";
 import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
 import { CashFlowTable } from "@/components/cashflow/CashFlowTable";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, BarChart3, Wallet, Printer } from "lucide-react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/cashflow")({
   ssr: false,
@@ -14,7 +20,7 @@ export const Route = createFileRoute("/cashflow")({
 
 function CashFlowPage() {
   const {
-    data: summary,
+    data: fetchedSummary,
     isLoading,
     isFetching,
     refetch,
@@ -26,21 +32,38 @@ function CashFlowPage() {
     staleTime: 10000,
   });
 
+  // Local optimistic summary state (for 0ms instant UI responses without freeze)
+  const [activeSummary, setActiveSummary] = useState<CashFlowSummary | null>(null);
+
+  // Sync with fetched data whenever network query returns
+  useEffect(() => {
+    if (fetchedSummary) {
+      setActiveSummary(fetchedSummary);
+    }
+  }, [fetchedSummary]);
+
   const lastUpdatedTime = useMemo(() => {
     if (!dataUpdatedAt) return "الآن";
     return new Date(dataUpdatedAt).toLocaleTimeString("ar-EG");
   }, [dataUpdatedAt]);
 
-  // Listen to local override changes
-  useEffect(() => {
-    const handleOverrides = () => {
-      refetch();
-    };
-    window.addEventListener("cashflow_overrides_changed", handleOverrides);
-    return () => {
-      window.removeEventListener("cashflow_overrides_changed", handleOverrides);
-    };
-  }, [refetch]);
+  // Handle instant customer updates: updates memory immediately, writes localStorage safely, zero freeze!
+  const handleCustomerSave = useCallback(
+    (
+      customerName: string,
+      updates: { expectedAmount: number; isPinned: boolean; notes: string }
+    ) => {
+      saveCustomerOverride(customerName, updates);
+
+      setActiveSummary((prev) => {
+        if (!prev) return prev;
+        return recalculateCashFlowSummary(prev, customerName, updates);
+      });
+
+      toast.success(`تم حفظ بيانات العميل: ${customerName}`);
+    },
+    []
+  );
 
   const [dark, setDark] = useState(() => {
     if (typeof document !== "undefined") {
@@ -141,17 +164,18 @@ function CashFlowPage() {
               جاري تحميل بيانات التدفقات النقدية والاتصال بالخزينة...
             </div>
           </div>
-        ) : summary ? (
+        ) : activeSummary ? (
           <>
             <CashFlowHeader
-              summary={summary}
+              summary={activeSummary}
               isFetching={isFetching}
               onRefresh={() => refetch()}
               lastUpdatedTime={lastUpdatedTime || "الآن"}
             />
             <CashFlowTable
-              summary={summary}
-              onDataChanged={() => refetch()}
+              summary={activeSummary}
+              onCustomerSave={handleCustomerSave}
+              onRefresh={() => refetch()}
             />
           </>
         ) : (

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from "react";
-import { CashFlowCustomer, CashFlowSummary, saveCustomerOverride } from "@/lib/cashflow.functions";
+import { CashFlowCustomer, CashFlowSummary } from "@/lib/cashflow.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
   Table,
@@ -23,21 +23,24 @@ import {
   XCircle,
   X,
   Check,
-  Save,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
 
 interface CashFlowTableProps {
   summary: CashFlowSummary;
-  onDataChanged: () => void;
+  onCustomerSave: (
+    customerName: string,
+    updates: { expectedAmount: number; isPinned: boolean; notes: string }
+  ) => void;
+  onRefresh?: () => void;
 }
 
 type FilterStatus = "all" | "completed" | "partial" | "unpaid" | "surplus" | "overdue";
 
 export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   summary,
-  onDataChanged,
+  onCustomerSave,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
@@ -64,14 +67,14 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
   const saveEdit = (cust: CashFlowCustomer) => {
     const parsed = parseFloat(editExpected) || 0;
-    saveCustomerOverride(cust.customerName, {
+    // Immediately close editing row
+    setEditingCustomerName(null);
+    // Optimistically update memory and localStorage via parent (zero freeze)
+    onCustomerSave(cust.customerName, {
       expectedAmount: parsed,
       isPinned: editPinned,
       notes: editNotes.trim(),
     });
-    setEditingCustomerName(null);
-    toast.success(`تم حفظ بيانات العميل: ${cust.customerName}`);
-    onDataChanged();
   };
 
   // Filter counts
@@ -142,35 +145,35 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     switch (status) {
       case "مكتمل":
         return (
-          <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-2 border-emerald-400 font-black gap-1 text-xs py-1 px-2.5 shadow-2xs">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+          <Badge className="bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-2 border-emerald-400 font-black gap-1 text-xs sm:text-sm py-1 px-3 shadow-2xs">
+            <CheckCircle2 className="h-4 w-4 text-emerald-600" />
             <span>مكتمل</span>
           </Badge>
         );
       case "جزئي":
         return (
-          <Badge className="bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border-2 border-amber-400 font-black gap-1 text-xs py-1 px-2.5 shadow-2xs">
-            <Clock className="h-3.5 w-3.5 text-amber-600" />
+          <Badge className="bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 border-2 border-amber-400 font-black gap-1 text-xs sm:text-sm py-1 px-3 shadow-2xs">
+            <Clock className="h-4 w-4 text-amber-600" />
             <span>جزئي</span>
           </Badge>
         );
       case "لم يسدد":
         return (
-          <Badge className="bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-300 border-2 border-rose-400 font-black gap-1 text-xs py-1 px-2.5 shadow-2xs">
-            <XCircle className="h-3.5 w-3.5 text-rose-600" />
+          <Badge className="bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-300 border-2 border-rose-400 font-black gap-1 text-xs sm:text-sm py-1 px-3 shadow-2xs">
+            <XCircle className="h-4 w-4 text-rose-600" />
             <span>لم يسدد</span>
           </Badge>
         );
       case "فائض":
         return (
-          <Badge className="bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-300 border-2 border-blue-400 font-black gap-1 text-xs py-1 px-2.5 shadow-2xs">
-            <Zap className="h-3.5 w-3.5 text-blue-600" />
+          <Badge className="bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-300 border-2 border-blue-400 font-black gap-1 text-xs sm:text-sm py-1 px-3 shadow-2xs">
+            <Zap className="h-4 w-4 text-blue-600" />
             <span>فائض</span>
           </Badge>
         );
       default:
         return (
-          <Badge variant="outline" className="text-muted-foreground text-xs font-bold py-1 px-2">
+          <Badge variant="outline" className="text-muted-foreground text-xs sm:text-sm font-bold py-1 px-2.5">
             {status}
           </Badge>
         );
@@ -189,12 +192,12 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             placeholder="بحث باسم العميل، الملاحظات..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pr-10 pl-9 text-sm font-semibold rounded-full bg-background border-2 border-primary/20 focus:border-primary focus:outline-none h-10 px-3 text-foreground"
+            className="w-full pr-10 pl-9 text-sm font-bold rounded-full bg-background border-2 border-primary/20 focus:border-primary focus:outline-none h-11 px-3 text-foreground"
           />
           {searchTerm && (
             <button
               onClick={() => setSearchTerm("")}
-              className="absolute left-3 top-2.5 p-0.5 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
+              className="absolute left-3 top-3 p-0.5 rounded-full hover:bg-muted text-muted-foreground cursor-pointer"
             >
               <X className="h-4 w-4" />
             </button>
@@ -206,7 +209,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           variant="outline"
           size="sm"
           onClick={handleExport}
-          className="rounded-full gap-2 border-2 border-primary/30 font-black text-sm h-10 px-5 hover:bg-primary/10 mr-auto shadow-xs cursor-pointer"
+          className="rounded-full gap-2 border-2 border-primary/30 font-black text-sm h-11 px-5 hover:bg-primary/10 mr-auto shadow-xs cursor-pointer"
         >
           <Download className="h-4 w-4 text-primary" />
           <span>تصدير شيت Excel</span>
@@ -219,7 +222,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           variant={statusFilter === "all" ? "default" : "outline"}
           size="sm"
           onClick={() => setStatusFilter("all")}
-          className="rounded-full text-xs sm:text-sm font-black h-9 px-3.5 cursor-pointer"
+          className="rounded-full text-xs sm:text-sm font-black h-9 px-4 cursor-pointer"
         >
           الكل ({counts.all})
         </Button>
@@ -227,7 +230,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           variant={statusFilter === "completed" ? "default" : "outline"}
           size="sm"
           onClick={() => setStatusFilter("completed")}
-          className="rounded-full text-xs sm:text-sm font-black h-9 px-3.5 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer"
+          className="rounded-full text-xs sm:text-sm font-black h-9 px-4 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer"
         >
           مكتمل ({counts.completed})
         </Button>
@@ -235,7 +238,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           variant={statusFilter === "partial" ? "default" : "outline"}
           size="sm"
           onClick={() => setStatusFilter("partial")}
-          className="rounded-full text-xs sm:text-sm font-black h-9 px-3.5 text-amber-700 dark:text-amber-300 border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer"
+          className="rounded-full text-xs sm:text-sm font-black h-9 px-4 text-amber-700 dark:text-amber-300 border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer"
         >
           جزئي ({counts.partial})
         </Button>
@@ -243,7 +246,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           variant={statusFilter === "unpaid" ? "default" : "outline"}
           size="sm"
           onClick={() => setStatusFilter("unpaid")}
-          className="rounded-full text-xs sm:text-sm font-black h-9 px-3.5 text-rose-700 dark:text-rose-300 border-2 border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
+          className="rounded-full text-xs sm:text-sm font-black h-9 px-4 text-rose-700 dark:text-rose-300 border-2 border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
         >
           لم يسدد ({counts.unpaid})
         </Button>
@@ -251,7 +254,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           variant={statusFilter === "overdue" ? "default" : "outline"}
           size="sm"
           onClick={() => setStatusFilter("overdue")}
-          className="rounded-full text-xs sm:text-sm font-black h-9 px-3.5 text-destructive border-2 border-destructive hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer"
+          className="rounded-full text-xs sm:text-sm font-black h-9 px-4 text-destructive border-2 border-destructive hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer"
         >
           <AlertTriangle className="h-4 w-4" />
           <span>متأخرون ({counts.overdue})</span>
@@ -261,7 +264,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             variant={statusFilter === "surplus" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("surplus")}
-            className="rounded-full text-xs sm:text-sm font-black h-9 px-3.5 text-blue-700 dark:text-blue-300 border-2 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
+            className="rounded-full text-xs sm:text-sm font-black h-9 px-4 text-blue-700 dark:text-blue-300 border-2 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
           >
             فائض ({counts.surplus})
           </Button>
@@ -312,43 +315,43 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         </div>
       )}
 
-      {/* Cash Flow Main Data Table with Pure Inline Editing */}
+      {/* Cash Flow Main Data Table with Clear High-Legibility Numbers */}
       <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
-                <TableHead className="w-12 text-center font-black text-foreground text-sm py-3.5">
+                <TableHead className="w-12 text-center font-black text-foreground text-sm sm:text-base py-4">
                   م
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[140px] text-right">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[150px] text-right">
                   الرصيد الحالي
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[240px] text-right">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[260px] text-right">
                   العميل
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[160px] text-right">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[170px] text-right">
                   المتوقع
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[140px] text-right">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[150px] text-right">
                   المحصل
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[120px] text-right">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[130px] text-right">
                   موعد السداد
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[100px] text-center">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[110px] text-center">
                   نسبة السداد
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[110px] text-center">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[120px] text-center">
                   حالة السداد
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[130px] text-right">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[140px] text-right">
                   المتبقي
                 </TableHead>
-                <TableHead className="font-black text-foreground text-sm min-w-[180px] text-right">
+                <TableHead className="font-black text-foreground text-sm sm:text-base min-w-[190px] text-right">
                   ملاحظات
                 </TableHead>
-                <TableHead className="w-28 text-center font-black text-foreground text-sm">
+                <TableHead className="w-28 text-center font-black text-foreground text-sm sm:text-base">
                   إجراءات
                 </TableHead>
               </TableRow>
@@ -371,47 +374,47 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                   const hasTreasuryPayment = cust.collectedFromTreasury > 0;
 
                   if (isEditing) {
-                    // INLINE EDITING ROW: Fast, 100% stable, zero freeze!
+                    // INLINE EDITING ROW: Fast, 100% stable in-memory update, zero freeze!
                     return (
                       <TableRow
                         key={"edit-" + cust.customerName}
                         className="bg-primary/10 border-2 border-primary"
                       >
                         {/* Index */}
-                        <TableCell className="text-center font-mono text-sm font-bold text-primary py-3.5">
+                        <TableCell className="text-center font-mono text-sm sm:text-base font-black text-primary py-4">
                           {cust.index}
                         </TableCell>
 
                         {/* Current Balance */}
-                        <TableCell className="text-right py-3.5 whitespace-nowrap">
-                          <span className="font-mono text-sm sm:text-base font-extrabold text-foreground tabular-nums">
+                        <TableCell className="text-right py-4 whitespace-nowrap">
+                          <span className="font-mono text-base sm:text-lg font-black text-foreground tabular-nums">
                             {fmtMoney(cust.currentBalance)}
                           </span>
                         </TableCell>
 
                         {/* Customer Name + Pin toggle */}
-                        <TableCell className="py-3.5">
+                        <TableCell className="py-4">
                           <div className="flex flex-col">
-                            <span className="font-black text-sm sm:text-base text-foreground">
+                            <span className="font-black text-base sm:text-lg text-foreground">
                               {cust.customerName}
                             </span>
-                            <label className="inline-flex items-center gap-1.5 mt-1.5 cursor-pointer text-xs font-bold text-primary bg-background px-2 py-1 rounded-md border border-primary/30 w-fit select-none">
+                            <label className="inline-flex items-center gap-1.5 mt-1.5 cursor-pointer text-xs font-black text-primary bg-background px-2.5 py-1 rounded-md border border-primary/30 w-fit select-none shadow-2xs">
                               <input
                                 type="checkbox"
                                 checked={editPinned}
                                 onChange={(e) => setEditPinned(e.target.checked)}
-                                className="h-3.5 w-3.5 rounded accent-primary cursor-pointer"
+                                className="h-4 w-4 rounded accent-primary cursor-pointer"
                               />
-                              <Pin className="h-3 w-3 rotate-45 text-primary" />
+                              <Pin className="h-3.5 w-3.5 rotate-45 text-primary" />
                               <span>تثبيت أسبوعياً</span>
                             </label>
                           </div>
                         </TableCell>
 
                         {/* Expected Input */}
-                        <TableCell className="text-right py-3.5 whitespace-nowrap">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-1">
+                        <TableCell className="text-right py-4 whitespace-nowrap">
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5">
                               <input
                                 type="number"
                                 min="0"
@@ -422,53 +425,53 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                                   if (e.key === "Enter") saveEdit(cust);
                                   if (e.key === "Escape") cancelEdit();
                                 }}
-                                className="w-28 text-left font-mono font-black text-sm px-2.5 py-1.5 bg-background border-2 border-primary rounded-lg focus:outline-none text-foreground"
+                                className="w-36 text-left font-mono font-black text-base px-3 py-1.5 bg-background border-2 border-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-foreground"
                                 dir="ltr"
                                 autoFocus
                               />
-                              <span className="text-xs font-bold text-muted-foreground">ج.م</span>
+                              <span className="text-xs font-black text-muted-foreground">ج.م</span>
                             </div>
                             {cust.currentBalance > 0 && (
                               <button
                                 type="button"
                                 onClick={() => setEditExpected(String(cust.currentBalance))}
-                                className="text-[10px] text-primary font-bold hover:underline block"
+                                className="text-xs text-primary font-black hover:underline block cursor-pointer"
                               >
-                                استخدام كامل الرصيد
+                                استخدام كامل الرصيد ({fmtMoney(cust.currentBalance)})
                               </button>
                             )}
                           </div>
                         </TableCell>
 
                         {/* Collected (Static) */}
-                        <TableCell className="text-right py-3.5 whitespace-nowrap">
-                          <div className="font-mono text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                        <TableCell className="text-right py-4 whitespace-nowrap">
+                          <div className="font-mono text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
                             {fmtMoney(cust.totalCollected)}
                           </div>
                         </TableCell>
 
                         {/* Due Date */}
-                        <TableCell className="text-right py-3.5 whitespace-nowrap text-xs font-mono font-bold text-foreground">
+                        <TableCell className="text-right py-4 whitespace-nowrap text-sm font-mono font-bold text-foreground">
                           {cust.dueDate || "-"}
                         </TableCell>
 
                         {/* Rate */}
-                        <TableCell className="text-center py-3.5 whitespace-nowrap font-mono text-sm font-bold">
+                        <TableCell className="text-center py-4 whitespace-nowrap font-mono text-base font-black">
                           {fmtPct(cust.rate)}
                         </TableCell>
 
                         {/* Status */}
-                        <TableCell className="text-center py-3.5">
+                        <TableCell className="text-center py-4">
                           {renderStatusBadge(cust.status)}
                         </TableCell>
 
                         {/* Remaining */}
-                        <TableCell className="text-right py-3.5 whitespace-nowrap font-mono text-sm font-bold text-muted-foreground">
+                        <TableCell className="text-right py-4 whitespace-nowrap font-mono text-base font-black text-muted-foreground">
                           {fmtMoney(cust.remaining)}
                         </TableCell>
 
                         {/* Notes Input */}
-                        <TableCell className="text-right py-3.5">
+                        <TableCell className="text-right py-4">
                           <input
                             type="text"
                             value={editNotes}
@@ -478,17 +481,17 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                               if (e.key === "Escape") cancelEdit();
                             }}
                             placeholder="ملاحظات التحصيل..."
-                            className="w-full text-xs font-medium px-2 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-foreground"
+                            className="w-full text-xs sm:text-sm font-medium px-3 py-1.5 bg-background border-2 border-border rounded-xl focus:outline-none focus:border-primary text-foreground"
                           />
                         </TableCell>
 
                         {/* Save & Cancel Buttons */}
-                        <TableCell className="text-center py-3.5">
-                          <div className="flex items-center justify-center gap-1">
+                        <TableCell className="text-center py-4">
+                          <div className="flex items-center justify-center gap-1.5">
                             <button
                               type="button"
                               onClick={() => saveEdit(cust)}
-                              className="h-8 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1 shadow-xs cursor-pointer transition"
+                              className="h-9 px-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm flex items-center gap-1.5 shadow-xs cursor-pointer transition active:scale-95"
                               title="حفظ التعديلات (Enter)"
                             >
                               <Check className="h-4 w-4" />
@@ -497,7 +500,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                             <button
                               type="button"
                               onClick={cancelEdit}
-                              className="h-8 px-2 rounded-lg border border-border hover:bg-muted text-muted-foreground hover:text-foreground text-xs flex items-center transition cursor-pointer"
+                              className="h-9 px-2.5 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground text-xs sm:text-sm flex items-center transition cursor-pointer"
                               title="إلغاء (Esc)"
                             >
                               <X className="h-4 w-4" />
@@ -508,7 +511,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                     );
                   }
 
-                  // NORMAL ROW:
+                  // NORMAL ROW: Large numbers, comfortable clear spacing
                   return (
                     <TableRow
                       key={cust.index + "-" + cust.customerName}
@@ -523,30 +526,30 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       }`}
                     >
                       {/* Index */}
-                      <TableCell className="text-center font-mono text-sm font-bold text-muted-foreground py-3.5">
+                      <TableCell className="text-center font-mono text-sm sm:text-base font-bold text-muted-foreground py-4">
                         {cust.index}
                       </TableCell>
 
                       {/* Current Balance in Master_Data */}
-                      <TableCell className="text-right py-3.5 whitespace-nowrap">
-                        <span className="font-mono text-sm sm:text-base font-extrabold text-foreground tabular-nums">
+                      <TableCell className="text-right py-4 whitespace-nowrap">
+                        <span className="font-mono text-base sm:text-lg font-black text-foreground tabular-nums tracking-tight">
                           {fmtMoney(cust.currentBalance)}
                         </span>
                       </TableCell>
 
                       {/* Customer Name */}
-                      <TableCell className="py-3.5">
+                      <TableCell className="py-4">
                         <div
                           onClick={() => startEdit(cust)}
                           className="flex flex-col cursor-pointer group"
                           title="انقر لتعديل بيانات العميل"
                         >
-                          <span className="font-black text-sm sm:text-base text-foreground group-hover:text-primary transition-colors">
+                          <span className="font-black text-base sm:text-lg text-foreground group-hover:text-primary transition-colors">
                             {cust.customerName}
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
                             {cust.isPinned ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-black text-primary bg-primary/15 border border-primary/30 px-2 py-0.5 rounded-md">
+                              <span className="inline-flex items-center gap-1 text-xs font-black text-primary bg-primary/15 border border-primary/30 px-2.5 py-0.5 rounded-md">
                                 <Pin className="h-3 w-3 rotate-45" />
                                 قسط أسبوعي ثابت
                               </span>
@@ -556,33 +559,33 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Expected */}
-                      <TableCell className="text-right py-3.5 whitespace-nowrap">
+                      <TableCell className="text-right py-4 whitespace-nowrap">
                         <div
                           onClick={() => startEdit(cust)}
                           className="inline-block cursor-pointer group"
                           title="انقر لتعديل المبلغ المتوقع"
                         >
-                          <span className="font-mono text-sm sm:text-base font-black text-primary tabular-nums bg-primary/10 border border-primary/25 px-2.5 py-1 rounded-lg group-hover:bg-primary/20 transition">
+                          <span className="font-mono text-base sm:text-lg font-black text-primary tabular-nums tracking-tight bg-primary/10 border-2 border-primary/25 px-3 py-1.5 rounded-xl group-hover:bg-primary/20 group-hover:border-primary transition">
                             {fmtMoney(cust.expectedAmount)}
                           </span>
                         </div>
                       </TableCell>
 
                       {/* Collected */}
-                      <TableCell className="text-right py-3.5 whitespace-nowrap">
-                        <div className="font-mono text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
+                      <TableCell className="text-right py-4 whitespace-nowrap">
+                        <div className="font-mono text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-400 tabular-nums tracking-tight">
                           {fmtMoney(cust.totalCollected)}
                         </div>
                         {hasTreasuryPayment && (
-                          <div className="inline-flex items-center gap-1 text-[11px] font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded border border-emerald-300 mt-1">
-                            <Zap className="h-3 w-3 fill-emerald-500" />
+                          <div className="inline-flex items-center gap-1 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2.5 py-0.5 rounded-md border border-emerald-300 mt-1">
+                            <Zap className="h-3.5 w-3.5 fill-emerald-500" />
                             <span>+{fmtMoney(cust.collectedFromTreasury)} خزينة</span>
                           </div>
                         )}
                       </TableCell>
 
                       {/* Due Date */}
-                      <TableCell className="text-right py-3.5 whitespace-nowrap">
+                      <TableCell className="text-right py-4 whitespace-nowrap">
                         {cust.dueDate ? (
                           <div className="flex items-center gap-1.5">
                             <span
@@ -606,21 +609,21 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Collection Rate */}
-                      <TableCell className="text-center py-3.5 whitespace-nowrap">
-                        <span className="font-mono text-sm sm:text-base font-black text-foreground tabular-nums">
+                      <TableCell className="text-center py-4 whitespace-nowrap">
+                        <span className="font-mono text-base sm:text-lg font-black text-foreground tabular-nums">
                           {fmtPct(cust.rate)}
                         </span>
                       </TableCell>
 
                       {/* Status Badge */}
-                      <TableCell className="text-center py-3.5">
+                      <TableCell className="text-center py-4">
                         {renderStatusBadge(cust.status)}
                       </TableCell>
 
                       {/* Remaining */}
-                      <TableCell className="text-right py-3.5 whitespace-nowrap">
+                      <TableCell className="text-right py-4 whitespace-nowrap">
                         <span
-                          className={`font-mono text-sm sm:text-base font-black tabular-nums ${
+                          className={`font-mono text-base sm:text-lg font-black tabular-nums tracking-tight ${
                             cust.remaining > 0
                               ? "text-rose-600 dark:text-rose-400"
                               : cust.remaining < 0
@@ -633,20 +636,20 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Notes */}
-                      <TableCell className="text-right py-3.5 text-xs sm:text-sm text-foreground/80 font-medium max-w-[180px] truncate">
+                      <TableCell className="text-right py-4 text-xs sm:text-sm text-foreground/80 font-semibold max-w-[190px] truncate">
                         {cust.notes || "-"}
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="text-center py-3.5">
+                      <TableCell className="text-center py-4">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => startEdit(cust)}
-                          className="h-8 px-3 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-black text-xs gap-1.5 cursor-pointer shadow-2xs"
+                          className="h-9 px-3.5 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-black text-xs sm:text-sm gap-1.5 cursor-pointer shadow-2xs"
                           title="تعديل المبلغ والملاحظات"
                         >
-                          <Edit2 className="h-3.5 w-3.5" />
+                          <Edit2 className="h-4 w-4" />
                           <span>تعديل</span>
                         </Button>
                       </TableCell>

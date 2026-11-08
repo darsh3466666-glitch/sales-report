@@ -160,32 +160,126 @@ export function getUserOverrides(): {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (!raw) return { fixedAmounts: {}, notes: {}, pinnedStatus: {} };
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return {
+      fixedAmounts:
+        parsed && typeof parsed.fixedAmounts === "object" && parsed.fixedAmounts !== null
+          ? parsed.fixedAmounts
+          : {},
+      notes:
+        parsed && typeof parsed.notes === "object" && parsed.notes !== null
+          ? parsed.notes
+          : {},
+      pinnedStatus:
+        parsed && typeof parsed.pinnedStatus === "object" && parsed.pinnedStatus !== null
+          ? parsed.pinnedStatus
+          : {},
+    };
   } catch {
     return { fixedAmounts: {}, notes: {}, pinnedStatus: {} };
   }
 }
 
 /**
- * Save customer override to LocalStorage and notify listeners.
+ * Save customer override to LocalStorage safely without event side-effects.
  */
 export function saveCustomerOverride(
   customerName: string,
   updates: { expectedAmount?: number; notes?: string; isPinned?: boolean }
 ) {
-  if (typeof window === "undefined") return;
-  const current = getUserOverrides();
-  if (updates.expectedAmount !== undefined) {
-    current.fixedAmounts[customerName] = updates.expectedAmount;
+  if (typeof window === "undefined" || !customerName) return;
+  try {
+    const current = getUserOverrides();
+    if (updates.expectedAmount !== undefined) {
+      current.fixedAmounts[customerName] = updates.expectedAmount;
+    }
+    if (updates.notes !== undefined) {
+      current.notes[customerName] = updates.notes;
+    }
+    if (updates.isPinned !== undefined) {
+      current.pinnedStatus[customerName] = updates.isPinned;
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+  } catch (err) {
+    console.error("Failed to save cashflow override:", err);
   }
-  if (updates.notes !== undefined) {
-    current.notes[customerName] = updates.notes;
+}
+
+/**
+ * Recalculates cashflow summary completely in-memory (0ms, zero network requests).
+ */
+export function recalculateCashFlowSummary(
+  currentSummary: CashFlowSummary,
+  customerName: string,
+  updates: { expectedAmount: number; isPinned: boolean; notes: string }
+): CashFlowSummary {
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  const updatedCustomers = currentSummary.customers.map((c) => {
+    if (c.customerName !== customerName) return c;
+
+    const expectedAmount = Number(updates.expectedAmount) || 0;
+    const isPinned = Boolean(updates.isPinned);
+    const notes = String(updates.notes || "");
+    const totalCollected = c.collectedFromSheet + c.collectedFromTreasury;
+    const remaining = expectedAmount - totalCollected;
+    const rate = expectedAmount > 0 ? totalCollected / expectedAmount : 0;
+
+    let status: CashFlowCustomer["status"] = "لم يسدد";
+    if (expectedAmount === 0) {
+      status = totalCollected > 0 ? "فائض" : "لا يوجد استحقاق";
+    } else if (totalCollected >= expectedAmount) {
+      status = totalCollected > expectedAmount ? "فائض" : "مكتمل";
+    } else if (totalCollected > 0) {
+      status = "جزئي";
+    } else {
+      status = "لم يسدد";
+    }
+
+    return {
+      ...c,
+      expectedAmount,
+      isPinned,
+      notes,
+      totalCollected,
+      remaining,
+      rate,
+      status,
+    };
+  });
+
+  let totalExpected = 0;
+  let totalCollected = 0;
+  let collectedFromSheet = 0;
+  let collectedFromTreasury = 0;
+  let overdueCount = 0;
+
+  for (const c of updatedCustomers) {
+    totalExpected += c.expectedAmount;
+    totalCollected += c.totalCollected;
+    collectedFromSheet += c.collectedFromSheet;
+    collectedFromTreasury += c.collectedFromTreasury;
+
+    if (c.dueDate && c.dueDate < todayStr && c.remaining > 0) {
+      overdueCount++;
+    }
   }
-  if (updates.isPinned !== undefined) {
-    current.pinnedStatus[customerName] = updates.isPinned;
-  }
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
-  window.dispatchEvent(new Event("cashflow_overrides_changed"));
+
+  const weeklyGoal = currentSummary.weeklyGoal || 4000000;
+  const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
+  const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
+
+  return {
+    ...currentSummary,
+    totalExpected,
+    totalCollected,
+    collectedFromSheet,
+    collectedFromTreasury,
+    collectionRate,
+    remainingToTarget,
+    overdueCount,
+    customers: updatedCustomers,
+  };
 }
 
 /**
@@ -234,19 +328,19 @@ export async function getLiveCashFlowData(options?: {
     (c: any, idx: number) => {
       const name = c.customerName || "";
       const isPinned =
-        overrides.pinnedStatus[name] !== undefined
+        overrides.pinnedStatus?.[name] !== undefined
           ? overrides.pinnedStatus[name]
           : Boolean(rawConfig?.fixedAmounts?.[name] !== undefined || c.expectedAmount > 0);
 
       const expectedAmount =
-        overrides.fixedAmounts[name] !== undefined
+        overrides.fixedAmounts?.[name] !== undefined
           ? overrides.fixedAmounts[name]
           : c.expectedAmount !== undefined
           ? c.expectedAmount
           : c.currentBalance || 0;
 
       const notes =
-        overrides.notes[name] !== undefined
+        overrides.notes?.[name] !== undefined
           ? overrides.notes[name]
           : c.notes || rawConfig?.notes?.[name] || "";
 
