@@ -1,11 +1,11 @@
 {
   "reportDate": "2026-11-08",
   "weeklyGoal": 4000000,
-  "totalExpected": 2391909.82,
-  "totalCollected": 1383010.0,
-  "customerCount": 46,
-  "remainingToTarget": 2616990.0,
-  "collectionRate": 0.5782032367758748,
+  "totalExpected": 2451314.82,
+  "totalCollected": 1702215.0,
+  "customerCount": 50,
+  "remainingToTarget": 2297785.0,
+  "collectionRate": 0.6944089702847716,
   "customers": [
     {
       "index": 1,
@@ -295,6 +295,71 @@
     },
     {
       "index": 23,
+      "customerName": "بادية فارم (كوم ابو راضي)",
+      "normalizedName": "باديه فارم كوم ابو راضي",
+      "currentBalance": -21291.14286099933,
+      "expectedAmount": 100000.0,
+      "collectedFromSheet": 150000.0,
+      "dueDate": "2026-12-13",
+      "rate": 1.5,
+      "status": "مكتمل",
+      "remaining": -50000.0,
+      "notes": ""
+    },
+    {
+      "index": 24,
+      "customerName": "محمد الدعيكي(الخواجات)",
+      "normalizedName": "محمد الدعيكي الخواجات",
+      "currentBalance": 0.0,
+      "expectedAmount": 5890.0,
+      "collectedFromSheet": 5890.0,
+      "dueDate": "2026-11-09",
+      "rate": 1.0,
+      "status": "مكتمل",
+      "remaining": 0.0,
+      "notes": ""
+    },
+    {
+      "index": 25,
+      "customerName": "احمد عيد (مزرعة الدولية) كوم ابور راضي",
+      "normalizedName": "احمد عيد مزرعه الدوليه كوم ابور راضي",
+      "currentBalance": 0.0,
+      "expectedAmount": 9515.0,
+      "collectedFromSheet": 9515.0,
+      "dueDate": "2026-11-01",
+      "rate": 1.0,
+      "status": "مكتمل",
+      "remaining": 0.0,
+      "notes": ""
+    },
+    {
+      "index": 26,
+      "customerName": "محمود محمد محمود رضوان (ادريس)",
+      "normalizedName": "محمود محمد محمود رضوان ادريس",
+      "currentBalance": 400.0,
+      "expectedAmount": 9000.0,
+      "collectedFromSheet": 9000.0,
+      "dueDate": "2026-10-24",
+      "rate": 1.0,
+      "status": "مكتمل",
+      "remaining": 0.0,
+      "notes": ""
+    },
+    {
+      "index": 27,
+      "customerName": "بدوي حجازي البطل (الشوبك )",
+      "normalizedName": "بدوي حجازي البطل الشوبك",
+      "currentBalance": 80600.0,
+      "expectedAmount": 35000.0,
+      "collectedFromSheet": 35000.0,
+      "dueDate": "2026-11-17",
+      "rate": 1.0,
+      "status": "مكتمل",
+      "remaining": 0.0,
+      "notes": ""
+    },
+    {
+      "index": 28,
       "customerName": "ايمن محمود يوسف (طاميه)",
       "normalizedName": "ايمن محمود يوسف طاميه",
       "currentBalance": 1188201.0,
@@ -307,20 +372,7 @@
       "notes": ""
     },
     {
-      "index": 24,
-      "customerName": "بادية فارم (كوم ابو راضي)",
-      "normalizedName": "باديه فارم كوم ابو راضي",
-      "currentBalance": -21291.14286099933,
-      "expectedAmount": 100000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-12-13",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 100000.0,
-      "notes": ""
-    },
-    {
-      "index": 25,
+      "index": 29,
       "customerName": "حسام عدلي عبود(قيصر)",
       "normalizedName": "حسام عدلي عبود قيصر",
       "currentBalance": 86885.0,
@@ -333,7 +385,7 @@
       "notes": ""
     },
     {
-      "index": 26,
+      "index": 30,
       "customerName": "عيد ادريس (ابو بساط)",
       "normalizedName": "عيد ادريس ابو بساط",
       "currentBalance": 50070.0,
@@ -346,20 +398,7 @@
       "notes": ""
     },
     {
-      "index": 27,
-      "customerName": "د.عزام صالح منصور",
-      "normalizedName": "د عزام صالح منصور",
-      "currentBalance": 50.0,
-      "expectedAmount": 9850.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-10-25",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 9850.0,
-      "notes": ""
-    },
-    {
-      "index": 28,
+      "index": 31,
       "customerName": "المعلم/ عبد الفتاح ربيع",
       "normalizedName": "المعلم عبد الفتاح ربيع",
       "currentBalance": 248000.0,
@@ -372,7 +411,7 @@
       "notes": ""
     },
     {
-      "index": 29,
+      "index": 32,
       "customerName": "الحاج /ايمن منصور - البحيرة",
       "normalizedName": "الحاج ايمن منصور البحيره",
       "currentBalance": 155750.0,
@@ -385,7 +424,7 @@
       "notes": ""
     },
     {
-      "index": 30,
+      "index": 33,
       "customerName": "مدحت محمد (الخرابه)",
       "normalizedName": "مدحت محمد الخرابه",
       "currentBalance": 298645.0,
@@ -398,20 +437,33 @@
       "notes": ""
     },
     {
-      "index": 31,
+      "index": 34,
+      "customerName": "د.عزام صالح منصور",
+      "normalizedName": "د عزام صالح منصور",
+      "currentBalance": 50.0,
+      "expectedAmount": 9850.0,
+      "collectedFromSheet": 9800.0,
+      "dueDate": "2026-10-25",
+      "rate": 0.9949238578680203,
+      "status": "جزئي",
+      "remaining": 50.0,
+      "notes": ""
+    },
+    {
+      "index": 35,
       "customerName": "مزرعه الخيرات",
       "normalizedName": "مزرعه الخيرات",
       "currentBalance": 1376028.4700000007,
       "expectedAmount": 350000.0,
-      "collectedFromSheet": 200000.0,
+      "collectedFromSheet": 300000.0,
       "dueDate": "2026-11-24",
-      "rate": 0.5714285714285714,
+      "rate": 0.8571428571428571,
       "status": "جزئي",
-      "remaining": 150000.0,
+      "remaining": 50000.0,
       "notes": ""
     },
     {
-      "index": 32,
+      "index": 36,
       "customerName": "نزيه حسني (الخرابة)",
       "normalizedName": "نزيه حسني الخرابه",
       "currentBalance": 67880.0,
@@ -424,7 +476,7 @@
       "notes": ""
     },
     {
-      "index": 33,
+      "index": 37,
       "customerName": "عبد التواب احمد( ميدوم )",
       "normalizedName": "عبد التواب احمد ميدوم",
       "currentBalance": 328745.0,
@@ -437,7 +489,7 @@
       "notes": ""
     },
     {
-      "index": 34,
+      "index": 38,
       "customerName": "ابو حمزة للأعلاف",
       "normalizedName": "ابو حمزه للاعلاف",
       "currentBalance": 40.0,
@@ -450,7 +502,7 @@
       "notes": ""
     },
     {
-      "index": 35,
+      "index": 39,
       "customerName": "سيد الهواري - كوم أبو راضي",
       "normalizedName": "سيد الهواري كوم ابو راضي",
       "currentBalance": 6700.0,
@@ -463,7 +515,7 @@
       "notes": ""
     },
     {
-      "index": 36,
+      "index": 40,
       "customerName": "سيد رشيد الحموى",
       "normalizedName": "سيد رشيد الحموي",
       "currentBalance": 6354.820000000007,
@@ -476,7 +528,7 @@
       "notes": ""
     },
     {
-      "index": 37,
+      "index": 41,
       "customerName": "عادل جمعه - البيضاء",
       "normalizedName": "عادل جمعه البيضاء",
       "currentBalance": 44080.0,
@@ -489,7 +541,7 @@
       "notes": ""
     },
     {
-      "index": 38,
+      "index": 42,
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
       "normalizedName": "ايه بي ديري هشام فؤادطارق حسن وشركاه",
       "currentBalance": 1126493.5999999996,
@@ -502,7 +554,7 @@
       "notes": ""
     },
     {
-      "index": 39,
+      "index": 43,
       "customerName": "محمد جابر عبدالحميد(قيصر)",
       "normalizedName": "محمد جابر عبدالحميد قيصر",
       "currentBalance": 185450.0,
@@ -515,7 +567,7 @@
       "notes": ""
     },
     {
-      "index": 40,
+      "index": 44,
       "customerName": "علاء عدلي عبدالمعبود قيصر",
       "normalizedName": "علاء عدلي عبدالمعبود قيصر",
       "currentBalance": 65395.0,
@@ -528,7 +580,7 @@
       "notes": ""
     },
     {
-      "index": 41,
+      "index": 45,
       "customerName": "محمود شعبان فرج الله",
       "normalizedName": "محمود شعبان فرج الله",
       "currentBalance": 29480.0,
@@ -541,7 +593,7 @@
       "notes": ""
     },
     {
-      "index": 42,
+      "index": 46,
       "customerName": "جمعه محمد (مصطفى الصعيدي)",
       "normalizedName": "جمعه محمد مصطفي الصعيدي",
       "currentBalance": 26815.0,
@@ -554,7 +606,7 @@
       "notes": ""
     },
     {
-      "index": 43,
+      "index": 47,
       "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
       "normalizedName": "احمد فرحات عبد الحميد منشاه دمو",
       "currentBalance": 3851295.0,
@@ -567,7 +619,7 @@
       "notes": ""
     },
     {
-      "index": 44,
+      "index": 48,
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
       "normalizedName": "عبد الرحمن علي مصطفي الصعيدي",
       "currentBalance": 72800.0,
@@ -580,7 +632,7 @@
       "notes": ""
     },
     {
-      "index": 45,
+      "index": 49,
       "customerName": "عثمان ربيع _قيصر",
       "normalizedName": "عثمان ربيع قيصر",
       "currentBalance": 227405.0,
@@ -593,7 +645,7 @@
       "notes": ""
     },
     {
-      "index": 46,
+      "index": 50,
       "customerName": "محمود ابو زيد - الهداهده",
       "normalizedName": "محمود ابو زيد الهداهده",
       "currentBalance": 40510.0,
