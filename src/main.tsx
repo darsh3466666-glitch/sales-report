@@ -5,6 +5,17 @@ import { routeTree } from "./routeTree.gen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./styles.css";
 
+// Prevent React 19 bug: infinite loop in dispatchEventForPluginEventSystem on selectionchange
+if (typeof document !== "undefined") {
+  document.addEventListener(
+    "selectionchange",
+    (e) => {
+      e.stopImmediatePropagation();
+    },
+    true
+  );
+}
+
 const queryClient = new QueryClient();
 
 const basepath =

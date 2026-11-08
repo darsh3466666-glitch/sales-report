@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { CashFlowCustomer, CashFlowSummary } from "@/lib/cashflow.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
@@ -38,297 +38,24 @@ interface CashFlowTableProps {
 
 type FilterStatus = "all" | "completed" | "partial" | "unpaid" | "surplus" | "overdue";
 
-/* ─── Unified font classes for readability ─── */
+/* ─── Unified readable typography tokens ─── */
 const FONT = {
   headerCell: "text-xs font-black text-foreground",
   index: "text-sm font-bold font-mono tabular-nums",
   money: "text-sm font-black font-mono tabular-nums",
-  name: "text-sm font-black",
+  name: "text-sm font-black text-foreground",
   date: "text-xs font-mono font-semibold",
   pct: "text-sm font-black font-mono tabular-nums",
   notes: "text-xs font-medium",
   badge: "text-xs font-black",
 } as const;
 
-/* ─── Single row component with NO key change between edit/normal ─── */
-const CashFlowRow = React.memo(function CashFlowRow({
-  cust,
-  isEditing,
-  isOverdue,
-  hasTreasuryPayment,
-  onStartEdit,
-  onSave,
-  onCancel,
-  renderStatusBadge,
-}: {
-  cust: CashFlowCustomer;
-  isEditing: boolean;
-  isOverdue: boolean;
-  hasTreasuryPayment: boolean;
-  onStartEdit: () => void;
-  onSave: (expected: number, pinned: boolean, notes: string) => void;
-  onCancel: () => void;
-  renderStatusBadge: (status: CashFlowCustomer["status"]) => React.ReactNode;
-}) {
-  // Local state ONLY for this row's editing fields
-  const [editExpected, setEditExpected] = useState("0");
-  const [editPinned, setEditPinned] = useState(false);
-  const [editNotes, setEditNotes] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  // When entering edit mode, populate local state from cust data
-  useEffect(() => {
-    if (isEditing) {
-      setEditExpected(String(cust.expectedAmount || 0));
-      setEditPinned(Boolean(cust.isPinned));
-      setEditNotes(cust.notes || "");
-      // Deferred focus: wait for paint, then focus — NO synchronous layout thrashing
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          inputRef.current?.focus();
-        });
-      });
-    }
-  }, [isEditing]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleSave = useCallback(() => {
-    const parsed = parseFloat(editExpected) || 0;
-    onSave(parsed, editPinned, editNotes.trim());
-  }, [editExpected, editPinned, editNotes, onSave]);
-
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleSave();
-    }
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onCancel();
-    }
-  }, [handleSave, onCancel]);
-
-  // Row background — NO transition-colors (kills perf on 46 rows)
-  const rowBg = isEditing
-    ? "bg-primary/10 border-2 border-primary"
-    : cust.status === "مكتمل"
-    ? "bg-emerald-500/[0.04] border-b border-border/80 hover:bg-muted/40"
-    : cust.status === "جزئي"
-    ? "bg-amber-500/[0.04] border-b border-border/80 hover:bg-muted/40"
-    : cust.status === "فائض"
-    ? "bg-blue-500/[0.04] border-b border-border/80 hover:bg-muted/40"
-    : "border-b border-border/80 hover:bg-muted/40";
-
-  return (
-    <TableRow className={rowBg}>
-      {/* Index */}
-      <TableCell className={`text-center py-3 ${FONT.index} ${isEditing ? "text-primary" : "text-muted-foreground"}`}>
-        {cust.index}
-      </TableCell>
-
-      {/* Current Balance */}
-      <TableCell className="text-right py-3 whitespace-nowrap">
-        <span className={`${FONT.money} text-foreground`}>
-          {fmtMoney(cust.currentBalance)}
-        </span>
-      </TableCell>
-
-      {/* Customer Name */}
-      <TableCell className="py-3">
-        {isEditing ? (
-          <div className="flex flex-col">
-            <span className={`${FONT.name} text-foreground`}>
-              {cust.customerName}
-            </span>
-            <label className="inline-flex items-center gap-1.5 mt-1.5 cursor-pointer text-xs font-black text-primary bg-background px-2.5 py-1 rounded-md border border-primary/30 w-fit select-none shadow-2xs">
-              <input
-                type="checkbox"
-                checked={editPinned}
-                onChange={(e) => setEditPinned(e.target.checked)}
-                className="h-4 w-4 rounded accent-primary cursor-pointer"
-              />
-              <Pin className="h-3.5 w-3.5 rotate-45 text-primary" />
-              <span>تثبيت أسبوعياً</span>
-            </label>
-          </div>
-        ) : (
-          <div
-            onClick={onStartEdit}
-            className="flex flex-col cursor-pointer group"
-            title="انقر لتعديل بيانات العميل"
-          >
-            <span className={`${FONT.name} text-foreground group-hover:text-primary`}>
-              {cust.customerName}
-            </span>
-            {cust.isPinned && (
-              <span className="inline-flex items-center gap-1 text-xs font-black text-primary bg-primary/15 border border-primary/30 px-2.5 py-0.5 rounded-md mt-1 w-fit">
-                <Pin className="h-3 w-3 rotate-45" />
-                قسط أسبوعي ثابت
-              </span>
-            )}
-          </div>
-        )}
-      </TableCell>
-
-      {/* Expected */}
-      <TableCell className="text-right py-3 whitespace-nowrap">
-        {isEditing ? (
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1.5">
-              <input
-                ref={inputRef}
-                type="number"
-                min="0"
-                step="500"
-                value={editExpected}
-                onChange={(e) => setEditExpected(e.target.value)}
-                onKeyDown={handleKeyDown}
-                className="w-32 text-left font-mono font-black text-sm px-3 py-1.5 bg-background border-2 border-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-foreground"
-                dir="ltr"
-              />
-              <span className="text-xs font-black text-muted-foreground">ج.م</span>
-            </div>
-            {cust.currentBalance > 0 && (
-              <button
-                type="button"
-                onClick={() => setEditExpected(String(cust.currentBalance))}
-                className="text-xs text-primary font-black hover:underline block cursor-pointer"
-              >
-                استخدام كامل الرصيد ({fmtMoney(cust.currentBalance)})
-              </button>
-            )}
-          </div>
-        ) : (
-          <div
-            onClick={onStartEdit}
-            className="inline-block cursor-pointer group"
-            title="انقر لتعديل المبلغ المتوقع"
-          >
-            <span className={`${FONT.money} text-primary bg-primary/10 border-2 border-primary/25 px-2.5 py-1 rounded-xl group-hover:bg-primary/20 group-hover:border-primary`}>
-              {fmtMoney(cust.expectedAmount)}
-            </span>
-          </div>
-        )}
-      </TableCell>
-
-      {/* Collected */}
-      <TableCell className="text-right py-3 whitespace-nowrap">
-        <div className={`${FONT.money} text-emerald-700 dark:text-emerald-400`}>
-          {fmtMoney(cust.totalCollected)}
-        </div>
-        {hasTreasuryPayment && !isEditing && (
-          <div className="inline-flex items-center gap-1 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-300 mt-1">
-            <Zap className="h-3 w-3 fill-emerald-500" />
-            <span>+{fmtMoney(cust.collectedFromTreasury)} خزينة</span>
-          </div>
-        )}
-      </TableCell>
-
-      {/* Due Date */}
-      <TableCell className="text-right py-3 whitespace-nowrap">
-        {cust.dueDate ? (
-          <div className="flex items-center gap-1.5">
-            <span
-              className={`${FONT.date} ${
-                isOverdue
-                  ? "text-rose-600 dark:text-rose-400 font-black bg-rose-100 dark:bg-rose-950 px-2 py-0.5 rounded border border-rose-300"
-                  : "text-foreground"
-              }`}
-            >
-              {cust.dueDate}
-            </span>
-            {isOverdue && (
-              <span title="تجاوز موعد السداد">
-                <AlertTriangle className="h-4 w-4 text-rose-600 animate-pulse" />
-              </span>
-            )}
-          </div>
-        ) : (
-          <span className="text-xs text-muted-foreground font-bold">-</span>
-        )}
-      </TableCell>
-
-      {/* Collection Rate */}
-      <TableCell className="text-center py-3 whitespace-nowrap">
-        <span className={`${FONT.pct} text-foreground`}>
-          {fmtPct(cust.rate)}
-        </span>
-      </TableCell>
-
-      {/* Status Badge */}
-      <TableCell className="text-center py-3">
-        {renderStatusBadge(cust.status)}
-      </TableCell>
-
-      {/* Remaining */}
-      <TableCell className="text-right py-3 whitespace-nowrap">
-        <span
-          className={`${FONT.money} ${
-            cust.remaining > 0
-              ? "text-rose-600 dark:text-rose-400"
-              : cust.remaining < 0
-              ? "text-blue-600 dark:text-blue-400"
-              : "text-emerald-600 dark:text-emerald-400"
-          }`}
-        >
-          {fmtMoney(cust.remaining)}
-        </span>
-      </TableCell>
-
-      {/* Notes */}
-      <TableCell className="text-right py-3 max-w-[190px]">
-        {isEditing ? (
-          <input
-            type="text"
-            value={editNotes}
-            onChange={(e) => setEditNotes(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="ملاحظات التحصيل..."
-            className="w-full text-xs font-medium px-3 py-1.5 bg-background border-2 border-border rounded-xl focus:outline-none focus:border-primary text-foreground"
-          />
-        ) : (
-          <span className={`${FONT.notes} text-foreground/80 block truncate`}>
-            {cust.notes || "-"}
-          </span>
-        )}
-      </TableCell>
-
-      {/* Actions */}
-      <TableCell className="text-center py-3">
-        {isEditing ? (
-          <div className="flex items-center justify-center gap-1.5">
-            <button
-              type="button"
-              onClick={handleSave}
-              className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
-              title="حفظ التعديلات (Enter)"
-            >
-              <Check className="h-3.5 w-3.5" />
-              <span>حفظ</span>
-            </button>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="h-8 px-2.5 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground text-xs flex items-center cursor-pointer"
-              title="إلغاء (Esc)"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={onStartEdit}
-            className="h-8 px-3 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-black text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            title="تعديل المبلغ والملاحظات"
-          >
-            <Edit2 className="h-3.5 w-3.5" />
-            <span>تعديل</span>
-          </button>
-        )}
-      </TableCell>
-    </TableRow>
-  );
-});
+interface EditingState {
+  customerName: string;
+  expectedAmount: string;
+  isPinned: boolean;
+  notes: string;
+}
 
 export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   summary,
@@ -338,27 +65,59 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [showUnmatchedTreasury, setShowUnmatchedTreasury] = useState(false);
 
-  // Only the customerName of the row currently being edited
-  const [editingCustomerName, setEditingCustomerName] = useState<string | null>(null);
+  // Single editing state — 100% controlled, NO useEffect, NO focus thrashing, ZERO freeze!
+  const [editing, setEditing] = useState<EditingState | null>(null);
 
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
 
-  const startEdit = useCallback((name: string) => {
-    setEditingCustomerName(name);
-  }, []);
-
-  const cancelEdit = useCallback(() => {
-    setEditingCustomerName(null);
-  }, []);
-
-  const handleRowSave = useCallback((customerName: string, expected: number, pinned: boolean, notes: string) => {
-    setEditingCustomerName(null);
-    onCustomerSave(customerName, {
-      expectedAmount: expected,
-      isPinned: pinned,
-      notes,
+  const handleStartEdit = useCallback((cust: CashFlowCustomer) => {
+    setEditing({
+      customerName: cust.customerName,
+      expectedAmount: String(cust.expectedAmount || 0),
+      isPinned: Boolean(cust.isPinned),
+      notes: cust.notes || "",
     });
-  }, [onCustomerSave]);
+  }, []);
+
+  const handleCancelEdit = useCallback(() => {
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setTimeout(() => {
+      setEditing(null);
+    }, 10);
+  }, []);
+
+  const handleSaveEdit = useCallback(() => {
+    if (!editing) return;
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    const parsed = parseFloat(editing.expectedAmount) || 0;
+    const targetName = editing.customerName;
+    const updates = {
+      expectedAmount: parsed,
+      isPinned: editing.isPinned,
+      notes: editing.notes.trim(),
+    };
+    setTimeout(() => {
+      setEditing(null);
+      onCustomerSave(targetName, updates);
+    }, 10);
+  }, [editing, onCustomerSave]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleSaveEdit();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        handleCancelEdit();
+      }
+    },
+    [handleSaveEdit, handleCancelEdit]
+  );
 
   // Filter counts
   const counts = useMemo(() => {
@@ -391,7 +150,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   // Filtered customers
   const filteredCustomers = useMemo(() => {
     return summary.customers.filter((c) => {
-      // Search filter
       if (searchTerm.trim()) {
         const term = searchTerm.trim().toLowerCase();
         const matchesName =
@@ -401,7 +159,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         if (!matchesName && !matchesNotes) return false;
       }
 
-      // Status filter
       if (statusFilter === "completed") return c.status === "مكتمل";
       if (statusFilter === "partial") return c.status === "جزئي";
       if (statusFilter === "unpaid") return c.status === "لم يسدد";
@@ -629,24 +386,249 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                 </TableRow>
               ) : (
                 filteredCustomers.map((cust) => {
+                  const isEditingThisRow = editing?.customerName === cust.customerName;
                   const isOverdue =
                     !!cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0;
                   const hasTreasuryPayment = cust.collectedFromTreasury > 0;
 
+                  const rowClass = isEditingThisRow
+                    ? "bg-primary/10 border-2 border-primary"
+                    : cust.status === "مكتمل"
+                    ? "bg-emerald-500/[0.04] border-b border-border/80 hover:bg-muted/40"
+                    : cust.status === "جزئي"
+                    ? "bg-amber-500/[0.04] border-b border-border/80 hover:bg-muted/40"
+                    : cust.status === "فائض"
+                    ? "bg-blue-500/[0.04] border-b border-border/80 hover:bg-muted/40"
+                    : "border-b border-border/80 hover:bg-muted/40";
+
                   return (
-                    <CashFlowRow
-                      key={cust.customerName}
-                      cust={cust}
-                      isEditing={editingCustomerName === cust.customerName}
-                      isOverdue={isOverdue}
-                      hasTreasuryPayment={hasTreasuryPayment}
-                      onStartEdit={() => startEdit(cust.customerName)}
-                      onSave={(expected, pinned, notes) =>
-                        handleRowSave(cust.customerName, expected, pinned, notes)
-                      }
-                      onCancel={cancelEdit}
-                      renderStatusBadge={renderStatusBadge}
-                    />
+                    <TableRow key={cust.customerName} className={rowClass}>
+                      {/* Index */}
+                      <TableCell
+                        className={`text-center py-3 ${FONT.index} ${
+                          isEditingThisRow ? "text-primary" : "text-muted-foreground"
+                        }`}
+                      >
+                        {cust.index}
+                      </TableCell>
+
+                      {/* Current Balance */}
+                      <TableCell className="text-right py-3 whitespace-nowrap">
+                        <span className={`${FONT.money} text-foreground`}>
+                          {fmtMoney(cust.currentBalance)}
+                        </span>
+                      </TableCell>
+
+                      {/* Customer Name */}
+                      <TableCell className="py-3">
+                        {isEditingThisRow ? (
+                          <div className="flex flex-col">
+                            <span className={FONT.name}>{cust.customerName}</span>
+                            <label className="inline-flex items-center gap-1.5 mt-1.5 cursor-pointer text-xs font-black text-primary bg-background px-2.5 py-1 rounded-md border border-primary/30 w-fit select-none shadow-2xs">
+                              <input
+                                type="checkbox"
+                                checked={editing.isPinned}
+                                onChange={(e) =>
+                                  setEditing((prev) =>
+                                    prev ? { ...prev, isPinned: e.target.checked } : null
+                                  )
+                                }
+                                className="h-4 w-4 rounded accent-primary cursor-pointer"
+                              />
+                              <Pin className="h-3.5 w-3.5 rotate-45 text-primary" />
+                              <span>تثبيت أسبوعياً</span>
+                            </label>
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => handleStartEdit(cust)}
+                            className="flex flex-col cursor-pointer group"
+                            title="انقر لتعديل بيانات العميل"
+                          >
+                            <span className={`${FONT.name} group-hover:text-primary`}>
+                              {cust.customerName}
+                            </span>
+                            {cust.isPinned && (
+                              <span className="inline-flex items-center gap-1 text-xs font-black text-primary bg-primary/15 border border-primary/30 px-2.5 py-0.5 rounded-md mt-1 w-fit">
+                                <Pin className="h-3 w-3 rotate-45" />
+                                قسط أسبوعي ثابت
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </TableCell>
+
+                      {/* Expected */}
+                      <TableCell className="text-right py-3 whitespace-nowrap">
+                        {isEditingThisRow ? (
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <input
+                                type="number"
+                                min="0"
+                                step="500"
+                                value={editing.expectedAmount}
+                                onChange={(e) =>
+                                  setEditing((prev) =>
+                                    prev ? { ...prev, expectedAmount: e.target.value } : null
+                                  )
+                                }
+                                onKeyDown={handleKeyDown}
+                                className="w-32 text-left font-mono font-black text-sm px-3 py-1.5 bg-background border-2 border-primary rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/40 text-foreground"
+                                dir="ltr"
+                              />
+                              <span className="text-xs font-black text-muted-foreground">ج.م</span>
+                            </div>
+                            {cust.currentBalance > 0 && (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setEditing((prev) =>
+                                    prev
+                                      ? { ...prev, expectedAmount: String(cust.currentBalance) }
+                                      : null
+                                  )
+                                }
+                                className="text-xs text-primary font-black hover:underline block cursor-pointer"
+                              >
+                                استخدام كامل الرصيد ({fmtMoney(cust.currentBalance)})
+                              </button>
+                            )}
+                          </div>
+                        ) : (
+                          <div
+                            onClick={() => handleStartEdit(cust)}
+                            className="inline-block cursor-pointer group"
+                            title="انقر لتعديل المبلغ المتوقع"
+                          >
+                            <span className={`${FONT.money} text-primary bg-primary/10 border-2 border-primary/25 px-2.5 py-1 rounded-xl group-hover:bg-primary/20 group-hover:border-primary`}>
+                              {fmtMoney(cust.expectedAmount)}
+                            </span>
+                          </div>
+                        )}
+                      </TableCell>
+
+                      {/* Collected */}
+                      <TableCell className="text-right py-3 whitespace-nowrap">
+                        <div className={`${FONT.money} text-emerald-700 dark:text-emerald-400`}>
+                          {fmtMoney(cust.totalCollected)}
+                        </div>
+                        {hasTreasuryPayment && !isEditingThisRow && (
+                          <div className="inline-flex items-center gap-1 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-300 mt-1">
+                            <Zap className="h-3 w-3 fill-emerald-500" />
+                            <span>+{fmtMoney(cust.collectedFromTreasury)} خزينة</span>
+                          </div>
+                        )}
+                      </TableCell>
+
+                      {/* Due Date */}
+                      <TableCell className="text-right py-3 whitespace-nowrap">
+                        {cust.dueDate ? (
+                          <div className="flex items-center gap-1.5">
+                            <span
+                              className={`${FONT.date} ${
+                                isOverdue
+                                  ? "text-rose-600 dark:text-rose-400 font-black bg-rose-100 dark:bg-rose-950 px-2 py-0.5 rounded border border-rose-300"
+                                  : "text-foreground"
+                              }`}
+                            >
+                              {cust.dueDate}
+                            </span>
+                            {isOverdue && (
+                              <span title="تجاوز موعد السداد">
+                                <AlertTriangle className="h-4 w-4 text-rose-600 animate-pulse" />
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground font-bold">-</span>
+                        )}
+                      </TableCell>
+
+                      {/* Collection Rate */}
+                      <TableCell className="text-center py-3 whitespace-nowrap">
+                        <span className={`${FONT.pct} text-foreground`}>
+                          {fmtPct(cust.rate)}
+                        </span>
+                      </TableCell>
+
+                      {/* Status Badge */}
+                      <TableCell className="text-center py-3">
+                        {renderStatusBadge(cust.status)}
+                      </TableCell>
+
+                      {/* Remaining */}
+                      <TableCell className="text-right py-3 whitespace-nowrap">
+                        <span
+                          className={`${FONT.money} ${
+                            cust.remaining > 0
+                              ? "text-rose-600 dark:text-rose-400"
+                              : cust.remaining < 0
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-emerald-600 dark:text-emerald-400"
+                          }`}
+                        >
+                          {fmtMoney(cust.remaining)}
+                        </span>
+                      </TableCell>
+
+                      {/* Notes */}
+                      <TableCell className="text-right py-3 max-w-[190px]">
+                        {isEditingThisRow ? (
+                          <input
+                            type="text"
+                            value={editing.notes}
+                            onChange={(e) =>
+                              setEditing((prev) =>
+                                prev ? { ...prev, notes: e.target.value } : null
+                              )
+                            }
+                            onKeyDown={handleKeyDown}
+                            placeholder="ملاحظات التحصيل..."
+                            className="w-full text-xs font-medium px-3 py-1.5 bg-background border-2 border-border rounded-xl focus:outline-none focus:border-primary text-foreground"
+                          />
+                        ) : (
+                          <span className={`${FONT.notes} text-foreground/80 block truncate`}>
+                            {cust.notes || "-"}
+                          </span>
+                        )}
+                      </TableCell>
+
+                      {/* Actions */}
+                      <TableCell className="text-center py-3">
+                        {isEditingThisRow ? (
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={handleSaveEdit}
+                              className="h-8 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs flex items-center gap-1.5 shadow-xs cursor-pointer active:scale-95"
+                              title="حفظ التعديلات (Enter)"
+                            >
+                              <Check className="h-3.5 w-3.5" />
+                              <span>حفظ</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleCancelEdit}
+                              className="h-8 px-2.5 rounded-xl border border-border hover:bg-muted text-muted-foreground hover:text-foreground text-xs flex items-center cursor-pointer"
+                              title="إلغاء (Esc)"
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleStartEdit(cust)}
+                            className="h-8 px-3 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-black text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                            title="تعديل المبلغ والملاحظات"
+                          >
+                            <Edit2 className="h-3.5 w-3.5" />
+                            <span>تعديل</span>
+                          </button>
+                        )}
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
