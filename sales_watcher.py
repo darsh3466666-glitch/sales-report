@@ -90,12 +90,26 @@ def update_heartbeat():
 
 def clean_stale_git_locks():
     try:
-        git_lock = os.path.join(REPO_DIR, '.git', 'index.lock')
+        git_dir = os.path.join(REPO_DIR, '.git')
+        git_lock = os.path.join(git_dir, 'index.lock')
         if os.path.exists(git_lock):
             mtime = os.path.getmtime(git_lock)
             if time.time() - mtime > 60:
                 os.remove(git_lock)
                 log("Cleaned up stale git index.lock")
+
+        # Auto-heal corrupt index
+        index_path = os.path.join(git_dir, 'index')
+        if os.path.exists(index_path):
+            try:
+                with open(index_path, 'rb') as f:
+                    header = f.read(4)
+                if header != b'DIRC' or os.path.getsize(index_path) < 12:
+                    log("Corrupted git index detected (bad signature). Auto-repairing...")
+                    os.remove(index_path)
+                    subprocess.run(['git', 'reset'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
+            except Exception as ie:
+                log(f"Warning checking git index: {ie}")
     except Exception as e:
         log(f"Warning cleaning git lock: {e}")
 
