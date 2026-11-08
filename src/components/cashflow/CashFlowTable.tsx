@@ -23,6 +23,10 @@ import {
   XCircle,
   X,
   Check,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  RotateCcw,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
@@ -36,17 +40,38 @@ interface CashFlowTableProps {
   onRefresh?: () => void;
 }
 
-type FilterStatus = "all" | "completed" | "partial" | "unpaid" | "surplus" | "overdue";
+type FilterStatus =
+  | "all"
+  | "completed"
+  | "partial"
+  | "unpaid"
+  | "surplus"
+  | "overdue"
+  | "pinned"
+  | "has_treasury";
 
-/* ─── Unified readable typography tokens ─── */
+type SortKey =
+  | "index"
+  | "currentBalance"
+  | "customerName"
+  | "expectedAmount"
+  | "totalCollected"
+  | "dueDate"
+  | "rate"
+  | "status"
+  | "remaining";
+
+type SortDirection = "asc" | "desc";
+
+/* ─── Unified readable typography tokens (UI/UX Pro Max) ─── */
 const FONT = {
-  headerCell: "text-xs font-black text-foreground",
+  headerCell: "text-xs sm:text-sm font-black text-foreground",
   index: "text-sm font-bold font-mono tabular-nums",
-  money: "text-sm font-black font-mono tabular-nums",
-  name: "text-sm font-black text-foreground",
-  date: "text-xs font-mono font-semibold",
-  pct: "text-sm font-black font-mono tabular-nums",
-  notes: "text-xs font-medium",
+  money: "text-sm sm:text-base font-black font-mono tabular-nums",
+  name: "text-base sm:text-lg font-black text-foreground leading-snug tracking-tight",
+  date: "text-xs sm:text-sm font-mono font-semibold",
+  pct: "text-sm sm:text-base font-black font-mono tabular-nums",
+  notes: "text-xs sm:text-sm font-medium",
   badge: "text-xs font-black",
 } as const;
 
@@ -63,6 +88,8 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
+  const [sortKey, setSortKey] = useState<SortKey>("index");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [showUnmatchedTreasury, setShowUnmatchedTreasury] = useState(false);
 
   // Single editing state — 100% controlled, NO useEffect, NO focus thrashing, ZERO freeze!
@@ -119,6 +146,28 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     [handleSaveEdit, handleCancelEdit]
   );
 
+  const handleSort = useCallback((key: SortKey) => {
+    setSortKey((prevKey) => {
+      if (prevKey === key) {
+        setSortDirection((prevDir) => (prevDir === "asc" ? "desc" : "asc"));
+        return prevKey;
+      }
+      if (["currentBalance", "expectedAmount", "totalCollected", "rate", "remaining"].includes(key)) {
+        setSortDirection("desc");
+      } else {
+        setSortDirection("asc");
+      }
+      return key;
+    });
+  }, []);
+
+  const handleResetFilters = useCallback(() => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setSortKey("index");
+    setSortDirection("asc");
+  }, []);
+
   // Filter counts
   const counts = useMemo(() => {
     let completed = 0;
@@ -126,6 +175,8 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     let unpaid = 0;
     let surplus = 0;
     let overdue = 0;
+    let pinned = 0;
+    let hasTreasury = 0;
 
     for (const c of summary.customers) {
       if (c.status === "مكتمل") completed++;
@@ -136,6 +187,12 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       if (c.dueDate && c.dueDate < todayStr && c.remaining > 0) {
         overdue++;
       }
+      if (c.isPinned) {
+        pinned++;
+      }
+      if (c.collectedFromTreasury > 0) {
+        hasTreasury++;
+      }
     }
     return {
       all: summary.customers.length,
@@ -144,12 +201,14 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       unpaid,
       surplus,
       overdue,
+      pinned,
+      hasTreasury,
     };
   }, [summary.customers, todayStr]);
 
-  // Filtered customers
+  // Filtered and sorted customers
   const filteredCustomers = useMemo(() => {
-    return summary.customers.filter((c) => {
+    const list = summary.customers.filter((c) => {
       if (searchTerm.trim()) {
         const term = searchTerm.trim().toLowerCase();
         const matchesName =
@@ -164,12 +223,62 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       if (statusFilter === "unpaid") return c.status === "لم يسدد";
       if (statusFilter === "surplus") return c.status === "فائض";
       if (statusFilter === "overdue") {
-        return c.dueDate && c.dueDate < todayStr && c.remaining > 0;
+        return Boolean(c.dueDate && c.dueDate < todayStr && c.remaining > 0);
       }
+      if (statusFilter === "pinned") return Boolean(c.isPinned);
+      if (statusFilter === "has_treasury") return c.collectedFromTreasury > 0;
 
       return true;
     });
-  }, [summary.customers, searchTerm, statusFilter, todayStr]);
+
+    list.sort((a, b) => {
+      let cmp = 0;
+      switch (sortKey) {
+        case "index":
+          cmp = a.index - b.index;
+          break;
+        case "currentBalance":
+          cmp = a.currentBalance - b.currentBalance;
+          break;
+        case "customerName":
+          cmp = a.customerName.localeCompare(b.customerName, "ar");
+          break;
+        case "expectedAmount":
+          cmp = a.expectedAmount - b.expectedAmount;
+          break;
+        case "totalCollected":
+          cmp = a.totalCollected - b.totalCollected;
+          break;
+        case "dueDate": {
+          const dA = a.dueDate || "9999-99-99";
+          const dB = b.dueDate || "9999-99-99";
+          cmp = dA.localeCompare(dB);
+          break;
+        }
+        case "rate":
+          cmp = a.rate - b.rate;
+          break;
+        case "status": {
+          const order: Record<string, number> = {
+            "مكتمل": 1,
+            "فائض": 2,
+            "جزئي": 3,
+            "لم يسدد": 4,
+          };
+          cmp = (order[a.status] || 99) - (order[b.status] || 99);
+          break;
+        }
+        case "remaining":
+          cmp = a.remaining - b.remaining;
+          break;
+        default:
+          cmp = a.index - b.index;
+      }
+      return sortDirection === "asc" ? cmp : -cmp;
+    });
+
+    return list;
+  }, [summary.customers, searchTerm, statusFilter, todayStr, sortKey, sortDirection]);
 
   const handleExport = () => {
     try {
@@ -220,6 +329,39 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     }
   }, []);
 
+  const renderSortHeader = (
+    key: SortKey,
+    label: string,
+    align: "right" | "center" = "right",
+    extraClass: string = ""
+  ) => {
+    const isActive = sortKey === key;
+    return (
+      <TableHead
+        className={`${FONT.headerCell} ${extraClass} cursor-pointer select-none transition-colors hover:bg-primary/15 py-3.5`}
+        onClick={() => handleSort(key)}
+        title={`ترتيب حسب ${label} (${isActive && sortDirection === "asc" ? "تنازلياً" : "تصاعدياً"})`}
+      >
+        <div
+          className={`flex items-center gap-1.5 ${
+            align === "center" ? "justify-center" : "justify-start"
+          }`}
+        >
+          <span className={isActive ? "text-primary font-black" : ""}>{label}</span>
+          {isActive ? (
+            sortDirection === "asc" ? (
+              <ArrowUp className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+            ) : (
+              <ArrowDown className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+            )
+          ) : (
+            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 hover:text-muted-foreground" />
+          )}
+        </div>
+      </TableHead>
+    );
+  };
+
   return (
     <div className="space-y-4">
       {/* Search and Action Toolbar */}
@@ -256,59 +398,101 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         </Button>
       </div>
 
-      {/* Filter Chips Bar */}
-      <div className="flex flex-wrap items-center gap-2">
-        <Button
-          variant={statusFilter === "all" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setStatusFilter("all")}
-          className="rounded-full text-xs font-black h-9 px-4 cursor-pointer"
-        >
-          الكل ({counts.all})
-        </Button>
-        <Button
-          variant={statusFilter === "completed" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setStatusFilter("completed")}
-          className="rounded-full text-xs font-black h-9 px-4 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer"
-        >
-          مكتمل ({counts.completed})
-        </Button>
-        <Button
-          variant={statusFilter === "partial" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setStatusFilter("partial")}
-          className="rounded-full text-xs font-black h-9 px-4 text-amber-700 dark:text-amber-300 border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer"
-        >
-          جزئي ({counts.partial})
-        </Button>
-        <Button
-          variant={statusFilter === "unpaid" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setStatusFilter("unpaid")}
-          className="rounded-full text-xs font-black h-9 px-4 text-rose-700 dark:text-rose-300 border-2 border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
-        >
-          لم يسدد ({counts.unpaid})
-        </Button>
-        <Button
-          variant={statusFilter === "overdue" ? "default" : "outline"}
-          size="sm"
-          onClick={() => setStatusFilter("overdue")}
-          className="rounded-full text-xs font-black h-9 px-4 text-destructive border-2 border-destructive hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer"
-        >
-          <AlertTriangle className="h-4 w-4" />
-          <span>متأخرون ({counts.overdue})</span>
-        </Button>
-        {counts.surplus > 0 && (
+      {/* Filter Chips & Active Summary Toolbar */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
-            variant={statusFilter === "surplus" ? "default" : "outline"}
+            variant={statusFilter === "all" ? "default" : "outline"}
             size="sm"
-            onClick={() => setStatusFilter("surplus")}
-            className="rounded-full text-xs font-black h-9 px-4 text-blue-700 dark:text-blue-300 border-2 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer"
+            onClick={() => setStatusFilter("all")}
+            className="rounded-full text-xs font-black h-9 px-4 cursor-pointer shadow-2xs"
           >
-            فائض ({counts.surplus})
+            الكل ({counts.all})
           </Button>
-        )}
+          <Button
+            variant={statusFilter === "completed" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter("completed")}
+            className="rounded-full text-xs font-black h-9 px-4 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer shadow-2xs"
+          >
+            مكتمل ({counts.completed})
+          </Button>
+          <Button
+            variant={statusFilter === "partial" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter("partial")}
+            className="rounded-full text-xs font-black h-9 px-4 text-amber-700 dark:text-amber-300 border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer shadow-2xs"
+          >
+            جزئي ({counts.partial})
+          </Button>
+          <Button
+            variant={statusFilter === "unpaid" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter("unpaid")}
+            className="rounded-full text-xs font-black h-9 px-4 text-rose-700 dark:text-rose-300 border-2 border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer shadow-2xs"
+          >
+            لم يسدد ({counts.unpaid})
+          </Button>
+          <Button
+            variant={statusFilter === "overdue" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter("overdue")}
+            className="rounded-full text-xs font-black h-9 px-4 text-destructive border-2 border-destructive hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer shadow-2xs"
+          >
+            <AlertTriangle className="h-4 w-4" />
+            <span>متأخرون ({counts.overdue})</span>
+          </Button>
+          {counts.surplus > 0 && (
+            <Button
+              variant={statusFilter === "surplus" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("surplus")}
+              className="rounded-full text-xs font-black h-9 px-4 text-blue-700 dark:text-blue-300 border-2 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer shadow-2xs"
+            >
+              فائض ({counts.surplus})
+            </Button>
+          )}
+          {counts.pinned > 0 && (
+            <Button
+              variant={statusFilter === "pinned" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("pinned")}
+              className="rounded-full text-xs font-black h-9 px-4 text-purple-700 dark:text-purple-300 border-2 border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Pin className="h-3.5 w-3.5 rotate-45" />
+              <span>المثبت أسبوعياً ({counts.pinned})</span>
+            </Button>
+          )}
+          {counts.hasTreasury > 0 && (
+            <Button
+              variant={statusFilter === "has_treasury" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("has_treasury")}
+              className="rounded-full text-xs font-black h-9 px-4 text-teal-700 dark:text-teal-300 border-2 border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 gap-1.5 cursor-pointer shadow-2xs"
+            >
+              <Zap className="h-3.5 w-3.5 fill-teal-500" />
+              <span>تحصيلات خزينة ({counts.hasTreasury})</span>
+            </Button>
+          )}
+        </div>
+
+        {/* Counter and Reset Filters Button */}
+        <div className="flex items-center gap-2 mr-auto text-xs font-bold text-muted-foreground">
+          <span>
+            عرض <strong className="text-foreground font-black">{filteredCustomers.length}</strong> من{" "}
+            {summary.customers.length} عميل
+          </span>
+          {(statusFilter !== "all" || searchTerm || sortKey !== "index" || sortDirection !== "asc") && (
+            <button
+              onClick={handleResetFilters}
+              className="inline-flex items-center gap-1 text-xs text-primary font-black hover:underline cursor-pointer bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20"
+              title="إعادة ضبط البحث والتصفية والترتيب"
+            >
+              <RotateCcw className="h-3 w-3" />
+              <span>إعادة ضبط</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Unmatched Treasury Inflows Banner */}
@@ -361,17 +545,17 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           <Table>
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
-                <TableHead className={`w-12 text-center ${FONT.headerCell} py-3`}>م</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[120px] text-right`}>الرصيد الحالي</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[200px] text-right`}>العميل</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[140px] text-right`}>المتوقع</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[120px] text-right`}>المحصل</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[110px] text-right`}>موعد السداد</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[80px] text-center`}>نسبة السداد</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[90px] text-center`}>حالة السداد</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[120px] text-right`}>المتبقي</TableHead>
-                <TableHead className={`${FONT.headerCell} min-w-[150px] text-right`}>ملاحظات</TableHead>
-                <TableHead className={`w-24 text-center ${FONT.headerCell}`}>إجراءات</TableHead>
+                {renderSortHeader("index", "م", "center", "w-14")}
+                {renderSortHeader("currentBalance", "الرصيد الحالي", "right", "min-w-[130px]")}
+                {renderSortHeader("customerName", "العميل", "right", "min-w-[220px]")}
+                {renderSortHeader("expectedAmount", "المتوقع", "right", "min-w-[140px]")}
+                {renderSortHeader("totalCollected", "المحصل", "right", "min-w-[130px]")}
+                {renderSortHeader("dueDate", "موعد السداد", "right", "min-w-[120px]")}
+                {renderSortHeader("rate", "نسبة السداد", "center", "min-w-[95px]")}
+                {renderSortHeader("status", "حالة السداد", "center", "min-w-[105px]")}
+                {renderSortHeader("remaining", "المتبقي", "right", "min-w-[130px]")}
+                <TableHead className={`${FONT.headerCell} min-w-[150px] text-right py-3.5`}>ملاحظات</TableHead>
+                <TableHead className={`w-24 text-center ${FONT.headerCell} py-3.5`}>إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
