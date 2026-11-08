@@ -29,11 +29,29 @@ def main():
                 print(f"JSON status: {res.status}")
                 sys.exit(1)
             data = json.loads(res.read().decode('utf-8'))
-            if not data.get('report', {}).get('report_date'):
+            latest = data[0] if isinstance(data, list) else data
+            if not latest.get('report', {}).get('report_date'):
                 print("Missing report_date in JSON")
                 sys.exit(1)
     except Exception as e:
         print(f"Error fetching JSON: {e}")
+        sys.exit(1)
+
+    # 3. Check Cash Flow JSON data
+    url_cf = "https://darsh3466666-glitch.github.io/sales-report/cashflow_data.json"
+    req_cf = urllib.request.Request(url_cf, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        with urllib.request.urlopen(req_cf, context=ctx, timeout=15) as res:
+            if res.status != 200:
+                print(f"Cash flow JSON status: {res.status}")
+                sys.exit(1)
+            cf_data = json.loads(res.read().decode('utf-8'))
+            if not cf_data.get('customers'):
+                print("Missing customers in Cash Flow JSON")
+                sys.exit(1)
+            print(f"Cash flow verified: {len(cf_data['customers'])} customers, Goal: {cf_data.get('weeklyGoal')}")
+    except Exception as e:
+        print(f"Error fetching Cash Flow JSON: {e}")
         sys.exit(1)
 
     print("SUCCESS_LIVE_REPORT_ONLINE")
