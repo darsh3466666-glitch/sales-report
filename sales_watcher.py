@@ -161,23 +161,47 @@ def run_once(force=False):
 
         log(f"Sync completed successfully. Output:\n{ext_res.stdout.strip()}")
 
-        # 2. Re-build client SPA assets if needed, or update dist/sales_data.json
-        dist_json = os.path.join(REPO_DIR, 'dist', 'sales_data.json')
-        public_json = os.path.join(REPO_DIR, 'public', 'sales_data.json')
-        if os.path.exists(public_json):
-            import shutil
-            os.makedirs(os.path.join(REPO_DIR, 'dist'), exist_ok=True)
-            shutil.copyfile(public_json, dist_json)
+        # 1.5 Run cash flow extraction
+        try:
+            cf_script = os.path.join(REPO_DIR, 'scripts', 'extract_cashflow.py')
+            if os.path.exists(cf_script):
+                log("Extracting cash flow data...")
+                subprocess.run(
+                    [sys.executable or 'python', cf_script],
+                    cwd=REPO_DIR,
+                    capture_output=True,
+                    creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0,
+                    timeout=60
+                )
+        except Exception as cfe:
+            log(f"Cash flow extraction warning: {cfe}")
+
+        # 2. Re-build client SPA assets if needed, or update dist/ files
+        import shutil
+        os.makedirs(os.path.join(REPO_DIR, 'dist'), exist_ok=True)
+        for json_name in ['sales_data.json', 'cashflow_data.json', 'cashflow_config.json']:
+            p_file = os.path.join(REPO_DIR, 'public', json_name)
+            d_file = os.path.join(REPO_DIR, 'dist', json_name)
+            if os.path.exists(p_file):
+                try:
+                    shutil.copyfile(p_file, d_file)
+                except Exception:
+                    pass
 
         # 3. Git commit & push to GitHub
         try:
             log("Syncing with GitHub repository...")
-            subprocess.run(['git', 'add', 'public/sales_data.json', 'dist/sales_data.json'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
+            subprocess.run([
+                'git', 'add',
+                'public/sales_data.json', 'dist/sales_data.json',
+                'public/cashflow_data.json', 'dist/cashflow_data.json',
+                'public/cashflow_config.json', 'dist/cashflow_config.json'
+            ], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
             
             diff_check = subprocess.run(['git', 'diff', '--staged', '--name-only'], cwd=REPO_DIR, capture_output=True, text=True, creationflags=CREATE_NO_WINDOW)
             if diff_check.stdout.strip():
                 now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                subprocess.run(['git', 'commit', '-m', f'Auto-update sales report data: {now_str}'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
+                subprocess.run(['git', 'commit', '-m', f'Auto-update sales & cashflow data: {now_str}'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
                 subprocess.run(['git', 'push', 'origin', 'main'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
 
                 # Clean any lingering temporary branch first

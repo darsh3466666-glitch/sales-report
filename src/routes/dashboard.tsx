@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Moon, Sun, History, Download } from "lucide-react";
+import { Trash2, Moon, Sun, History, Download, BarChart3, Wallet } from "lucide-react";
 import { UploadDialog } from "@/components/dashboard/UploadDialog";
 import { CustomerProductsDrawer } from "@/components/dashboard/CustomerProductsDrawer";
 import { PrintDialog } from "@/components/dashboard/PrintDialog";
@@ -148,8 +148,41 @@ function Dashboard() {
               <div className="absolute top-1.5 -left-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 skew-y-[20deg]"></div>
               <div className="absolute top-1.5 -right-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 -skew-y-[20deg]"></div>
             </div>
+
+            {/* Navigation Tabs Switcher */}
+            <div className="hidden md:flex items-center p-1 bg-muted/80 rounded-full border border-border text-xs font-bold shadow-inner">
+              <Button
+                variant="default"
+                size="sm"
+                className="rounded-full h-7 px-3 bg-primary text-primary-foreground shadow-sm gap-1.5"
+              >
+                <BarChart3 className="h-3.5 w-3.5" />
+                <span>المبيعات والتحصيل</span>
+              </Button>
+              <Link to="/cashflow">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full h-7 px-3 text-muted-foreground hover:text-foreground gap-1.5"
+                >
+                  <Wallet className="h-3.5 w-3.5 text-emerald-600" />
+                  <span>الكاش فلو (Cash Flow)</span>
+                </Button>
+              </Link>
+            </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
+            <Link to="/cashflow" className="md:hidden">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-2.5 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
+                title="الكاش فلو"
+              >
+                <Wallet className="h-4 w-4 text-emerald-600" />
+                <span className="text-xs">كاش فلو</span>
+              </Button>
+            </Link>
             <Button
               variant="ghost"
               size="sm"
