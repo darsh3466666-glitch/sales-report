@@ -44,6 +44,10 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const [editingCustomer, setEditingCustomer] = useState<CashFlowCustomer | null>(null);
   const [showUnmatchedTreasury, setShowUnmatchedTreasury] = useState(false);
 
+  const handleCloseModal = React.useCallback(() => {
+    setEditingCustomer(null);
+  }, []);
+
   const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
 
   // Filter counts
@@ -496,7 +500,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       <CashFlowEditModal
         customer={editingCustomer}
         isOpen={Boolean(editingCustomer)}
-        onClose={() => setEditingCustomer(null)}
+        onClose={handleCloseModal}
         onSaved={onDataChanged}
       />
     </div>

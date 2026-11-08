@@ -1,13 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { CashFlowCustomer, saveCustomerOverride } from "@/lib/cashflow.functions";
 import { fmtMoney } from "@/lib/formatters";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { Pin, Save, User, Wallet, X, Calendar, DollarSign } from "lucide-react";
+import { Pin, Save, User, Wallet, X, Calendar } from "lucide-react";
 
 interface CashFlowEditModalProps {
   customer: CashFlowCustomer | null;
@@ -27,9 +22,10 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
   const [notes, setNotes] = useState<string>("");
   const [isSaving, setIsSaving] = useState<boolean>(false);
 
+  // Sync state when customer changes
   useEffect(() => {
     if (customer) {
-      setExpectedAmount(String(customer.expectedAmount || 0));
+      setExpectedAmount(String(customer.expectedAmount ?? 0));
       setIsPinned(Boolean(customer.isPinned));
       setNotes(customer.notes || "");
     }
@@ -49,8 +45,7 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
 
   if (!isOpen || !customer) return null;
 
-  const handleSave = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
+  const handleSave = () => {
     setIsSaving(true);
     try {
       const parsedAmount = parseFloat(expectedAmount) || 0;
@@ -76,17 +71,16 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
       dir="rtl"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
     >
       <div
-        className="relative w-full max-w-lg bg-card border-2 border-primary/30 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5 animate-in zoom-in-95 duration-150"
+        className="relative w-full max-w-lg bg-card border-2 border-primary/30 rounded-2xl shadow-2xl overflow-hidden p-6 space-y-5"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-title"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border pb-3">
@@ -95,7 +89,7 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
               <User className="h-5 w-5" />
             </div>
             <div>
-              <h2 id="modal-title" className="text-lg font-black text-foreground">
+              <h2 className="text-lg font-black text-foreground">
                 تعديل بيانات الكاش فلو
               </h2>
               <p className="text-xs text-muted-foreground font-medium">
@@ -104,6 +98,7 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
             </div>
           </div>
           <button
+            type="button"
             onClick={onClose}
             className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition cursor-pointer"
             title="إغلاق"
@@ -137,14 +132,14 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
           </div>
         </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSave} className="space-y-4">
+        {/* Form Body - Pure HTML without Radix */}
+        <div className="space-y-4">
           {/* Expected Amount Field */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <Label htmlFor="expected-amount-input" className="text-sm font-black text-foreground">
+              <label htmlFor="modal-expected-input" className="text-sm font-black text-foreground">
                 المبلغ المتوقع للأسبوع الحالي (ج.م)
-              </Label>
+              </label>
               {customer.currentBalance > 0 && (
                 <button
                   type="button"
@@ -156,16 +151,15 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
               )}
             </div>
             <div className="relative">
-              <Input
-                id="expected-amount-input"
+              <input
+                id="modal-expected-input"
                 type="number"
                 min="0"
                 step="500"
                 value={expectedAmount}
                 onChange={(e) => setExpectedAmount(e.target.value)}
-                className="text-left font-mono font-black text-lg h-11 pr-3 pl-12 bg-background border-2 border-primary/30 focus:border-primary"
+                className="w-full text-left font-mono font-black text-lg h-11 pr-3 pl-12 bg-background border-2 border-primary/30 rounded-xl focus:outline-none focus:border-primary text-foreground"
                 dir="ltr"
-                autoFocus
               />
               <span className="absolute left-3 top-2.5 text-xs font-bold text-muted-foreground pointer-events-none">
                 ج.م
@@ -173,24 +167,26 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
             </div>
           </div>
 
-          {/* Pin Checkbox */}
+          {/* Pin Checkbox - Pure HTML */}
           <div
             onClick={() => setIsPinned(!isPinned)}
-            className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition ${
+            className={`flex items-start gap-3 p-3.5 rounded-xl border-2 cursor-pointer transition select-none ${
               isPinned
                 ? "bg-primary/10 border-primary shadow-xs"
                 : "bg-muted/30 border-border hover:border-primary/40"
             }`}
           >
-            <Checkbox
-              id="pin-weekly-cb"
+            <input
+              type="checkbox"
+              id="modal-pin-cb"
               checked={isPinned}
-              onCheckedChange={(checked) => setIsPinned(Boolean(checked))}
-              className="mt-0.5"
+              onChange={(e) => setIsPinned(e.target.checked)}
+              onClick={(e) => e.stopPropagation()}
+              className="mt-1 h-4 w-4 rounded accent-primary cursor-pointer"
             />
-            <div className="space-y-1 select-none">
+            <div className="space-y-0.5">
               <label
-                htmlFor="pin-weekly-cb"
+                htmlFor="modal-pin-cb"
                 className="text-sm font-black text-foreground flex items-center gap-1.5 cursor-pointer"
               >
                 <Pin className="h-4 w-4 text-primary rotate-45" />
@@ -202,42 +198,42 @@ export const CashFlowEditModal: React.FC<CashFlowEditModalProps> = ({
             </div>
           </div>
 
-          {/* Notes */}
+          {/* Notes - Pure HTML */}
           <div className="space-y-1.5">
-            <Label htmlFor="notes-input" className="text-sm font-black text-foreground">
+            <label htmlFor="modal-notes-input" className="text-sm font-black text-foreground">
               ملاحظات التحصيل
-            </Label>
-            <Textarea
-              id="notes-input"
+            </label>
+            <textarea
+              id="modal-notes-input"
               rows={2}
               placeholder="مثال: تحويل بنكي أسبوعي، وعد بالسداد يوم الأحد..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="text-sm bg-background border-border"
+              className="w-full text-sm p-3 bg-background border-2 border-border rounded-xl focus:outline-none focus:border-primary text-foreground"
             />
           </div>
 
           {/* Footer Actions */}
           <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
-            <Button
+            <button
               type="button"
-              variant="outline"
               onClick={onClose}
               disabled={isSaving}
-              className="px-4 font-bold rounded-xl"
+              className="px-4 py-2 font-bold text-sm rounded-xl border border-border hover:bg-muted transition cursor-pointer"
             >
               إلغاء
-            </Button>
-            <Button
-              type="submit"
+            </button>
+            <button
+              type="button"
+              onClick={handleSave}
               disabled={isSaving}
-              className="px-6 font-black rounded-xl gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer"
+              className="px-6 py-2 font-black text-sm rounded-xl flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer transition disabled:opacity-50"
             >
               <Save className="h-4 w-4" />
               <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
-            </Button>
+            </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   );

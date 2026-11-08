@@ -13,23 +13,23 @@ export const Route = createFileRoute("/cashflow")({
 });
 
 function CashFlowPage() {
-  const [lastUpdatedTime, setLastUpdatedTime] = useState<string>("");
-
   const {
     data: summary,
     isLoading,
     isFetching,
     refetch,
+    dataUpdatedAt,
   } = useQuery({
     queryKey: ["liveCashFlow"],
-    queryFn: async () => {
-      const data = await getLiveCashFlowData();
-      setLastUpdatedTime(new Date().toLocaleTimeString("ar-EG"));
-      return data;
-    },
+    queryFn: () => getLiveCashFlowData(),
     refetchInterval: 30000, // Live poll Treasury feed every 30 seconds
     staleTime: 10000,
   });
+
+  const lastUpdatedTime = useMemo(() => {
+    if (!dataUpdatedAt) return "الآن";
+    return new Date(dataUpdatedAt).toLocaleTimeString("ar-EG");
+  }, [dataUpdatedAt]);
 
   // Listen to local override changes
   useEffect(() => {
