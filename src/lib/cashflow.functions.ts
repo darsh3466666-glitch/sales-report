@@ -258,17 +258,27 @@ export function recalculateCashFlowSummary(
   const updatedCustomers = currentSummary.customers.map((c) => {
     if (c.customerName !== customerName) return c;
 
-    const expectedAmount = Number(updates.expectedAmount) || 0;
+    let expectedAmount = Number(updates.expectedAmount) || 0;
     const isPinned = Boolean(updates.isPinned);
     const notes = String(updates.notes || "");
     const totalCollected = c.collectedFromSheet + c.collectedFromTreasury;
+
+    const isCashCust =
+      c.customerName === "عميل نقدي (كاش)" ||
+      c.customerName === "نقدي كاش" ||
+      c.customerName.includes("نقدي");
+
+    if (isCashCust) {
+      expectedAmount = Math.max(expectedAmount, totalCollected);
+    }
+
     const remaining = expectedAmount - totalCollected;
     const rate =
       expectedAmount > 0 ? totalCollected / expectedAmount : totalCollected > 0 ? 1 : 0;
 
     let status: CashFlowCustomer["status"] = "لم يسدد";
     if (expectedAmount === 0) {
-      status = totalCollected > 0 ? "فائض" : "لا يوجد استحقاق";
+      status = totalCollected > 0 ? "مكتمل" : "لا يوجد استحقاق";
     } else if (totalCollected >= expectedAmount) {
       status = totalCollected > expectedAmount ? "فائض" : "مكتمل";
     } else if (totalCollected > 0) {
@@ -594,6 +604,17 @@ export async function getLiveCashFlowData(options?: {
 
   for (const cust of baseCustomers) {
     cust.totalCollected = cust.collectedFromSheet + cust.collectedFromTreasury;
+
+    // Special rule for Cash customer: always increase expectedAmount so incoming is exactly identical to expected!
+    const isCashCust =
+      cust.customerName === "عميل نقدي (كاش)" ||
+      cust.customerName === "نقدي كاش" ||
+      cust.customerName.includes("نقدي");
+
+    if (isCashCust) {
+      cust.expectedAmount = Math.max(cust.expectedAmount || 0, cust.totalCollected);
+    }
+
     cust.remaining = cust.expectedAmount - cust.totalCollected;
     cust.rate =
       cust.expectedAmount > 0
@@ -603,7 +624,7 @@ export async function getLiveCashFlowData(options?: {
         : 0;
 
     if (cust.expectedAmount === 0) {
-      cust.status = cust.totalCollected > 0 ? "فائض" : "لا يوجد استحقاق";
+      cust.status = cust.totalCollected > 0 ? "مكتمل" : "لا يوجد استحقاق";
     } else if (cust.totalCollected >= cust.expectedAmount) {
       cust.status = cust.totalCollected > cust.expectedAmount ? "فائض" : "مكتمل";
     } else if (cust.totalCollected > 0) {
