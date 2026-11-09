@@ -43,6 +43,7 @@ def extract_cashflow():
             print("Could not read existing config:", e)
 
     data_rows = []
+    pinned_customers = existing_config.get("pinnedCustomers", {})
     fixed_amounts = existing_config.get("fixedAmounts", {})
     notes = existing_config.get("notes", {})
 
@@ -52,7 +53,14 @@ def extract_cashflow():
             continue
         c_name = str(r[2]).strip()
         bal = float(r[1]) if r[1] is not None and isinstance(r[1], (int, float)) else 0.0
-        expected = float(r[3]) if r[3] is not None and isinstance(r[3], (int, float)) else 0.0
+        
+        # Pinned logic: default is False. Only user explicitly decides who is pinned!
+        is_pinned = bool(pinned_customers.get(c_name, False))
+
+        # If user explicitly pinned the customer, their fixed amount is preserved; otherwise use sheet expected
+        sheet_expected = float(r[3]) if r[3] is not None and isinstance(r[3], (int, float)) else 0.0
+        expected = float(fixed_amounts[c_name]) if is_pinned and c_name in fixed_amounts else sheet_expected
+        
         collected = float(r[4]) if r[4] is not None and isinstance(r[4], (int, float)) else 0.0
         
         due_date = ""
@@ -66,8 +74,6 @@ def extract_cashflow():
         remaining = float(r[8]) if r[8] is not None and isinstance(r[8], (int, float)) else (expected - collected)
         note = str(r[9]).strip() if len(r) > 9 and r[9] else ''
 
-        if expected > 0 and c_name not in fixed_amounts:
-            fixed_amounts[c_name] = expected
         if note and c_name not in notes:
             notes[c_name] = note
 
@@ -82,11 +88,13 @@ def extract_cashflow():
             'rate': rate,
             'status': status,
             'remaining': remaining,
-            'notes': note or notes.get(c_name, '')
+            'notes': note or notes.get(c_name, ''),
+            'isPinned': is_pinned
         })
 
     # Ensure permanent Cash Customer exists and is pinned weekly
     CASH_CUSTOMER_NAME = "عميل نقدي (كاش)"
+    pinned_customers[CASH_CUSTOMER_NAME] = True
     has_cash_cust = any(r['customerName'] == CASH_CUSTOMER_NAME or 'نقدي' in r['customerName'] for r in data_rows)
     if not has_cash_cust:
         cash_exp = fixed_amounts.get(CASH_CUSTOMER_NAME, 0.0)
@@ -105,12 +113,14 @@ def extract_cashflow():
             'notes': cash_note,
             'isPinned': True
         })
-        if CASH_CUSTOMER_NAME not in fixed_amounts:
-            fixed_amounts[CASH_CUSTOMER_NAME] = cash_exp
+        fixed_amounts[CASH_CUSTOMER_NAME] = cash_exp
         if CASH_CUSTOMER_NAME not in notes:
             notes[CASH_CUSTOMER_NAME] = cash_note
 
-    existing_config["fixedAmounts"] = fixed_amounts
+    # Keep only explicitly pinned customers in fixedAmounts
+    clean_fixed = {k: v for k, v in fixed_amounts.items() if pinned_customers.get(k, False)}
+    existing_config["pinnedCustomers"] = pinned_customers
+    existing_config["fixedAmounts"] = clean_fixed
     existing_config["notes"] = notes
     existing_config["updatedAt"] = datetime.datetime.now().isoformat()
 

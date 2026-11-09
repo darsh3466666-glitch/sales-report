@@ -371,14 +371,17 @@ export async function getLiveCashFlowData(options?: {
   const baseCustomers: CashFlowCustomer[] = (rawData?.customers || []).map(
     (c: any, idx: number) => {
       const name = c.customerName || "";
+      // Pinned status: strictly default to false! Only user explicitly decides who is pinned.
       const isPinned =
         overrides.pinnedStatus?.[name] !== undefined
           ? overrides.pinnedStatus[name]
-          : Boolean(rawConfig?.fixedAmounts?.[name] !== undefined || c.expectedAmount > 0);
+          : Boolean(rawConfig?.pinnedCustomers?.[name] ?? c.isPinned ?? false);
 
       const expectedAmount =
         overrides.fixedAmounts?.[name] !== undefined
           ? overrides.fixedAmounts[name]
+          : isPinned && rawConfig?.fixedAmounts?.[name] !== undefined
+          ? rawConfig.fixedAmounts[name]
           : c.expectedAmount !== undefined
           ? c.expectedAmount
           : c.currentBalance || 0;
@@ -524,7 +527,7 @@ export async function getLiveCashFlowData(options?: {
           isPinned: Boolean(
             overrides.pinnedStatus?.[custName] !== undefined
               ? overrides.pinnedStatus[custName]
-              : rawConfig?.fixedAmounts?.[custName] !== undefined
+              : rawConfig?.pinnedCustomers?.[custName] ?? false
           ),
           treasuryTransactions: [tx],
         };
