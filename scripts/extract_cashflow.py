@@ -14,6 +14,7 @@ def normalize_arabic(text):
     text = str(text).strip()
     text = text.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
     text = text.replace('ة', 'ه').replace('ى', 'ي')
+    text = text.replace('عبد ', 'عبد')
     # remove punctuation and extra spaces
     for ch in ['(', ')', '-', '/', '\\', '_', '.', ',', '،']:
         text = text.replace(ch, ' ')

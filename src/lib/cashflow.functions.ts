@@ -100,6 +100,13 @@ export function getCurrentCashFlowWeekWindow(refDate: Date | string = new Date()
   };
 }
 
+function stripTitles(str: string): string {
+  return str
+    .replace(/(^|\s)(المعلم|حاج|الحاج|مهندس|المهندس|استاذ|الاستاذ|شيخ|الشيخ|دكتور|د)(\s|$)/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /**
  * Matches a Treasury description against a customer name using Arabic normalizations.
  */
@@ -113,6 +120,16 @@ export function matchTreasuryDescriptionToCustomer(
   if (!nd || !nc) return false;
   if (nd === nc) return true;
   if (nc.includes(nd) || nd.includes(nc)) return true;
+
+  const td = stripTitles(nd);
+  const tc = stripTitles(nc);
+  if (td && tc) {
+    if (td === tc || tc.includes(td) || td.includes(tc)) return true;
+    const dWords = td.split(" ").filter((w) => w.length >= 3);
+    if (dWords.length >= 2 && dWords.every((w) => tc.includes(w))) {
+      return true;
+    }
+  }
 
   const dWords = nd.split(" ").filter((w) => w.length >= 3);
   if (dWords.length > 0 && dWords.every((w) => nc.includes(w))) {
@@ -319,6 +336,27 @@ export async function getLiveCashFlowData(options?: {
     console.warn("Failed to fetch cashflow_config.json:", e);
   }
 
+  const allSalesCustomersMap = new Map<string, any>();
+  try {
+    const sRes = await fetch(`${basePath}sales_data.json?t=${Date.now()}`, {
+      cache: "no-store",
+    });
+    if (sRes.ok) {
+      const sData = await sRes.json();
+      if (Array.isArray(sData)) {
+        for (const rep of sData) {
+          for (const sc of rep.customers || []) {
+            if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
+              allSalesCustomersMap.set(sc.customer_name, sc);
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+
   const liveTreasuryTx = await fetchLiveTreasuryIncoming();
   const overrides = getUserOverrides();
 
@@ -379,6 +417,72 @@ export async function getLiveCashFlowData(options?: {
         break;
       }
     }
+
+    // If not matched in base customers, check if it's a known customer from Sales report
+    if (!matched) {
+      const normDesc = normalizeArabicName(tx.description);
+      const isGenericCash = /^(نقدي|كاش|مصاريف|مرتجع|ايداع|سحب)$/.test(normDesc);
+
+      if (!isGenericCash) {
+        const matchedSales = Array.from(allSalesCustomersMap.values()).find((sc) =>
+          matchTreasuryDescriptionToCustomer(tx.description, sc.customer_name)
+        );
+
+        const custName = matchedSales ? matchedSales.customer_name : tx.description;
+        const currentBal = matchedSales
+          ? Number(
+              matchedSales.outstanding_amount ||
+                matchedSales.prev_balance ||
+                matchedSales.total_balance ||
+                0
+            )
+          : tx.amount;
+
+        const expectedAmount =
+          overrides.fixedAmounts?.[custName] !== undefined
+            ? overrides.fixedAmounts[custName]
+            : rawConfig?.fixedAmounts?.[custName] !== undefined
+            ? rawConfig.fixedAmounts[custName]
+            : tx.amount;
+
+        const notes =
+          overrides.notes?.[custName] !== undefined
+            ? overrides.notes[custName]
+            : rawConfig?.notes?.[custName] || `تحصيل خزينة وارد (${tx.type})`;
+
+        const newCust: CashFlowCustomer = {
+          index: baseCustomers.length + 1,
+          customerName: custName,
+          normalizedName: normalizeArabicName(custName),
+          currentBalance: currentBal,
+          expectedAmount,
+          collectedFromSheet: 0,
+          collectedFromTreasury: tx.amount,
+          totalCollected: tx.amount,
+          dueDate: "",
+          rate: expectedAmount > 0 ? tx.amount / expectedAmount : 1,
+          status:
+            tx.amount >= expectedAmount
+              ? tx.amount > expectedAmount
+                ? "فائض"
+                : "مكتمل"
+              : "جزئي",
+          remaining: Math.max(0, expectedAmount - tx.amount),
+          notes,
+          isPinned: Boolean(
+            overrides.pinnedStatus?.[custName] !== undefined
+              ? overrides.pinnedStatus[custName]
+              : rawConfig?.fixedAmounts?.[custName] !== undefined
+          ),
+          treasuryTransactions: [tx],
+        };
+
+        baseCustomers.push(newCust);
+        tx.matchedCustomer = custName;
+        matched = true;
+      }
+    }
+
     if (!matched) {
       unmatchedTreasuryTx.push(tx);
     }

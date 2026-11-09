@@ -47,7 +47,7 @@ export function normalizeArabicName(name: string): string {
       .replace(/[أإآا]/g, "ا")
       .replace(/ة/g, "ه")
       .replace(/ى/g, "ي")
-      .replace(/\bعبد\s+/g, "عبد")
+      .replace(/عبد\s+/g, "عبد")
   );
 }
 
