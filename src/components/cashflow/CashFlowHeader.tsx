@@ -89,7 +89,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
                 المستهدف الأسبوعي العام (Target)
               </span>
             </div>
-            <div className="text-3xl sm:text-4xl font-black text-emerald-800 dark:text-emerald-300 font-mono tracking-tight">
+            <div className="text-3xl sm:text-4xl font-extrabold text-emerald-800 dark:text-emerald-300 tabular-nums font-sans tracking-tight">
               {fmtMoney(summary.weeklyGoal)}
               <span className="text-xs sm:text-sm font-bold text-foreground/70 mr-2">
                 (مطلوب 4 مليون أسبوعياً)
@@ -100,11 +100,11 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
           <div className="flex items-center gap-4 sm:gap-6 text-left flex-wrap">
             <div>
               <div className="text-xs sm:text-sm text-foreground/70 font-bold">المحصل حتى الآن</div>
-              <div className="text-xl sm:text-2xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
+              <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums font-sans">
                 {fmtMoney(summary.totalCollected)}
               </div>
               {summary.collectedFromTreasury > 0 && (
-                <div className="text-xs font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1 mt-0.5">
+                <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1 mt-0.5">
                   <Zap className="h-3.5 w-3.5 fill-emerald-500" />
                   منها {fmtMoney(summary.collectedFromTreasury)} من الخزينة مباشر
                 </div>
@@ -112,13 +112,13 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             </div>
             <div className="border-r-2 border-primary/30 pr-4 sm:pr-6">
               <div className="text-xs sm:text-sm text-foreground/70 font-bold">المتبقي للمستهدف</div>
-              <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
+              <div className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 tabular-nums font-sans">
                 {fmtMoney(summary.remainingToTarget)}
               </div>
             </div>
             <div className="text-center bg-card px-4 py-2 rounded-xl border-2 border-emerald-500/40 shadow-xs">
               <div className="text-xs text-muted-foreground font-bold">نسبة الإنجاز</div>
-              <div className="text-xl sm:text-2xl font-black text-emerald-600 font-mono">
+              <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 tabular-nums font-sans">
                 {targetAchievedPct.toFixed(1)}%
               </div>
             </div>
@@ -144,7 +144,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             <span>إجمالي المتوقع</span>
             <Target className="h-5 w-5 text-primary" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-foreground font-mono">
+          <div className="text-xl sm:text-2xl font-extrabold text-foreground tabular-nums font-sans">
             {fmtMoney(summary.totalExpected)}
           </div>
           <div className="text-xs text-muted-foreground font-bold mt-1">
@@ -158,13 +158,13 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             <span>إجمالي المحصل</span>
             <TrendingUp className="h-5 w-5 text-emerald-500" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+          <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums font-sans">
             {fmtMoney(summary.totalCollected)}
           </div>
           <div className="text-xs text-emerald-700 dark:text-emerald-300 font-bold mt-1 flex items-center gap-1">
             <span>شيت: {fmtMoney(summary.collectedFromSheet)}</span>
             {summary.collectedFromTreasury > 0 && (
-              <span className="font-black">
+              <span className="font-extrabold">
                 + خزينة: {fmtMoney(summary.collectedFromTreasury)}
               </span>
             )}
@@ -175,9 +175,9 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
         <div className="bg-card p-4 rounded-2xl border-2 border-teal-500/30 shadow-xs hover:border-teal-500/50 transition">
           <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
             <span>نسبة التحصيل</span>
-            <span className="font-mono text-sm text-teal-600 font-black">%</span>
+            <span className="text-sm text-teal-600 font-extrabold">%</span>
           </div>
-          <div className="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 font-mono">
+          <div className="text-xl sm:text-2xl font-extrabold text-teal-600 dark:text-teal-400 tabular-nums font-sans">
             {fmtPct(summary.collectionRate)}
           </div>
           <div className="text-xs text-muted-foreground font-bold mt-1">
@@ -191,7 +191,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             <span>المتبقي تحصيله</span>
             <Clock className="h-5 w-5 text-rose-500" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-rose-600 dark:text-rose-400 font-mono">
+          <div className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 tabular-nums font-sans">
             {fmtMoney(Math.max(0, summary.totalExpected - summary.totalCollected))}
           </div>
           <div className="text-xs text-muted-foreground font-bold mt-1">
@@ -205,7 +205,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             <span>عملاء متأخرون</span>
             <AlertCircle className="h-5 w-5 text-amber-500" />
           </div>
-          <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 font-mono">
+          <div className="text-xl sm:text-2xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums font-sans">
             {summary.overdueCount} عميل
           </div>
           <div className="text-xs text-amber-700 dark:text-amber-300 font-bold mt-1">

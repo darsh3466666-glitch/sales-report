@@ -65,14 +65,14 @@ type SortDirection = "asc" | "desc";
 
 /* ─── Unified readable typography tokens (UI/UX Pro Max) ─── */
 const FONT = {
-  headerCell: "text-xs sm:text-sm font-black text-foreground",
-  index: "text-sm font-bold font-mono tabular-nums",
-  money: "text-sm sm:text-base font-black font-mono tabular-nums",
-  name: "text-base sm:text-lg font-black text-foreground leading-snug tracking-tight",
-  date: "text-xs sm:text-sm font-mono font-semibold",
-  pct: "text-sm sm:text-base font-black font-mono tabular-nums",
-  notes: "text-xs sm:text-sm font-medium",
-  badge: "text-xs font-black",
+  headerCell: "text-xs sm:text-sm font-extrabold text-foreground font-sans",
+  index: "text-sm font-bold tabular-nums font-sans",
+  money: "text-sm sm:text-base font-extrabold tabular-nums font-sans",
+  name: "text-base sm:text-lg font-extrabold text-foreground leading-snug tracking-tight font-sans",
+  date: "text-xs sm:text-sm font-bold tabular-nums font-sans",
+  pct: "text-sm sm:text-base font-extrabold tabular-nums font-sans",
+  notes: "text-xs sm:text-sm font-medium font-sans",
+  badge: "text-xs font-bold font-sans",
 } as const;
 
 interface EditingState {

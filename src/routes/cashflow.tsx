@@ -46,7 +46,7 @@ function CashFlowPage() {
 
   const lastUpdatedTime = useMemo(() => {
     if (!dataUpdatedAt) return "الآن";
-    return new Date(dataUpdatedAt).toLocaleTimeString("ar-EG");
+    return new Date(dataUpdatedAt).toLocaleTimeString("ar-EG-u-nu-latn");
   }, [dataUpdatedAt]);
 
   // Handle instant customer updates: updates memory immediately, writes localStorage safely, zero freeze!
