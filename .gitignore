@@ -9,3 +9,5 @@ coverage/
 !.env.example
 .watcher_heartbeat
 .last_mtimes.json
+__pycache__/
+*.pyc

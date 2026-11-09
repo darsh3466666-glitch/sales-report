@@ -5,12 +5,14 @@ import {
   getLiveCashFlowData,
   recalculateCashFlowSummary,
   saveCustomerOverride,
+  archiveCurrentWeekAndStartNew,
   type CashFlowSummary,
 } from "@/lib/cashflow.functions";
 import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
 import { CashFlowTable } from "@/components/cashflow/CashFlowTable";
+import { EndCycleModal } from "@/components/cashflow/EndCycleModal";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, BarChart3, Wallet, Printer } from "lucide-react";
+import { Moon, Sun, BarChart3, Wallet, Printer, Archive } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cashflow")({
@@ -35,6 +37,7 @@ function CashFlowPage() {
 
   // Local optimistic summary state (for 0ms instant UI responses without freeze)
   const [activeSummary, setActiveSummary] = useState<CashFlowSummary | null>(null);
+  const [isEndCycleModalOpen, setIsEndCycleModalOpen] = useState(false);
 
   // Sync with fetched data whenever network query returns
   useEffect(() => {
@@ -47,6 +50,19 @@ function CashFlowPage() {
     if (!dataUpdatedAt) return "الآن";
     return new Date(dataUpdatedAt).toLocaleTimeString("ar-EG-u-nu-latn");
   }, [dataUpdatedAt]);
+
+  const handleEndCycleConfirm = async () => {
+    if (!activeSummary) return;
+    try {
+      const result = await archiveCurrentWeekAndStartNew(activeSummary);
+      setActiveSummary(result.newSummary);
+      toast.success("تم أرشفة الأسبوع بنجاح وتجميد خط الأساس للأسبوع الجديد!");
+      await refetch();
+    } catch (err) {
+      console.error("End cycle error:", err);
+      toast.error("حدث خطأ أثناء أرشفة الأسبوع");
+    }
+  };
 
   // Handle instant customer updates: updates memory immediately, writes localStorage safely, zero freeze!
   const handleCustomerSave = useCallback(
@@ -125,6 +141,16 @@ function CashFlowPage() {
                 <Wallet className="h-3.5 w-3.5" />
                 <span>الكاش فلو الأسبوعي</span>
               </Button>
+              <Link to="/cashflow/history">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="rounded-full h-7 px-3 text-muted-foreground hover:text-foreground gap-1.5"
+                >
+                  <Archive className="h-3.5 w-3.5 text-primary" />
+                  <span>سجل الأسابيع</span>
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -172,11 +198,18 @@ function CashFlowPage() {
               isFetching={isFetching}
               onRefresh={() => refetch()}
               lastUpdatedTime={lastUpdatedTime || "الآن"}
+              onEndCycle={() => setIsEndCycleModalOpen(true)}
             />
             <CashFlowTable
               summary={activeSummary}
               onCustomerSave={handleCustomerSave}
               onRefresh={() => refetch()}
+            />
+            <EndCycleModal
+              isOpen={isEndCycleModalOpen}
+              onClose={() => setIsEndCycleModalOpen(false)}
+              summary={activeSummary}
+              onConfirm={handleEndCycleConfirm}
             />
           </>
         ) : (

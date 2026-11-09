@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "@tanstack/react-router";
 import { CashFlowSummary } from "@/lib/cashflow.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
@@ -13,6 +14,8 @@ import {
   ArrowDown,
   Percent,
   Wallet,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -23,6 +26,7 @@ interface CashFlowHeaderProps {
   isFetching: boolean;
   onRefresh: () => void;
   lastUpdatedTime: string;
+  onEndCycle?: () => void;
 }
 
 export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
@@ -30,6 +34,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
   isFetching,
   onRefresh,
   lastUpdatedTime,
+  onEndCycle,
 }) => {
   const targetAchievedPct =
     summary.weeklyGoal > 0
@@ -82,14 +87,37 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
           </div>
         </div>
 
-        {/* Live sync status & refresh button */}
-        <div className="flex items-center gap-2 mr-auto">
-          <div className="text-left text-xs text-muted-foreground hidden sm:block">
+        {/* Live sync status, History link, End cycle trigger & refresh button */}
+        <div className="flex items-center gap-2 mr-auto flex-wrap">
+          <div className="text-left text-xs text-muted-foreground hidden lg:block">
             <div className="font-semibold">آخر تحديث: {lastUpdatedTime}</div>
             <div className="text-emerald-600 dark:text-emerald-400 font-bold">
               تحديث تلقائي كل 30 ثانية
             </div>
           </div>
+          <Link to="/cashflow/history">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full gap-1.5 border-2 border-primary/30 hover:bg-primary/10 font-bold h-10 px-3.5 text-xs sm:text-sm cursor-pointer shadow-xs"
+              title="سجل وأرشيف الأسابيع السابقة"
+            >
+              <Archive className="h-4 w-4 text-primary" />
+              <span>سجل الأسابيع</span>
+            </Button>
+          </Link>
+          {onEndCycle && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={onEndCycle}
+              className="rounded-full gap-1.5 bg-primary hover:bg-primary-dark font-black h-10 px-4 text-xs sm:text-sm cursor-pointer shadow-sm text-primary-foreground"
+              title="إنهاء الدورة الأسبوعية الحالية وأرشفتها وبدء أسبوع جديد"
+            >
+              <RotateCcw className="h-4 w-4" />
+              <span>إنهاء وبدء أسبوع جديد</span>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="sm"
@@ -100,7 +128,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             <RefreshCw
               className={`h-4 w-4 text-primary ${isFetching ? "animate-spin" : ""}`}
             />
-            <span>تحديث لحظي</span>
+            <span className="hidden sm:inline">تحديث لحظي</span>
           </Button>
         </div>
       </div>

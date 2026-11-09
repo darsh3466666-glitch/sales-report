@@ -13,6 +13,7 @@ import { Route as ViewRouteImport } from './routes/view'
 import { Route as HistoryRouteImport } from './routes/history'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CashflowRouteImport } from './routes/cashflow'
+import { Route as CashflowHistoryRouteImport } from './routes/cashflow.history'
 import { Route as IndexRouteImport } from './routes/index'
 
 const ViewRoute = ViewRouteImport.update({
@@ -35,6 +36,11 @@ const CashflowRoute = CashflowRouteImport.update({
   path: '/cashflow',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CashflowHistoryRoute = CashflowHistoryRouteImport.update({
+  id: '/cashflow/history',
+  path: '/cashflow/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -44,6 +50,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cashflow': typeof CashflowRoute
+  '/cashflow/history': typeof CashflowHistoryRoute
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
   '/view': typeof ViewRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cashflow': typeof CashflowRoute
+  '/cashflow/history': typeof CashflowHistoryRoute
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
   '/view': typeof ViewRoute
@@ -59,21 +67,23 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cashflow': typeof CashflowRoute
+  '/cashflow/history': typeof CashflowHistoryRoute
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
   '/view': typeof ViewRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cashflow' | '/dashboard' | '/history' | '/view'
+  fullPaths: '/' | '/cashflow' | '/cashflow/history' | '/dashboard' | '/history' | '/view'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cashflow' | '/dashboard' | '/history' | '/view'
-  id: '__root__' | '/' | '/cashflow' | '/dashboard' | '/history' | '/view'
+  to: '/' | '/cashflow' | '/cashflow/history' | '/dashboard' | '/history' | '/view'
+  id: '__root__' | '/' | '/cashflow' | '/cashflow/history' | '/dashboard' | '/history' | '/view'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CashflowRoute: typeof CashflowRoute
+  CashflowHistoryRoute: typeof CashflowHistoryRoute
   DashboardRoute: typeof DashboardRoute
   HistoryRoute: typeof HistoryRoute
   ViewRoute: typeof ViewRoute
@@ -102,6 +112,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cashflow/history': {
+      id: '/cashflow/history'
+      path: '/cashflow/history'
+      fullPath: '/cashflow/history'
+      preLoaderRoute: typeof CashflowHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cashflow': {
       id: '/cashflow'
       path: '/cashflow'
@@ -122,6 +139,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CashflowRoute: CashflowRoute,
+  CashflowHistoryRoute: CashflowHistoryRoute,
   DashboardRoute: DashboardRoute,
   HistoryRoute: HistoryRoute,
   ViewRoute: ViewRoute,

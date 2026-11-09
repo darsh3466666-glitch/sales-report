@@ -1,4 +1,25 @@
 import { normalizeArabicName } from "./excel-parser.functions";
+import { get, set, keys } from "idb-keyval";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
+import { db } from "./firebase";
+
+export interface ArchivedCashFlowWeek {
+  id: string;
+  weekLabel: string;
+  startDate: string;
+  endDate: string;
+  archivedAt: string;
+  weeklyGoal: number;
+  totalExpected: number;
+  totalCollected: number;
+  collectedFromSheet: number;
+  collectedFromTreasury: number;
+  collectionRate: number;
+  remainingToTarget: number;
+  customerCount: number;
+  overdueCount: number;
+  customers: CashFlowCustomer[];
+}
 
 export interface TreasuryIncomingTx {
   amount: number;
@@ -733,4 +754,243 @@ export async function getLiveCashFlowData(options?: {
     unmatchedTreasuryTx,
     comparison,
   };
+}
+
+const CF_ARCHIVE_PREFIX = "cf_archive_";
+
+/**
+ * Fetch all archived Cash Flow weeks from static JSON, IndexedDB, and Firestore.
+ */
+export async function getArchivedCashFlowWeeks(): Promise<ArchivedCashFlowWeek[]> {
+  const archivesMap = new Map<string, ArchivedCashFlowWeek>();
+
+  // 1. Static fallback from public/cashflow_history.json
+  if (typeof window !== "undefined") {
+    try {
+      const basePath = window.location.pathname.includes("/sales-report")
+        ? "/sales-report/"
+        : "./";
+      const res = await fetch(`${basePath}cashflow_history.json?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        const list = await res.json();
+        if (Array.isArray(list)) {
+          for (const item of list) {
+            if (item && item.id) archivesMap.set(item.id, item);
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load static cashflow history:", e);
+    }
+  }
+
+  // 2. Load from IndexedDB (instant offline storage)
+  if (typeof window !== "undefined") {
+    try {
+      const allKeys = await keys();
+      const archiveKeys = allKeys.filter(
+        (k) => typeof k === "string" && k.startsWith(CF_ARCHIVE_PREFIX)
+      );
+      for (const k of archiveKeys) {
+        const item = await get<ArchivedCashFlowWeek>(k);
+        if (item && item.id) {
+          archivesMap.set(item.id, item);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load IndexedDB archives:", e);
+    }
+  }
+
+  // 3. Load from Firestore (cross-device cloud sync)
+  if (typeof window !== "undefined") {
+    try {
+      const colRef = collection(db, "cashflow_archives");
+      const snap = await getDocs(colRef);
+      snap.forEach((d) => {
+        const data = d.data() as ArchivedCashFlowWeek;
+        if (data && data.id) {
+          archivesMap.set(data.id, data);
+        }
+      });
+    } catch (e) {
+      // Offline fallback
+    }
+  }
+
+  const list = Array.from(archivesMap.values());
+  list.sort((a, b) =>
+    (b.endDate || b.archivedAt || "").localeCompare(a.endDate || a.archivedAt || "")
+  );
+  return list;
+}
+
+/**
+ * Archive the current ending week, update previous snapshot baseline,
+ * and initialize a frozen fresh week with pinned customers carried over.
+ */
+export async function archiveCurrentWeekAndStartNew(
+  currentSummary: CashFlowSummary
+): Promise<{ newSummary: CashFlowSummary; archivedWeek: ArchivedCashFlowWeek }> {
+  const weekId = `week_${currentSummary.weekStart}_to_${currentSummary.weekEnd}`;
+  const nowIso = new Date().toISOString();
+
+  const archivedWeek: ArchivedCashFlowWeek = {
+    id: weekId,
+    weekLabel:
+      currentSummary.weekLabel ||
+      `دورة ${currentSummary.weekStart} إلى ${currentSummary.weekEnd}`,
+    startDate: currentSummary.weekStart,
+    endDate: currentSummary.weekEnd,
+    archivedAt: nowIso,
+    weeklyGoal: currentSummary.weeklyGoal,
+    totalExpected: currentSummary.totalExpected,
+    totalCollected: currentSummary.totalCollected,
+    collectedFromSheet: currentSummary.collectedFromSheet,
+    collectedFromTreasury: currentSummary.collectedFromTreasury,
+    collectionRate: currentSummary.collectionRate,
+    remainingToTarget: currentSummary.remainingToTarget,
+    customerCount: currentSummary.customerCount,
+    overdueCount: currentSummary.overdueCount,
+    customers: currentSummary.customers || [],
+  };
+
+  // 1. Save to IndexedDB
+  if (typeof window !== "undefined") {
+    try {
+      await set(`${CF_ARCHIVE_PREFIX}${weekId}`, archivedWeek);
+    } catch (e) {
+      console.warn("Failed to save to IndexedDB:", e);
+    }
+  }
+
+  // 2. Save to Firestore
+  if (typeof window !== "undefined") {
+    try {
+      const docRef = doc(db, "cashflow_archives", weekId);
+      await setDoc(docRef, archivedWeek);
+    } catch (e) {
+      console.warn("Failed to sync archive to Firestore:", e);
+    }
+  }
+
+  // 3. Set the ending week's figures as the new baseline for "Previous Snapshot"
+  const overrides = getUserOverrides();
+  const newPreviousWeek: CashFlowComparisonMetrics = {
+    title: archivedWeek.weekLabel,
+    target: archivedWeek.weeklyGoal,
+    collected: archivedWeek.totalCollected,
+    remainingToTarget: archivedWeek.remainingToTarget,
+    achievementRate:
+      archivedWeek.weeklyGoal > 0
+        ? (archivedWeek.totalCollected / archivedWeek.weeklyGoal) * 100
+        : 0,
+    overdueCount: archivedWeek.overdueCount,
+    expected: archivedWeek.totalExpected,
+    remainingExpected: Math.max(
+      0,
+      archivedWeek.totalExpected - archivedWeek.totalCollected
+    ),
+    collectionRate:
+      archivedWeek.totalExpected > 0
+        ? (archivedWeek.totalCollected / archivedWeek.totalExpected) * 100
+        : 0,
+  };
+
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem(
+        "cashflow_previous_week_override",
+        JSON.stringify(newPreviousWeek)
+      );
+    } catch (e) {}
+  }
+
+  // 4. Compute next week window (advancing forward)
+  const currentEnd = new Date(currentSummary.weekEnd);
+  const nextStart = new Date(currentEnd);
+  nextStart.setDate(currentEnd.getDate() + 1);
+  nextStart.setHours(0, 0, 0, 0);
+
+  const nextWeekInfo = getCurrentCashFlowWeekWindow(nextStart);
+
+  // 5. Build clean customers list for the new week (resetting collected, keeping expected and pinned status)
+  const newCustomers: CashFlowCustomer[] = currentSummary.customers.map(
+    (c, idx) => {
+      const isPinned =
+        c.isPinned || overrides.pinnedStatus?.[c.customerName] || false;
+      const expectedAmount =
+        isPinned && overrides.fixedAmounts?.[c.customerName] !== undefined
+          ? overrides.fixedAmounts[c.customerName]
+          : c.expectedAmount;
+
+      return {
+        ...c,
+        index: idx + 1,
+        collectedFromSheet: 0,
+        collectedFromTreasury: 0,
+        totalCollected: 0,
+        remaining: expectedAmount,
+        rate: 0,
+        status: expectedAmount > 0 ? "لم يسدد" : "لا يوجد استحقاق",
+        treasuryTransactions: [],
+        isPinned,
+      };
+    }
+  );
+
+  let totalExpected = 0;
+  for (const c of newCustomers) {
+    totalExpected += c.expectedAmount;
+  }
+
+  const weeklyGoal = currentSummary.weeklyGoal || 4000000;
+  const growthRate =
+    newPreviousWeek.collected > 0
+      ? ((0 - newPreviousWeek.collected) / newPreviousWeek.collected) * 100
+      : 0;
+
+  const newSummary: CashFlowSummary = {
+    reportDate: new Date().toISOString().split("T")[0],
+    weekStart: nextWeekInfo.weekStart,
+    weekEnd: nextWeekInfo.weekEnd,
+    weekLabel: nextWeekInfo.weekLabel,
+    weeklyGoal,
+    totalExpected,
+    totalCollected: 0,
+    collectedFromSheet: 0,
+    collectedFromTreasury: 0,
+    collectionRate: 0,
+    remainingToTarget: weeklyGoal,
+    customerCount: newCustomers.length,
+    overdueCount: 0,
+    customers: newCustomers,
+    unmatchedTreasuryTx: [],
+    comparison: {
+      lastWeek: newPreviousWeek,
+      currentWeek: {
+        title: nextWeekInfo.weekLabel,
+        target: weeklyGoal,
+        collected: 0,
+        remainingToTarget: weeklyGoal,
+        achievementRate: 0,
+        overdueCount: 0,
+        expected: totalExpected,
+        remainingExpected: totalExpected,
+        collectionRate: 0,
+      },
+      growthRate,
+    },
+  };
+
+  // Persist the new active cycle locally
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.setItem("cashflow_active_cycle", JSON.stringify(newSummary));
+    } catch (e) {}
+  }
+
+  return { newSummary, archivedWeek };
 }

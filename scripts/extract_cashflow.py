@@ -15,26 +15,51 @@ def normalize_arabic(text):
     text = text.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
     text = text.replace('ة', 'ه').replace('ى', 'ي')
     text = text.replace('عبد ', 'عبد')
-    # remove punctuation and extra spaces
     for ch in ['(', ')', '-', '/', '\\', '_', '.', ',', '،']:
         text = text.replace(ch, ' ')
     return ' '.join(text.split())
 
+def format_date(val):
+    if not val:
+        return ''
+    if isinstance(val, (datetime.datetime, datetime.date)):
+        return val.strftime('%Y-%m-%d')
+    s = str(val).strip()
+    if len(s) >= 10 and s[4] == '-' and s[7] == '-':
+        return s[:10]
+    return s
+
 def extract_cashflow():
+    """
+    Smart extraction without relying on the legacy 'cash flow' sheet.
+    Sources due dates, targets, and balances from:
+    1. 'خط_سير' (Weekly Route targets and new due dates)
+    2. 'عملاء الدورة ' (Cycle customers whose due date falls in the period)
+    3. 'Master_Data' (Current balances and payment agreements)
+    4. Fallback merge from legacy sheet if present, ensuring zero missing accounts.
+    """
     if not os.path.exists(EXCEL_FILE):
         print(f"Error: {EXCEL_FILE} does not exist")
         return False
 
     wb = openpyxl.load_workbook(EXCEL_FILE, data_only=True, read_only=True)
-    if 'cash flow' not in wb.sheetnames:
-        print("Warning: 'cash flow' sheet not found")
-        return False
-
-    ws_cf = wb['cash flow']
-    rows = list(ws_cf.iter_rows(values_only=True))
 
     config_path = os.path.join(PUBLIC_DIR, 'cashflow_config.json')
-    existing_config = {"weeklyGoal": 4000000, "fixedAmounts": {}, "notes": {}, "customExpected": {}}
+    existing_config = {
+        "weeklyGoal": 4000000,
+        "fixedAmounts": {},
+        "notes": {},
+        "pinnedCustomers": {},
+        "previousWeek": {
+            "title": "اللقطة السابقة (قبل القائمة الجديدة)",
+            "target": 4000000,
+            "collected": 1702215,
+            "overdueCount": 3,
+            "expected": 2451315,
+            "remainingExpected": 749100,
+            "collectionRate": 69.4
+        }
+    }
     if os.path.exists(config_path):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -42,37 +67,155 @@ def extract_cashflow():
         except Exception as e:
             print("Could not read existing config:", e)
 
-    data_rows = []
     pinned_customers = existing_config.get("pinnedCustomers", {})
     fixed_amounts = existing_config.get("fixedAmounts", {})
     notes = existing_config.get("notes", {})
 
-    for i in range(4, len(rows)):
-        r = rows[i]
-        if not r or len(r) < 3 or not r[2]:
-            continue
-        c_name = str(r[2]).strip()
-        bal = float(r[1]) if r[1] is not None and isinstance(r[1], (int, float)) else 0.0
-        
-        # Pinned logic: default is False. Only user explicitly decides who is pinned!
+    # 1. Index Master_Data for latest actual balances
+    master_dict = {}
+    if 'Master_Data' in wb.sheetnames:
+        ws_m = wb['Master_Data']
+        m_rows = list(ws_m.iter_rows(values_only=True))
+        for r in m_rows[1:]:
+            if r and len(r) > 2 and r[1]:
+                m_name = str(r[1]).strip()
+                norm = normalize_arabic(m_name)
+                m_bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
+                m_due = format_date(r[7]) if len(r) > 7 else ''
+                master_dict[norm] = {
+                    'name': m_name,
+                    'balance': m_bal,
+                    'dueDate': m_due
+                }
+
+    extracted_customers = {}
+
+    # 2. Extract from 'خط_سير' (Primary Route sheet for weekly targets)
+    if 'خط_سير' in wb.sheetnames:
+        ws_route = wb['خط_سير']
+        r_rows = list(ws_route.iter_rows(values_only=True))
+        for r in r_rows[1:]:
+            if r and len(r) > 4 and r[4]:
+                c_name = str(r[4]).strip()
+                norm = normalize_arabic(c_name)
+                if not norm:
+                    continue
+                # Expected amount from column F (index 5)
+                exp = float(r[5]) if len(r) > 5 and r[5] is not None and isinstance(r[5], (int, float)) else 0.0
+                # Due date from column C (index 2)
+                due = format_date(r[2]) if len(r) > 2 else ''
+                # Note from column J (index 9)
+                note = str(r[9]).strip() if len(r) > 9 and r[9] else ''
+                
+                bal = master_dict.get(norm, {}).get('balance', exp)
+                if due == '' and norm in master_dict:
+                    due = master_dict[norm].get('dueDate', '')
+
+                extracted_customers[norm] = {
+                    'customerName': c_name,
+                    'normalizedName': norm,
+                    'currentBalance': bal,
+                    'expectedAmount': exp,
+                    'collectedFromSheet': 0.0,
+                    'dueDate': due,
+                    'notes': note,
+                    'source': 'خط_سير'
+                }
+
+    # 3. Extract from 'عملاء الدورة ' (Cycle customers)
+    cycle_sheet_name = 'عملاء الدورة ' if 'عملاء الدورة ' in wb.sheetnames else ('عملاء الدورة' if 'عملاء الدورة' in wb.sheetnames else None)
+    if cycle_sheet_name:
+        ws_cycle = wb[cycle_sheet_name]
+        c_rows = list(ws_cycle.iter_rows(values_only=True))
+        for r in c_rows[2:]:
+            if r and len(r) > 2 and r[1]:
+                c_name = str(r[1]).strip()
+                norm = normalize_arabic(c_name)
+                if not norm:
+                    continue
+                bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
+                due = format_date(r[3]) if len(r) > 3 else ''
+
+                if norm in extracted_customers:
+                    if not extracted_customers[norm]['dueDate'] and due:
+                        extracted_customers[norm]['dueDate'] = due
+                    if extracted_customers[norm]['currentBalance'] == 0.0 and bal > 0:
+                        extracted_customers[norm]['currentBalance'] = bal
+                else:
+                    if bal > 0:
+                        extracted_customers[norm] = {
+                            'customerName': c_name,
+                            'normalizedName': norm,
+                            'currentBalance': bal,
+                            'expectedAmount': bal,
+                            'collectedFromSheet': 0.0,
+                            'dueDate': due,
+                            'notes': notes.get(c_name, ''),
+                            'source': 'عملاء الدورة'
+                        }
+
+    # 4. Fallback merge from legacy 'cash flow' sheet if present (for backward compatibility and sheet collection matching)
+    if 'cash flow' in wb.sheetnames:
+        ws_cf = wb['cash flow']
+        cf_rows = list(ws_cf.iter_rows(values_only=True))
+        for r in cf_rows[4:]:
+            if r and len(r) > 2 and r[2]:
+                c_name = str(r[2]).strip()
+                norm = normalize_arabic(c_name)
+                if not norm:
+                    continue
+                bal = float(r[1]) if r[1] is not None and isinstance(r[1], (int, float)) else 0.0
+                exp = float(r[3]) if len(r) > 3 and r[3] is not None and isinstance(r[3], (int, float)) else 0.0
+                coll = float(r[4]) if len(r) > 4 and r[4] is not None and isinstance(r[4], (int, float)) else 0.0
+                due = format_date(r[5]) if len(r) > 5 else ''
+                note = str(r[9]).strip() if len(r) > 9 and r[9] else ''
+
+                if norm in extracted_customers:
+                    extracted_customers[norm]['collectedFromSheet'] = coll
+                    if exp > 0 and extracted_customers[norm]['expectedAmount'] == 0:
+                        extracted_customers[norm]['expectedAmount'] = exp
+                    if due and not extracted_customers[norm]['dueDate']:
+                        extracted_customers[norm]['dueDate'] = due
+                    if note and not extracted_customers[norm]['notes']:
+                        extracted_customers[norm]['notes'] = note
+                else:
+                    extracted_customers[norm] = {
+                        'customerName': c_name,
+                        'normalizedName': norm,
+                        'currentBalance': bal,
+                        'expectedAmount': exp if exp > 0 else bal,
+                        'collectedFromSheet': coll,
+                        'dueDate': due,
+                        'notes': note or notes.get(c_name, ''),
+                        'source': 'cash flow'
+                    }
+
+    # 5. Build final customer rows with pinned handling
+    data_rows = []
+    for norm, c in extracted_customers.items():
+        c_name = c['customerName']
         is_pinned = bool(pinned_customers.get(c_name, False))
-
-        # If user explicitly pinned the customer, their fixed amount is preserved; otherwise use sheet expected
-        sheet_expected = float(r[3]) if r[3] is not None and isinstance(r[3], (int, float)) else 0.0
-        expected = float(fixed_amounts[c_name]) if is_pinned and c_name in fixed_amounts else sheet_expected
         
-        collected = float(r[4]) if r[4] is not None and isinstance(r[4], (int, float)) else 0.0
-        
-        due_date = ""
-        if isinstance(r[5], (datetime.datetime, datetime.date)):
-            due_date = r[5].strftime('%Y-%m-%d')
-        elif r[5]:
-            due_date = str(r[5]).strip()
+        # Fixed amount takes precedence if customer is pinned
+        if is_pinned and c_name in fixed_amounts:
+            expected = float(fixed_amounts[c_name])
+        else:
+            expected = float(c['expectedAmount'])
 
-        rate = float(r[6]) if r[6] is not None and isinstance(r[6], (int, float)) else (collected / expected if expected > 0 else 0.0)
-        status = str(r[7]).strip() if r[7] else ('مكتمل' if collected >= expected and expected > 0 else ('جزئي' if collected > 0 else 'لم يسدد'))
-        remaining = float(r[8]) if r[8] is not None and isinstance(r[8], (int, float)) else (expected - collected)
-        note = str(r[9]).strip() if len(r) > 9 and r[9] else ''
+        collected = float(c['collectedFromSheet'])
+        rate = (collected / expected) if expected > 0 else (1.0 if collected > 0 else 0.0)
+        
+        if expected == 0:
+            status = 'مكتمل' if collected > 0 else 'لا يوجد استحقاق'
+        elif collected >= expected:
+            status = 'فائض' if collected > expected else 'مكتمل'
+        elif collected > 0:
+            status = 'جزئي'
+        else:
+            status = 'لم يسدد'
+
+        remaining = max(0.0, expected - collected)
+        note = c['notes'] or notes.get(c_name, '')
 
         if note and c_name not in notes:
             notes[c_name] = note
@@ -80,19 +223,19 @@ def extract_cashflow():
         data_rows.append({
             'index': len(data_rows) + 1,
             'customerName': c_name,
-            'normalizedName': normalize_arabic(c_name),
-            'currentBalance': bal,
+            'normalizedName': norm,
+            'currentBalance': c['currentBalance'],
             'expectedAmount': expected,
             'collectedFromSheet': collected,
-            'dueDate': due_date,
+            'dueDate': c['dueDate'],
             'rate': rate,
             'status': status,
             'remaining': remaining,
-            'notes': note or notes.get(c_name, ''),
+            'notes': note,
             'isPinned': is_pinned
         })
 
-    # Ensure permanent Cash Customer exists and is pinned weekly
+    # 6. Ensure permanent Cash Customer exists and is pinned weekly
     CASH_CUSTOMER_NAME = "عميل نقدي (كاش)"
     pinned_customers[CASH_CUSTOMER_NAME] = True
     has_cash_cust = any(r['customerName'] == CASH_CUSTOMER_NAME or 'نقدي' in r['customerName'] for r in data_rows)
@@ -117,20 +260,10 @@ def extract_cashflow():
         if CASH_CUSTOMER_NAME not in notes:
             notes[CASH_CUSTOMER_NAME] = cash_note
 
-    # Keep only explicitly pinned customers in fixedAmounts
     clean_fixed = {k: v for k, v in fixed_amounts.items() if pinned_customers.get(k, False)}
     existing_config["pinnedCustomers"] = pinned_customers
     existing_config["fixedAmounts"] = clean_fixed
     existing_config["notes"] = notes
-
-    if "previousWeek" not in existing_config or existing_config.get("previousWeek", {}).get("collected") == 1247900:
-        existing_config["previousWeek"] = {
-            "title": "اللقطة السابقة (قبل القائمة الجديدة)",
-            "target": 4000000,
-            "collected": 1702215,
-            "overdueCount": 3
-        }
-
     existing_config["updatedAt"] = datetime.datetime.now().isoformat()
 
     os.makedirs(PUBLIC_DIR, exist_ok=True)
@@ -161,7 +294,7 @@ def extract_cashflow():
         with open(os.path.join(DIST_DIR, 'cashflow_data.json'), 'w', encoding='utf-8') as f:
             json.dump(summary, f, ensure_ascii=False, indent=2)
 
-    print(f"[extract_cashflow] Success! Extracted {len(data_rows)} customers, Total Expected: {total_expected:,.2f}, Total Collected: {total_collected:,.2f}")
+    print(f"Successfully extracted {len(data_rows)} cashflow customers. Total expected: {total_expected:,.2f} EGP")
     return True
 
 if __name__ == '__main__':

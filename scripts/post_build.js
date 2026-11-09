@@ -21,8 +21,8 @@ if (fs.existsSync(distDir)) {
   fs.writeFileSync(path.join(distDir, '.nojekyll'), '');
   console.log('✓ Created .nojekyll');
 
-  // 3. Ensure sales_data.json, cashflow_data.json, cashflow_config.json are in dist
-  for (const fileName of ['sales_data.json', 'cashflow_data.json', 'cashflow_config.json']) {
+  // 3. Ensure sales_data.json, cashflow_data.json, cashflow_config.json, cashflow_history.json are in dist
+  for (const fileName of ['sales_data.json', 'cashflow_data.json', 'cashflow_config.json', 'cashflow_history.json']) {
     const publicFile = path.join(publicDir, fileName);
     const distFile = path.join(distDir, fileName);
     if (fs.existsSync(publicFile)) {
