@@ -26,6 +26,21 @@ export interface CashFlowCustomer {
   isExtraCollector?: boolean;
 }
 
+export interface CashFlowComparisonMetrics {
+  title: string;
+  target: number;
+  collected: number;
+  remainingToTarget: number;
+  achievementRate: number;
+  overdueCount: number;
+}
+
+export interface CashFlowWeeklyComparison {
+  lastWeek: CashFlowComparisonMetrics;
+  currentWeek: CashFlowComparisonMetrics;
+  growthRate: number;
+}
+
 export interface CashFlowSummary {
   reportDate: string;
   weekStart: string;
@@ -42,6 +57,7 @@ export interface CashFlowSummary {
   overdueCount: number;
   customers: CashFlowCustomer[];
   unmatchedTreasuryTx: TreasuryIncomingTx[];
+  comparison?: CashFlowWeeklyComparison;
 }
 
 export interface CashFlowConfig {
@@ -49,6 +65,8 @@ export interface CashFlowConfig {
   fixedAmounts: Record<string, number>;
   notes: Record<string, string>;
   customExpected?: Record<string, number>;
+  pinnedCustomers?: Record<string, boolean>;
+  previousWeek?: Partial<CashFlowComparisonMetrics>;
   updatedAt?: string;
 }
 
@@ -292,6 +310,27 @@ export function recalculateCashFlowSummary(
   const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
   const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
 
+  let comparison = currentSummary.comparison;
+  if (comparison) {
+    const currentWeekRate = weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
+    const growthRate =
+      comparison.lastWeek.collected > 0
+        ? ((totalCollected - comparison.lastWeek.collected) / comparison.lastWeek.collected) * 100
+        : 0;
+    comparison = {
+      ...comparison,
+      currentWeek: {
+        ...comparison.currentWeek,
+        target: weeklyGoal,
+        collected: totalCollected,
+        remainingToTarget,
+        achievementRate: currentWeekRate,
+        overdueCount,
+      },
+      growthRate,
+    };
+  }
+
   return {
     ...currentSummary,
     totalExpected,
@@ -302,6 +341,7 @@ export function recalculateCashFlowSummary(
     remainingToTarget,
     overdueCount,
     customers: updatedCustomers,
+    comparison,
   };
 }
 
@@ -586,6 +626,52 @@ export async function getLiveCashFlowData(options?: {
   const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
   const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
 
+  // Build Weekly Comparison Metrics (Executive Totals)
+  const lastWeekCollected =
+    rawConfig?.previousWeek?.collected !== undefined
+      ? Number(rawConfig.previousWeek.collected)
+      : 1247900;
+  const lastWeekTarget =
+    rawConfig?.previousWeek?.target !== undefined
+      ? Number(rawConfig.previousWeek.target)
+      : weeklyGoal;
+  const lastWeekOverdue =
+    rawConfig?.previousWeek?.overdueCount !== undefined
+      ? Number(rawConfig.previousWeek.overdueCount)
+      : 4;
+  const lastWeekTitle =
+    rawConfig?.previousWeek?.title || "الأسبوع الماضي (28 أكتوبر - 3 نوفمبر)";
+
+  const lastWeekRemaining = Math.max(0, lastWeekTarget - lastWeekCollected);
+  const lastWeekRate =
+    lastWeekTarget > 0 ? (lastWeekCollected / lastWeekTarget) * 100 : 0;
+  const currentWeekRate =
+    weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
+  const growthRate =
+    lastWeekCollected > 0
+      ? ((totalCollected - lastWeekCollected) / lastWeekCollected) * 100
+      : 0;
+
+  const comparison: CashFlowWeeklyComparison = {
+    lastWeek: {
+      title: lastWeekTitle,
+      target: lastWeekTarget,
+      collected: lastWeekCollected,
+      remainingToTarget: lastWeekRemaining,
+      achievementRate: lastWeekRate,
+      overdueCount: lastWeekOverdue,
+    },
+    currentWeek: {
+      title: weekInfo.weekLabel || "هذا الأسبوع",
+      target: weeklyGoal,
+      collected: totalCollected,
+      remainingToTarget,
+      achievementRate: currentWeekRate,
+      overdueCount,
+    },
+    growthRate,
+  };
+
   return {
     reportDate: rawData?.reportDate || todayStr,
     weekStart: weekInfo.weekStart,
@@ -602,5 +688,6 @@ export async function getLiveCashFlowData(options?: {
     overdueCount,
     customers: baseCustomers,
     unmatchedTreasuryTx,
+    comparison,
   };
 }

@@ -122,6 +122,15 @@ def extract_cashflow():
     existing_config["pinnedCustomers"] = pinned_customers
     existing_config["fixedAmounts"] = clean_fixed
     existing_config["notes"] = notes
+
+    if "previousWeek" not in existing_config:
+        existing_config["previousWeek"] = {
+            "title": "الأسبوع الماضي (28 أكتوبر - 3 نوفمبر)",
+            "target": 4000000,
+            "collected": 1247900,
+            "overdueCount": 4
+        }
+
     existing_config["updatedAt"] = datetime.datetime.now().isoformat()
 
     os.makedirs(PUBLIC_DIR, exist_ok=True)

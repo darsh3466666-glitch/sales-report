@@ -8,6 +8,7 @@ import {
   type CashFlowSummary,
 } from "@/lib/cashflow.functions";
 import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
+import { WeeklyComparisonSection } from "@/components/cashflow/WeeklyComparisonSection";
 import { CashFlowTable } from "@/components/cashflow/CashFlowTable";
 import { Button } from "@/components/ui/button";
 import { Moon, Sun, BarChart3, Wallet, Printer } from "lucide-react";
@@ -173,6 +174,9 @@ function CashFlowPage() {
               onRefresh={() => refetch()}
               lastUpdatedTime={lastUpdatedTime || "الآن"}
             />
+            {activeSummary.comparison && (
+              <WeeklyComparisonSection comparison={activeSummary.comparison} />
+            )}
             <CashFlowTable
               summary={activeSummary}
               onCustomerSave={handleCustomerSave}
