@@ -9,7 +9,12 @@ import {
   AlertCircle,
   RefreshCw,
   Zap,
+  ArrowUp,
+  ArrowDown,
+  Percent,
+  Wallet,
 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 
@@ -150,134 +155,189 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 print:gap-2">
         {/* Card 1: Total Expected */}
-        <div className="bg-card p-4 rounded-2xl border-2 border-primary/20 shadow-xs hover:border-primary/40 transition flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
-              <span>إجمالي المتوقع</span>
-              <Target className="h-5 w-5 text-primary" />
+        <Card className="rounded-lg border-0 border-l-[6px] border-l-secondary shadow-card bg-cream/30 hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
+          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-primary-dark truncate">
+                    إجمالي المتوقع
+                  </p>
+                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
+                    {fmtMoney(summary.totalExpected)}
+                  </p>
+                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
+                    {summary.customerCount} عميل مستحق
+                  </p>
+                </div>
+                <div className="shrink-0 opacity-80 text-info">
+                  <Target className="h-5 w-5" />
+                </div>
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-foreground tabular-nums font-sans">
-              {fmtMoney(summary.totalExpected)}
+            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الأسبوع الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
+                {fmtMoney(lastWeek?.expected || 2451315)}
+              </span>
             </div>
-            <div className="text-xs text-muted-foreground font-bold mt-1">
-              {summary.customerCount} عميل مستحق
-            </div>
-          </div>
-          <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 mt-3 border-t border-border/50">
-            <span>الأسبوع الماضي:</span>
-            <span className="font-extrabold tabular-nums text-foreground font-sans">
-              {fmtMoney(lastWeek?.expected || 2451315)}
-            </span>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Card 2: Total Collected */}
-        <div className="bg-card p-4 rounded-2xl border-2 border-emerald-500/30 shadow-xs hover:border-emerald-500/50 transition flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
-              <span>إجمالي المحصل</span>
-              <span
-                className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 tabular-nums font-sans"
-                dir="ltr"
-              >
-                +{growthRate.toFixed(1)}%
+        <Card className="rounded-lg border-0 border-l-[6px] border-l-success shadow-card bg-cream/30 hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
+          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-primary-dark truncate">
+                    إجمالي المحصل
+                  </p>
+                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
+                    {fmtMoney(summary.totalCollected)}
+                  </p>
+                  <div className="text-xs text-primary-dark/80 font-medium mt-1 flex items-center gap-1 flex-wrap">
+                    <span>شيت: {fmtMoney(summary.collectedFromSheet)}</span>
+                    {summary.collectedFromTreasury > 0 && (
+                      <span className="font-bold text-success">
+                        + خزينة: {fmtMoney(summary.collectedFromTreasury)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="shrink-0 opacity-80 text-success">
+                  <Wallet className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
+                <ArrowUp className="h-3 w-3" />
+                <span className="tabular-nums font-sans">+{growthRate.toFixed(1)}%</span>
+                <span className="text-primary-dark/70 font-medium">عن اللقطة السابقة</span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الأسبوع الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
+                {fmtMoney(lastWeek?.collected || 1702215)}
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 tabular-nums font-sans">
-              {fmtMoney(summary.totalCollected)}
-            </div>
-            <div className="text-xs text-emerald-700 dark:text-emerald-300 font-bold mt-1 flex items-center gap-1">
-              <span>شيت: {fmtMoney(summary.collectedFromSheet)}</span>
-              {summary.collectedFromTreasury > 0 && (
-                <span className="font-extrabold">
-                  + خزينة: {fmtMoney(summary.collectedFromTreasury)}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 mt-3 border-t border-border/50">
-            <span>الأسبوع الماضي:</span>
-            <span className="font-extrabold tabular-nums text-foreground font-sans">
-              {fmtMoney(lastWeek?.collected || 1702215)}
-            </span>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* Card 3: Collection Rate */}
-        <div className="bg-card p-4 rounded-2xl border-2 border-teal-500/30 shadow-xs hover:border-teal-500/50 transition flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
-              <span>نسبة التحصيل</span>
-              <span className="text-sm text-teal-600 font-extrabold">%</span>
+        <Card className="rounded-lg border-0 border-l-[6px] border-l-accent bg-gradient-to-r from-accent/10 to-transparent shadow-accent-glow hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
+          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-primary-dark truncate">
+                    نسبة التحصيل
+                  </p>
+                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
+                    {fmtPct(summary.collectionRate)}
+                  </p>
+                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
+                    من إجمالي المستحق
+                  </p>
+                </div>
+                <div className="shrink-0 opacity-80 text-warning">
+                  <Percent className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
+                <ArrowUp className="h-3 w-3" />
+                <span className="tabular-nums font-sans">
+                  +{(summary.collectionRate * 100 - (lastWeek?.collectionRate || 69.4)).toFixed(1)}%
+                </span>
+                <span className="text-primary-dark/70 font-medium">عن اللقطة السابقة</span>
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-teal-600 dark:text-teal-400 tabular-nums font-sans">
-              {fmtPct(summary.collectionRate)}
-            </div>
-            <div className="text-xs text-muted-foreground font-bold mt-1">
-              من إجمالي المستحق
-            </div>
-          </div>
-          <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 mt-3 border-t border-border/50">
-            <span>الأسبوع الماضي:</span>
-            <span className="font-extrabold tabular-nums text-foreground font-sans">
-              {lastWeek?.collectionRate ? `${lastWeek.collectionRate.toFixed(1)}%` : "69.4%"}
-              <span className="text-emerald-600 dark:text-emerald-400 mr-1.5 font-extrabold" dir="ltr">
-                (+{(summary.collectionRate * 100 - (lastWeek?.collectionRate || 69.4)).toFixed(1)}%)
+            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الأسبوع الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
+                {lastWeek?.collectionRate ? `${lastWeek.collectionRate.toFixed(1)}%` : "69.4%"}
               </span>
-            </span>
-          </div>
-        </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Card 4: Remaining Expected */}
-        <div className="bg-card p-4 rounded-2xl border-2 border-rose-500/30 shadow-xs hover:border-rose-500/50 transition flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
-              <span>المتبقي تحصيله</span>
-              <Clock className="h-5 w-5 text-rose-500" />
+        <Card className="rounded-lg border-0 border-l-[6px] border-l-coral bg-gradient-to-r from-coral/10 to-transparent shadow-coral-glow hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
+          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-primary-dark truncate">
+                    المتبقي تحصيله
+                  </p>
+                  <p className="text-2xl font-extrabold tracking-wide text-destructive mt-2 font-sans tabular-nums">
+                    {fmtMoney(Math.max(0, summary.totalExpected - summary.totalCollected))}
+                  </p>
+                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
+                    مطلوب تحصيلها للأسبوع
+                  </p>
+                </div>
+                <div className="shrink-0 opacity-80 text-destructive">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
+                <ArrowDown className="h-3 w-3" />
+                <span className="tabular-nums font-sans">
+                  {Math.abs(
+                    ((Math.max(0, summary.totalExpected - summary.totalCollected) - (lastWeek?.remainingExpected || 749100)) /
+                      (lastWeek?.remainingExpected || 749100)) *
+                      100
+                  ).toFixed(1)}%
+                </span>
+                <span className="text-primary-dark/70 font-medium">انخفاض في المتبقي</span>
+              </div>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-rose-600 dark:text-rose-400 tabular-nums font-sans">
-              {fmtMoney(Math.max(0, summary.totalExpected - summary.totalCollected))}
-            </div>
-            <div className="text-xs text-muted-foreground font-bold mt-1">
-              مطلوب تحصيلها للأسبوع
-            </div>
-          </div>
-          <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 mt-3 border-t border-border/50">
-            <span>الأسبوع الماضي:</span>
-            <span className="font-extrabold tabular-nums text-foreground font-sans">
-              {fmtMoney(lastWeek?.remainingExpected || 749100)}
-            </span>
-          </div>
-        </div>
-
-        {/* Card 5: Overdue Count */}
-        <div className="bg-card p-4 rounded-2xl border-2 border-amber-500/30 shadow-xs hover:border-amber-500/50 transition col-span-2 md:col-span-1 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between text-foreground/70 text-xs font-black mb-1">
-              <span>عملاء متأخرون</span>
-              <span
-                className="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 tabular-nums font-sans"
-                dir="ltr"
-              >
-                {overdueDiff <= 0 ? `-${Math.abs(overdueDiff)} عملاء` : `+${overdueDiff} عملاء`}
+            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الأسبوع الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
+                {fmtMoney(lastWeek?.remainingExpected || 749100)}
               </span>
             </div>
-            <div className="text-xl sm:text-2xl font-extrabold text-amber-600 dark:text-amber-400 tabular-nums font-sans">
-              {summary.overdueCount} عميل
+          </CardContent>
+        </Card>
+
+        {/* Card 5: Overdue Count */}
+        <Card className="rounded-lg border-0 border-l-[6px] border-l-accent bg-gradient-to-r from-accent/10 to-transparent shadow-accent-glow hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative col-span-2 md:col-span-1">
+          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+            <div>
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-sm font-bold text-primary-dark truncate">
+                    عملاء متأخرون
+                  </p>
+                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
+                    {summary.overdueCount} عميل
+                  </p>
+                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
+                    تجاوزوا موعد السداد
+                  </p>
+                </div>
+                <div className="shrink-0 opacity-80 text-warning">
+                  <AlertCircle className="h-5 w-5" />
+                </div>
+              </div>
+              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
+                {overdueDiff <= 0 ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
+                <span className="tabular-nums font-sans">{Math.abs(overdueDiff)} عملاء</span>
+                <span className="text-primary-dark/70 font-medium">{overdueDiff <= 0 ? "تحسن" : "زيادة"}</span>
+              </div>
             </div>
-            <div className="text-xs text-amber-700 dark:text-amber-300 font-bold mt-1">
-              تجاوزوا موعد السداد
+            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الأسبوع الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
+                {lastWeek?.overdueCount || 3} عملاء
+              </span>
             </div>
-          </div>
-          <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 mt-3 border-t border-border/50">
-            <span>الأسبوع الماضي:</span>
-            <span className="font-extrabold tabular-nums text-foreground font-sans">
-              {lastWeek?.overdueCount || 3} عملاء
-            </span>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
