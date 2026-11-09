@@ -196,22 +196,22 @@ def run_once(force=False):
                 'public/sales_data.json', 'dist/sales_data.json',
                 'public/cashflow_data.json', 'dist/cashflow_data.json',
                 'public/cashflow_config.json', 'dist/cashflow_config.json'
-            ], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
+            ], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=60)
             
-            diff_check = subprocess.run(['git', 'diff', '--staged', '--name-only'], cwd=REPO_DIR, capture_output=True, text=True, creationflags=CREATE_NO_WINDOW)
+            diff_check = subprocess.run(['git', 'diff', '--staged', '--name-only'], cwd=REPO_DIR, capture_output=True, text=True, creationflags=CREATE_NO_WINDOW, timeout=30)
             if diff_check.stdout.strip():
                 now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                subprocess.run(['git', 'commit', '-m', f'Auto-update sales & cashflow data: {now_str}'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
-                subprocess.run(['git', 'push', 'origin', 'main'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
+                subprocess.run(['git', 'commit', '-m', f'Auto-update sales & cashflow data: {now_str}'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=60)
+                subprocess.run(['git', 'push', 'origin', 'main'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=60)
 
                 # Clean any lingering temporary branch first
-                subprocess.run(['git', 'branch', '-D', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
+                subprocess.run(['git', 'branch', '-D', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=30)
 
                 # Push dist to gh-pages branch
                 log("Updating gh-pages branch...")
-                subprocess.run(['git', 'subtree', 'split', '--prefix', 'dist', '-b', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
-                subprocess.run(['git', 'push', '-f', 'origin', 'gh-pages-tmp:gh-pages'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
-                subprocess.run(['git', 'branch', '-D', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW)
+                subprocess.run(['git', 'subtree', 'split', '--prefix', 'dist', '-b', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=120)
+                subprocess.run(['git', 'push', '-f', 'origin', 'gh-pages-tmp:gh-pages'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=90)
+                subprocess.run(['git', 'branch', '-D', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=30)
                 log("GitHub Pages updated successfully!")
             else:
                 log("No changes detected in data file to commit.")

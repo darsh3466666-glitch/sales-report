@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Trash2, Moon, Sun, History, Download, BarChart3, Wallet } from "lucide-react";
+import { Trash2, Moon, Sun, History, Download, BarChart3, Wallet, RefreshCw } from "lucide-react";
 import { UploadDialog } from "@/components/dashboard/UploadDialog";
 import { CustomerProductsDrawer } from "@/components/dashboard/CustomerProductsDrawer";
 import { PrintDialog } from "@/components/dashboard/PrintDialog";
@@ -49,10 +49,13 @@ function Dashboard() {
     setAutoReady(true);
   }, []);
 
-  const { data, isLoading, refetch } = useQuery({
+  const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["latestReport", reportId, autoReady],
     queryFn: () => getLatestReportFull({ data: { reportId } }),
     enabled: autoReady,
+    refetchInterval: 30000, // Live poll every 30 seconds exactly like treasury-dashboard
+    refetchOnWindowFocus: true,
+    staleTime: 15000,
   });
 
   const [dark, setDark] = useState(() => {
@@ -172,6 +175,26 @@ function Dashboard() {
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Live Indicator like treasury dashboard */}
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-400">
+              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>شاشة حية (تحديث كل 30 ثانية)</span>
+            </div>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isFetching}
+              className="px-2.5 sm:px-3 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
+              title="تحديث لحظي"
+            >
+              <RefreshCw
+                className={`h-4 w-4 sm:ml-1.5 text-primary ${isFetching ? "animate-spin" : ""}`}
+              />
+              <span className="hidden sm:inline">تحديث</span>
+            </Button>
+
             <Link to="/cashflow" className="md:hidden">
               <Button
                 variant="ghost"

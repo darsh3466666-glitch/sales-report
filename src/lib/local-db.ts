@@ -63,21 +63,13 @@ export async function getLocalReports() {
     }
   }
 
-  // 2. Fetch static bundled reports if IndexedDB is empty or missing valid opening balance
-  const latestExisting = reportsMap.size > 0 ? Array.from(reportsMap.values())[0] : null;
-  const needsRefresh =
-    reportsMap.size < 10 ||
-    !latestExisting ||
-    !latestExisting.report ||
-    (latestExisting.report.opening_balance || 0) <= 0 ||
-    (latestExisting.report.total_receivables || 0) < 0;
-
-  if (needsRefresh && typeof window !== "undefined") {
+  // 2. ALWAYS fetch fresh static bundled reports from server (Realtime Live Sync like treasury-dashboard)
+  if (typeof window !== "undefined") {
     try {
       const basePath = window.location.pathname.includes("/sales-report")
         ? "/sales-report/"
         : "./";
-      const res = await fetch(basePath + "sales_data.json?t=" + Date.now(), {
+      const res = await fetch(`${basePath}sales_data.json?t=${Date.now()}`, {
         cache: "no-store",
       });
       if (res.ok) {
@@ -87,17 +79,14 @@ export async function getLocalReports() {
             if (item && item.report && item.report.report_date) {
               const id = item.report.id || item.report.report_date;
               item.report.id = id;
-              const cur = reportsMap.get(id);
-              if (!cur || (cur.report.opening_balance || 0) <= 0) {
-                reportsMap.set(id, item);
-                set(DB_PREFIX + id, item).catch(() => {});
-              }
+              reportsMap.set(id, item);
+              set(DB_PREFIX + id, item).catch(() => {});
             }
           }
         }
       }
     } catch (e) {
-      // ignore
+      console.warn("Server sales_data.json fetch warning:", e);
     }
   }
 

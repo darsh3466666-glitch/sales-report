@@ -28,9 +28,9 @@ function CashFlowPage() {
   } = useQuery({
     queryKey: ["liveCashFlow"],
     queryFn: () => getLiveCashFlowData(),
-    refetchInterval: 60000, // Live poll Treasury feed every 60 seconds
-    refetchOnWindowFocus: false, // Prevent refetching and interrupting while editing
-    staleTime: 30000,
+    refetchInterval: 30000, // Live poll every 30 seconds exactly like treasury dashboard!
+    refetchOnWindowFocus: true, // Auto-refetch when user focuses/switches to tab
+    staleTime: 15000,
   });
 
   // Local optimistic summary state (for 0ms instant UI responses without freeze)
