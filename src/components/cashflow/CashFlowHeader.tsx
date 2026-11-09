@@ -43,6 +43,20 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
   const targetDiff =
     lastWeek !== undefined ? targetAchievedPct - lastWeek.achievementRate : 0;
 
+  const expectedLast = lastWeek?.expected || 2451315;
+  const expDiffPct =
+    expectedLast > 0
+      ? ((summary.totalExpected - expectedLast) / expectedLast) * 100
+      : 0;
+
+  const collRateLast = lastWeek?.collectionRate || 69.4;
+  const collRateDiff = summary.collectionRate * 100 - collRateLast;
+
+  const remCurrent = Math.max(0, summary.totalExpected - summary.totalCollected);
+  const remLast = lastWeek?.remainingExpected || 749100;
+  const remDiffPct =
+    remLast > 0 ? ((remCurrent - remLast) / remLast) * 100 : 0;
+
   return (
     <div className="space-y-4">
       {/* Top Banner: Title & Live Treasury Indicator */}
@@ -158,29 +172,30 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 print:gap-2">
         {/* Card 1: Total Expected */}
         <Card className="rounded-lg border-0 border-l-[6px] border-l-secondary shadow-card bg-cream/30 hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
-          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+          <CardContent className="p-3.5 sm:p-4 relative z-10 flex flex-col justify-between h-full space-y-2">
             <div>
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-primary-dark truncate">
-                    إجمالي المتوقع
-                  </p>
-                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
-                    {fmtMoney(summary.totalExpected)}
-                  </p>
-                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
-                    {summary.customerCount} عميل مستحق
-                  </p>
-                </div>
+                <p className="text-sm font-bold text-primary-dark truncate">
+                  إجمالي المتوقع
+                </p>
                 <div className="shrink-0 opacity-80 text-info">
                   <Target className="h-5 w-5" />
                 </div>
               </div>
+              <p className="text-xl sm:text-2xl font-black tracking-tight text-primary-dark mt-1.5 font-sans tabular-nums">
+                {fmtMoney(summary.totalExpected)}
+              </p>
+              <p className="text-xs text-primary-dark/70 font-semibold mt-1 truncate">
+                {summary.customerCount} عميل مستحق
+              </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
-              <span>الأسبوع الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
-                {fmtMoney(lastWeek?.expected || 2451315)}
+            <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                {fmtMoney(expectedLast)}
+                <span className="text-[11px] text-info font-bold" dir="ltr">
+                  ({expDiffPct >= 0 ? "+" : ""}{expDiffPct.toFixed(1)}%)
+                </span>
               </span>
             </div>
           </CardContent>
@@ -188,34 +203,30 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
 
         {/* Card 2: Total Collected */}
         <Card className="rounded-lg border-0 border-l-[6px] border-l-success shadow-card bg-cream/30 hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
-          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+          <CardContent className="p-3.5 sm:p-4 relative z-10 flex flex-col justify-between h-full space-y-2">
             <div>
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-primary-dark truncate">
-                    إجمالي المحصل
-                  </p>
-                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
-                    {fmtMoney(summary.totalCollected)}
-                  </p>
-                  <div className="text-xs font-bold text-success mt-1 flex items-center gap-1">
-                    <span>نقدي كاش: {fmtMoney(summary.collectedFromTreasury)}</span>
-                  </div>
-                </div>
+                <p className="text-sm font-bold text-primary-dark truncate">
+                  إجمالي المحصل
+                </p>
                 <div className="shrink-0 opacity-80 text-success">
                   <Wallet className="h-5 w-5" />
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
-                <ArrowUp className="h-3 w-3" />
-                <span className="tabular-nums font-sans">+{growthRate.toFixed(1)}%</span>
-                <span className="text-primary-dark/70 font-medium">عن اللقطة السابقة</span>
-              </div>
+              <p className="text-xl sm:text-2xl font-black tracking-tight text-primary-dark mt-1.5 font-sans tabular-nums">
+                {fmtMoney(summary.totalCollected)}
+              </p>
+              <p className="text-xs text-success font-bold mt-1 truncate">
+                نقدي كاش: {fmtMoney(summary.collectedFromTreasury)}
+              </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
-              <span>الأسبوع الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
+            <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
                 {fmtMoney(lastWeek?.collected || 1702215)}
+                <span className="text-[11px] text-success font-bold" dir="ltr">
+                  (+{growthRate.toFixed(1)}%)
+                </span>
               </span>
             </div>
           </CardContent>
@@ -223,36 +234,30 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
 
         {/* Card 3: Collection Rate */}
         <Card className="rounded-lg border-0 border-l-[6px] border-l-accent bg-gradient-to-r from-accent/10 to-transparent shadow-accent-glow hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
-          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+          <CardContent className="p-3.5 sm:p-4 relative z-10 flex flex-col justify-between h-full space-y-2">
             <div>
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-primary-dark truncate">
-                    نسبة التحصيل
-                  </p>
-                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
-                    {fmtPct(summary.collectionRate)}
-                  </p>
-                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
-                    من إجمالي المستحق
-                  </p>
-                </div>
+                <p className="text-sm font-bold text-primary-dark truncate">
+                  نسبة التحصيل
+                </p>
                 <div className="shrink-0 opacity-80 text-warning">
                   <Percent className="h-5 w-5" />
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
-                <ArrowUp className="h-3 w-3" />
-                <span className="tabular-nums font-sans">
-                  +{(summary.collectionRate * 100 - (lastWeek?.collectionRate || 69.4)).toFixed(1)}%
-                </span>
-                <span className="text-primary-dark/70 font-medium">عن اللقطة السابقة</span>
-              </div>
+              <p className="text-xl sm:text-2xl font-black tracking-tight text-primary-dark mt-1.5 font-sans tabular-nums">
+                {fmtPct(summary.collectionRate)}
+              </p>
+              <p className="text-xs text-primary-dark/70 font-semibold mt-1 truncate">
+                من إجمالي المستحق
+              </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
-              <span>الأسبوع الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
-                {lastWeek?.collectionRate ? `${lastWeek.collectionRate.toFixed(1)}%` : "69.4%"}
+            <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                {collRateLast.toFixed(1)}%
+                <span className="text-[11px] text-success font-bold" dir="ltr">
+                  (+{collRateDiff.toFixed(1)}%)
+                </span>
               </span>
             </div>
           </CardContent>
@@ -260,40 +265,30 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
 
         {/* Card 4: Remaining Expected */}
         <Card className="rounded-lg border-0 border-l-[6px] border-l-coral bg-gradient-to-r from-coral/10 to-transparent shadow-coral-glow hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
-          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+          <CardContent className="p-3.5 sm:p-4 relative z-10 flex flex-col justify-between h-full space-y-2">
             <div>
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-primary-dark truncate">
-                    المتبقي تحصيله
-                  </p>
-                  <p className="text-2xl font-extrabold tracking-wide text-destructive mt-2 font-sans tabular-nums">
-                    {fmtMoney(Math.max(0, summary.totalExpected - summary.totalCollected))}
-                  </p>
-                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
-                    مطلوب تحصيلها للأسبوع
-                  </p>
-                </div>
+                <p className="text-sm font-bold text-primary-dark truncate">
+                  المتبقي تحصيله
+                </p>
                 <div className="shrink-0 opacity-80 text-destructive">
                   <AlertCircle className="h-5 w-5" />
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
-                <ArrowDown className="h-3 w-3" />
-                <span className="tabular-nums font-sans">
-                  {Math.abs(
-                    ((Math.max(0, summary.totalExpected - summary.totalCollected) - (lastWeek?.remainingExpected || 749100)) /
-                      (lastWeek?.remainingExpected || 749100)) *
-                      100
-                  ).toFixed(1)}%
-                </span>
-                <span className="text-primary-dark/70 font-medium">انخفاض في المتبقي</span>
-              </div>
+              <p className="text-xl sm:text-2xl font-black tracking-tight text-destructive mt-1.5 font-sans tabular-nums">
+                {fmtMoney(remCurrent)}
+              </p>
+              <p className="text-xs text-primary-dark/70 font-semibold mt-1 truncate">
+                مطلوب تحصيلها للأسبوع
+              </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
-              <span>الأسبوع الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
-                {fmtMoney(lastWeek?.remainingExpected || 749100)}
+            <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                {fmtMoney(remLast)}
+                <span className="text-[11px] text-success font-bold" dir="ltr">
+                  ({remDiffPct <= 0 ? "-" : "+"}{Math.abs(remDiffPct).toFixed(1)}%)
+                </span>
               </span>
             </div>
           </CardContent>
@@ -301,34 +296,30 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
 
         {/* Card 5: Overdue Count */}
         <Card className="rounded-lg border-0 border-l-[6px] border-l-accent bg-gradient-to-r from-accent/10 to-transparent shadow-accent-glow hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative col-span-2 md:col-span-1">
-          <CardContent className="p-4 relative z-10 flex flex-col justify-between h-full">
+          <CardContent className="p-3.5 sm:p-4 relative z-10 flex flex-col justify-between h-full space-y-2">
             <div>
               <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p className="text-sm font-bold text-primary-dark truncate">
-                    عملاء متأخرون
-                  </p>
-                  <p className="text-2xl font-extrabold tracking-wide text-primary-dark mt-2 font-sans tabular-nums">
-                    {summary.overdueCount} عميل
-                  </p>
-                  <p className="text-xs text-primary-dark/80 font-medium mt-1">
-                    تجاوزوا موعد السداد
-                  </p>
-                </div>
+                <p className="text-sm font-bold text-primary-dark truncate">
+                  عملاء متأخرون
+                </p>
                 <div className="shrink-0 opacity-80 text-warning">
                   <AlertCircle className="h-5 w-5" />
                 </div>
               </div>
-              <div className="flex items-center gap-1 text-xs font-bold mt-2 text-success" dir="ltr">
-                {overdueDiff <= 0 ? <ArrowDown className="h-3 w-3" /> : <ArrowUp className="h-3 w-3" />}
-                <span className="tabular-nums font-sans">{Math.abs(overdueDiff)} عملاء</span>
-                <span className="text-primary-dark/70 font-medium">{overdueDiff <= 0 ? "تحسن" : "زيادة"}</span>
-              </div>
+              <p className="text-xl sm:text-2xl font-black tracking-tight text-primary-dark mt-1.5 font-sans tabular-nums">
+                {summary.overdueCount} عميل
+              </p>
+              <p className="text-xs text-primary-dark/70 font-semibold mt-1 truncate">
+                تجاوزوا موعد السداد
+              </p>
             </div>
-            <div className="flex items-center justify-between text-xs font-bold pt-2.5 mt-3 border-t border-primary-dark/15 text-primary-dark/70">
-              <span>الأسبوع الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans">
+            <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
+              <span>الماضي:</span>
+              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
                 {lastWeek?.overdueCount || 3} عملاء
+                <span className="text-[11px] text-success font-bold" dir="ltr">
+                  ({overdueDiff <= 0 ? `-${Math.abs(overdueDiff)}` : `+${overdueDiff}`})
+                </span>
               </span>
             </div>
           </CardContent>
