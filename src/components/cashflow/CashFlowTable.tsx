@@ -184,7 +184,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       else if (c.status === "لم يسدد") unpaid++;
       else if (c.status === "فائض") surplus++;
 
-      if (c.dueDate && c.dueDate < todayStr && c.remaining > 0) {
+      if (c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9) {
         overdue++;
       }
       if (c.isPinned) {
@@ -223,7 +223,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       if (statusFilter === "unpaid") return c.status === "لم يسدد";
       if (statusFilter === "surplus") return c.status === "فائض";
       if (statusFilter === "overdue") {
-        return Boolean(c.dueDate && c.dueDate < todayStr && c.remaining > 0);
+        return Boolean(c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9);
       }
       if (statusFilter === "pinned") return Boolean(c.isPinned);
       if (statusFilter === "has_treasury") return c.collectedFromTreasury > 0;
@@ -572,7 +572,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                 filteredCustomers.map((cust) => {
                   const isEditingThisRow = editing?.customerName === cust.customerName;
                   const isOverdue =
-                    !!cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0;
+                    Boolean(cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0 && (cust.rate || 0) < 0.9);
                   const hasTreasuryPayment = cust.collectedFromTreasury > 0;
 
                   const rowClass = isEditingThisRow

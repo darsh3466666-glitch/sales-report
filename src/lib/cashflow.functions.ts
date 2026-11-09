@@ -277,7 +277,7 @@ export function recalculateCashFlowSummary(
     collectedFromSheet += c.collectedFromSheet;
     collectedFromTreasury += c.collectedFromTreasury;
 
-    if (c.dueDate && c.dueDate < todayStr && c.remaining > 0) {
+    if (c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9) {
       overdueCount++;
     }
   }
@@ -512,7 +512,7 @@ export async function getLiveCashFlowData(options?: {
       cust.status = "لم يسدد";
     }
 
-    if (cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0) {
+    if (cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0 && (cust.rate || 0) < 0.9) {
       overdueCount++;
     }
 
