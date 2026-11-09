@@ -7,14 +7,14 @@
     "عميل نقدي (كاش)": "مبيعات وتحصيلات نقدية أسبوعية (كاش)"
   },
   "customExpected": {},
-  "updatedAt": "2026-11-09T14:13:34.778996",
+  "updatedAt": "2026-11-09T14:30:00.000000",
   "pinnedCustomers": {
     "عميل نقدي (كاش)": true
   },
   "previousWeek": {
-    "title": "الأسبوع الماضي (28 أكتوبر - 3 نوفمبر)",
+    "title": "اللقطة السابقة (قبل القائمة الجديدة)",
     "target": 4000000,
-    "collected": 1247900,
-    "overdueCount": 4
+    "collected": 1702215,
+    "overdueCount": 3
   }
 }

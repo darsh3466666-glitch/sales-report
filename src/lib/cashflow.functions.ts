@@ -651,7 +651,7 @@ export async function getLiveCashFlowData(options?: {
   const lastWeekCollected =
     rawConfig?.previousWeek?.collected !== undefined
       ? Number(rawConfig.previousWeek.collected)
-      : 1247900;
+      : 1702215;
   const lastWeekTarget =
     rawConfig?.previousWeek?.target !== undefined
       ? Number(rawConfig.previousWeek.target)
@@ -659,9 +659,9 @@ export async function getLiveCashFlowData(options?: {
   const lastWeekOverdue =
     rawConfig?.previousWeek?.overdueCount !== undefined
       ? Number(rawConfig.previousWeek.overdueCount)
-      : 4;
+      : 3;
   const lastWeekTitle =
-    rawConfig?.previousWeek?.title || "الأسبوع الماضي (28 أكتوبر - 3 نوفمبر)";
+    rawConfig?.previousWeek?.title || "اللقطة السابقة (قبل القائمة الجديدة)";
 
   const lastWeekRemaining = Math.max(0, lastWeekTarget - lastWeekCollected);
   const lastWeekRate =

@@ -123,12 +123,12 @@ def extract_cashflow():
     existing_config["fixedAmounts"] = clean_fixed
     existing_config["notes"] = notes
 
-    if "previousWeek" not in existing_config:
+    if "previousWeek" not in existing_config or existing_config.get("previousWeek", {}).get("collected") == 1247900:
         existing_config["previousWeek"] = {
-            "title": "الأسبوع الماضي (28 أكتوبر - 3 نوفمبر)",
+            "title": "اللقطة السابقة (قبل القائمة الجديدة)",
             "target": 4000000,
-            "collected": 1247900,
-            "overdueCount": 4
+            "collected": 1702215,
+            "overdueCount": 3
         }
 
     existing_config["updatedAt"] = datetime.datetime.now().isoformat()

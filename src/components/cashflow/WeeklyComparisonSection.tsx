@@ -46,7 +46,7 @@ export const WeeklyComparisonSection: React.FC<Props> = ({ comparison }) => {
             </CardTitle>
             <div className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 mt-0.5">
               <Calendar className="h-3.5 w-3.5 text-primary" />
-              <span>مقارنة دورة هذا الأسبوع بدورة الأسبوع المنقضي</span>
+              <span>مقارنة الأداء الحالي بآخر لقطة معتمدة (قبل القائمة الجديدة)</span>
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@ export const WeeklyComparisonSection: React.FC<Props> = ({ comparison }) => {
                 {fmtMoney(comparison.currentWeek.collected)}
               </div>
               <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 border-t border-border/40">
-                <span>الأسبوع الماضي:</span>
+                <span>الأسبوع الماضي (اللقطة السابقة):</span>
                 <span className="font-extrabold tabular-nums text-foreground font-sans">
                   {fmtMoney(comparison.lastWeek.collected)}
                 </span>
@@ -114,11 +114,18 @@ export const WeeklyComparisonSection: React.FC<Props> = ({ comparison }) => {
                 {comparison.currentWeek.achievementRate.toFixed(1)}%
               </div>
               <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 border-t border-border/40">
-                <span>الأسبوع الماضي:</span>
+                <span>الأسبوع الماضي (اللقطة السابقة):</span>
                 <span className="font-extrabold tabular-nums text-foreground font-sans">
                   {comparison.lastWeek.achievementRate.toFixed(1)}%
-                  <span className="text-xs text-emerald-600 dark:text-emerald-400 font-extrabold mr-1.5">
-                    (تحسن +{rateDiff.toFixed(1)}%)
+                  <span
+                    className={`text-xs font-extrabold mr-1.5 ${
+                      rateDiff >= 0
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-rose-600 dark:text-rose-400"
+                    }`}
+                    dir="ltr"
+                  >
+                    ({rateDiff >= 0 ? "+" : ""}{rateDiff.toFixed(1)}%)
                   </span>
                 </span>
               </div>
@@ -157,7 +164,7 @@ export const WeeklyComparisonSection: React.FC<Props> = ({ comparison }) => {
                 </span>
               </div>
               <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 border-t border-border/40">
-                <span>الأسبوع الماضي:</span>
+                <span>الأسبوع الماضي (اللقطة السابقة):</span>
                 <span className="font-extrabold tabular-nums text-foreground font-sans">
                   {comparison.lastWeek.overdueCount} عملاء
                 </span>
@@ -176,7 +183,7 @@ export const WeeklyComparisonSection: React.FC<Props> = ({ comparison }) => {
                 {fmtMoney(comparison.currentWeek.remainingToTarget)}
               </div>
               <div className="text-xs font-semibold text-muted-foreground flex items-center justify-between pt-2 border-t border-border/40">
-                <span>الأسبوع الماضي:</span>
+                <span>الأسبوع الماضي (اللقطة السابقة):</span>
                 <span className="font-extrabold tabular-nums text-foreground font-sans">
                   {fmtMoney(comparison.lastWeek.remainingToTarget)}
                 </span>
