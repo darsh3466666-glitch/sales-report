@@ -1,41 +1,30 @@
-# Gates: Automated Sales Report Pipeline & 24/7 GitHub Pages
+# Gates: cashflow-cycle-and-history
 
-OWNS: scripts/**, src/**, dist/**, public/**, package.json, vite.config.spa.ts, sales_watcher.py, start_watcher.bat, silent_watcher.vbs, setup_task_scheduler.ps1
+OWNS: src/**, scripts/**, public/**
 
-Scope: Automated extraction of 3 local Excel files, real-time sync, and continuous 24/7 deployment to GitHub Pages (darsh3466666-glitch/sales-report) with silent background watching.
+Scope: Implement weekly cashflow cycle end-and-start workflow, smart extraction from collection sheets without legacy cash flow sheet, and dedicated weekly archive history page.
 
-- [x] G1: Excel Extraction & Data Generation
-  CHECK: python scripts/verify_extraction.py
-  EXPECT: SUCCESS_EXTRACTION_VERIFIED
-  EVIDENCE: Output verified: SUCCESS_EXTRACTION_VERIFIED (Extracted 186,000 EGP sales, 426,620 EGP collections, 9841.25 kg qty, 10 active customers).
+- [ ] G1: Extraction script successfully sources due dates and targets from خط_سير, عملاء الدورة, and Master_Data without relying on legacy cash flow sheet
+  CHECK: python -c "import os, json; from scripts.extract_cashflow import extract_cashflow; ok = extract_cashflow(); data = json.load(open('public/cashflow_data.json', encoding='utf-8')); assert ok, 'extract failed'; assert data['customerCount'] > 0, 'no customers'; assert any(c.get('dueDate') for c in data['customers']), 'no due dates'; print('EXTRACTION_TEST_PASSED')"
+  EXPECT: EXTRACTION_TEST_PASSED
+  EVIDENCE: pending
 
-- [x] G2: SPA Static Client Web Build
+- [ ] G2: Cash flow archive history persistence and retrieval engine works locally and via Firebase/IndexedDB
+  CHECK: node -e "const fs = require('fs'); const path = require('path'); const p = path.join('public', 'cashflow_config.json'); assert = require('assert'); assert(fs.existsSync(p), 'config missing'); console.log('PERSISTENCE_STRUCTURE_PASSED');"
+  EXPECT: PERSISTENCE_STRUCTURE_PASSED
+  EVIDENCE: pending
+
+- [ ] G3: New Cash Flow Week Confirmation Dialog and Archive Trigger integrated into cash flow UI
+  CHECK: git grep -q "EndCycleModal" src/components/cashflow/
+  EXPECT: 0
+  EVIDENCE: pending
+
+- [ ] G4: Dedicated Cash Flow History Route (/cashflow/history) created and accessible
+  CHECK: git grep -q "cashflow/history" src/routes/
+  EXPECT: 0
+  EVIDENCE: pending
+
+- [ ] G5: Production build succeeds with 0 errors
   CHECK: npm run build
   EXPECT: SUCCESS_BUILD_VERIFIED
-  EVIDENCE: Output verified: SUCCESS_BUILD_VERIFIED (Vite client SPA built with /sales-report/ base, 404.html, .nojekyll, and sales_data.json copied to dist/).
-
-- [x] G3: GitHub Repository Creation & Remote Configuration
-  CHECK: gh repo view darsh3466666-glitch/sales-report --json name,url
-  EXPECT: "name":"sales-report"
-  EVIDENCE: Output verified: {"name":"sales-report","url":"https://github.com/darsh3466666-glitch/sales-report"}.
-
-- [x] G4: Silent Background Watcher & Windows Task Scheduler
-  CHECK: powershell -ExecutionPolicy Bypass -File scripts/verify_watcher.ps1
-  EXPECT: SUCCESS_WATCHER_REGISTERED
-  EVIDENCE: Output verified: SUCCESS_WATCHER_REGISTERED (Startup shortcut created and background watcher launched).
-
-- [x] G5: End-to-End Live Sync & Public Link Verification
-  CHECK: python scripts/verify_live_url.py
-  EXPECT: SUCCESS_LIVE_REPORT_ONLINE
-  EVIDENCE: Output verified: SUCCESS_LIVE_REPORT_ONLINE (HTTP 200 OK for HTML and sales_data.json at https://darsh3466666-glitch.github.io/sales-report/).
-
-- [x] G6: Historical Data Restoration & Full Accounting Engine Integration
-  CHECK: Automated test querying GitHub Pages sales_data.json
-  EXPECT: 91 historical reports, accurate opening balance (~27.48M EGP), 13 invoices, 14,308 EGP average invoice, active historical comparisons
-  EVIDENCE: Verified: 91 reports deployed to GitHub Pages (HTTP 200). Opening balance 27,481,992 EGP, receivables 27,241,372 EGP, sales 186,000 EGP, collections 138,320 EGP, invoice count 13, avg invoice 14,308 EGP. IndexedDB bad cache auto-purge implemented in local-db.ts.
-
-
-- [x] G7: Bulletproof Auto-Reviving Watcher & Task Scheduler Service
-  CHECK: powershell -ExecutionPolicy Bypass -File scripts/verify_watcher_resilience.ps1
-  EXPECT: SUCCESS_WATCHER_RESILIENCE_VERIFIED
-  EVIDENCE: Output verified: SUCCESS_WATCHER_RESILIENCE_VERIFIED (Task Scheduler job SalesReportWatcher_Nour registered and running every 1 minute with interactive principal; startup fail-safe shortcut confirmed; crash auto-recovery supervisor verified; live file change detection and full extraction-sync cycle executed cleanly).
+  EVIDENCE: pending

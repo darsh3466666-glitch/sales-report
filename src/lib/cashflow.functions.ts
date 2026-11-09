@@ -33,6 +33,9 @@ export interface CashFlowComparisonMetrics {
   remainingToTarget: number;
   achievementRate: number;
   overdueCount: number;
+  expected?: number;
+  remainingExpected?: number;
+  collectionRate?: number;
 }
 
 export interface CashFlowWeeklyComparison {
@@ -663,6 +666,19 @@ export async function getLiveCashFlowData(options?: {
   const lastWeekTitle =
     rawConfig?.previousWeek?.title || "اللقطة السابقة (قبل القائمة الجديدة)";
 
+  const lastWeekExpected =
+    rawConfig?.previousWeek?.expected !== undefined
+      ? Number(rawConfig.previousWeek.expected)
+      : 2451315;
+  const lastWeekRemainingExpected =
+    rawConfig?.previousWeek?.remainingExpected !== undefined
+      ? Number(rawConfig.previousWeek.remainingExpected)
+      : 749100;
+  const lastWeekCollectionRate =
+    rawConfig?.previousWeek?.collectionRate !== undefined
+      ? Number(rawConfig.previousWeek.collectionRate)
+      : 69.4;
+
   const lastWeekRemaining = Math.max(0, lastWeekTarget - lastWeekCollected);
   const lastWeekRate =
     lastWeekTarget > 0 ? (lastWeekCollected / lastWeekTarget) * 100 : 0;
@@ -681,6 +697,9 @@ export async function getLiveCashFlowData(options?: {
       remainingToTarget: lastWeekRemaining,
       achievementRate: lastWeekRate,
       overdueCount: lastWeekOverdue,
+      expected: lastWeekExpected,
+      remainingExpected: lastWeekRemainingExpected,
+      collectionRate: lastWeekCollectionRate,
     },
     currentWeek: {
       title: weekInfo.weekLabel || "هذا الأسبوع",
@@ -689,6 +708,9 @@ export async function getLiveCashFlowData(options?: {
       remainingToTarget,
       achievementRate: currentWeekRate,
       overdueCount,
+      expected: totalExpected,
+      remainingExpected: Math.max(0, totalExpected - totalCollected),
+      collectionRate: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
     },
     growthRate,
   };

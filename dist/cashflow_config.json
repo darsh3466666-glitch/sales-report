@@ -7,7 +7,7 @@
     "عميل نقدي (كاش)": "مبيعات وتحصيلات نقدية أسبوعية (كاش)"
   },
   "customExpected": {},
-  "updatedAt": "2026-11-09T15:02:32.432190",
+  "updatedAt": "2026-11-09T15:25:00.000000",
   "pinnedCustomers": {
     "عميل نقدي (كاش)": true
   },
@@ -15,6 +15,9 @@
     "title": "اللقطة السابقة (قبل القائمة الجديدة)",
     "target": 4000000,
     "collected": 1702215,
-    "overdueCount": 3
+    "overdueCount": 3,
+    "expected": 2451315,
+    "remainingExpected": 749100,
+    "collectionRate": 69.4
   }
 }
