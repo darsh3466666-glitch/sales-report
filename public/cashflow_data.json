@@ -3,14 +3,14 @@
   "weeklyGoal": 4000000,
   "totalExpected": 2451314.82,
   "totalCollected": 1702215.0,
-  "customerCount": 50,
+  "customerCount": 51,
   "remainingToTarget": 2297785.0,
   "collectionRate": 0.6944089702847716,
   "customers": [
     {
       "index": 1,
       "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
-      "normalizedName": "محمد يونس عبد اللطيف قلمشاه",
+      "normalizedName": "محمد يونس عبداللطيف قلمشاه",
       "currentBalance": 1273458.0500000007,
       "expectedAmount": 200000.0,
       "collectedFromSheet": 300000.0,
@@ -36,7 +36,7 @@
     {
       "index": 3,
       "customerName": "حمدي عبد الحميد(سيلا)",
-      "normalizedName": "حمدي عبد الحميد سيلا",
+      "normalizedName": "حمدي عبدالحميد سيلا",
       "currentBalance": 80210.0,
       "expectedAmount": 28000.0,
       "collectedFromSheet": 28000.0,
@@ -140,7 +140,7 @@
     {
       "index": 11,
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
-      "normalizedName": "عيد احمد عبد الفتاح ابو السعود",
+      "normalizedName": "عيد احمد عبدالفتاح ابو السعود",
       "currentBalance": 404349.0,
       "expectedAmount": 150000.0,
       "collectedFromSheet": 150000.0,
@@ -153,7 +153,7 @@
     {
       "index": 12,
       "customerName": "خالد عبد الوهاب (البيضاء)",
-      "normalizedName": "خالد عبد الوهاب البيضاء",
+      "normalizedName": "خالد عبدالوهاب البيضاء",
       "currentBalance": 98880.0,
       "expectedAmount": 30000.0,
       "collectedFromSheet": 30000.0,
@@ -205,7 +205,7 @@
     {
       "index": 16,
       "customerName": "اسامه علي عبد الكريم",
-      "normalizedName": "اسامه علي عبد الكريم",
+      "normalizedName": "اسامه علي عبدالكريم",
       "currentBalance": 124475.0,
       "expectedAmount": 30000.0,
       "collectedFromSheet": 30000.0,
@@ -400,7 +400,7 @@
     {
       "index": 31,
       "customerName": "المعلم/ عبد الفتاح ربيع",
-      "normalizedName": "المعلم عبد الفتاح ربيع",
+      "normalizedName": "المعلم عبدالفتاح ربيع",
       "currentBalance": 248000.0,
       "expectedAmount": 100000.0,
       "collectedFromSheet": 0.0,
@@ -478,7 +478,7 @@
     {
       "index": 37,
       "customerName": "عبد التواب احمد( ميدوم )",
-      "normalizedName": "عبد التواب احمد ميدوم",
+      "normalizedName": "عبدالتواب احمد ميدوم",
       "currentBalance": 328745.0,
       "expectedAmount": 70000.0,
       "collectedFromSheet": 50000.0,
@@ -608,7 +608,7 @@
     {
       "index": 47,
       "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
-      "normalizedName": "احمد فرحات عبد الحميد منشاه دمو",
+      "normalizedName": "احمد فرحات عبدالحميد منشاه دمو",
       "currentBalance": 3851295.0,
       "expectedAmount": 0.0,
       "collectedFromSheet": 0.0,
@@ -621,7 +621,7 @@
     {
       "index": 48,
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
-      "normalizedName": "عبد الرحمن علي مصطفي الصعيدي",
+      "normalizedName": "عبدالرحمن علي مصطفي الصعيدي",
       "currentBalance": 72800.0,
       "expectedAmount": 0.0,
       "collectedFromSheet": 0.0,
@@ -656,6 +656,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": ""
+    },
+    {
+      "index": 51,
+      "customerName": "عميل نقدي (كاش)",
+      "normalizedName": "عميل نقدي كاش",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "",
+      "rate": 1.0,
+      "status": "مكتمل",
+      "remaining": 0.0,
+      "notes": "مبيعات وتحصيلات نقدية أسبوعية (كاش)",
+      "isPinned": true
     }
   ]
 }

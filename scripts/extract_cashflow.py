@@ -85,6 +85,31 @@ def extract_cashflow():
             'notes': note or notes.get(c_name, '')
         })
 
+    # Ensure permanent Cash Customer exists and is pinned weekly
+    CASH_CUSTOMER_NAME = "عميل نقدي (كاش)"
+    has_cash_cust = any(r['customerName'] == CASH_CUSTOMER_NAME or 'نقدي' in r['customerName'] for r in data_rows)
+    if not has_cash_cust:
+        cash_exp = fixed_amounts.get(CASH_CUSTOMER_NAME, 0.0)
+        cash_note = notes.get(CASH_CUSTOMER_NAME, 'مبيعات وتحصيلات نقدية أسبوعية (كاش)')
+        data_rows.append({
+            'index': len(data_rows) + 1,
+            'customerName': CASH_CUSTOMER_NAME,
+            'normalizedName': normalize_arabic(CASH_CUSTOMER_NAME),
+            'currentBalance': 0.0,
+            'expectedAmount': cash_exp,
+            'collectedFromSheet': 0.0,
+            'dueDate': '',
+            'rate': 1.0 if cash_exp == 0 else 0.0,
+            'status': 'مكتمل' if cash_exp == 0 else 'لم يسدد',
+            'remaining': 0.0,
+            'notes': cash_note,
+            'isPinned': True
+        })
+        if CASH_CUSTOMER_NAME not in fixed_amounts:
+            fixed_amounts[CASH_CUSTOMER_NAME] = cash_exp
+        if CASH_CUSTOMER_NAME not in notes:
+            notes[CASH_CUSTOMER_NAME] = cash_note
+
     existing_config["fixedAmounts"] = fixed_amounts
     existing_config["notes"] = notes
     existing_config["updatedAt"] = datetime.datetime.now().isoformat()

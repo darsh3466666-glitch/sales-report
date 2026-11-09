@@ -121,6 +121,11 @@ export function matchTreasuryDescriptionToCustomer(
   if (nd === nc) return true;
   if (nc.includes(nd) || nd.includes(nc)) return true;
 
+  // Special deterministic matching for generic cash
+  const isDescCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|نقدى)$/.test(nd);
+  const isCustCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|عميل نقدي كاش)$/.test(nc);
+  if (isDescCash && isCustCash) return true;
+
   const td = stripTitles(nd);
   const tc = stripTitles(nc);
   if (td && tc) {
@@ -240,7 +245,8 @@ export function recalculateCashFlowSummary(
     const notes = String(updates.notes || "");
     const totalCollected = c.collectedFromSheet + c.collectedFromTreasury;
     const remaining = expectedAmount - totalCollected;
-    const rate = expectedAmount > 0 ? totalCollected / expectedAmount : 0;
+    const rate =
+      expectedAmount > 0 ? totalCollected / expectedAmount : totalCollected > 0 ? 1 : 0;
 
     let status: CashFlowCustomer["status"] = "لم يسدد";
     if (expectedAmount === 0) {
@@ -402,6 +408,46 @@ export async function getLiveCashFlowData(options?: {
     }
   );
 
+  // Ensure permanent Cash Customer exists and is pinned weekly
+  const CASH_NAME = "عميل نقدي (كاش)";
+  let cashCust = baseCustomers.find(
+    (c) => c.customerName === CASH_NAME || c.customerName.includes("نقدي")
+  );
+  if (!cashCust) {
+    const expectedAmount =
+      overrides.fixedAmounts?.[CASH_NAME] !== undefined
+        ? overrides.fixedAmounts[CASH_NAME]
+        : rawConfig?.fixedAmounts?.[CASH_NAME] !== undefined
+        ? rawConfig.fixedAmounts[CASH_NAME]
+        : 0;
+
+    const notes =
+      overrides.notes?.[CASH_NAME] !== undefined
+        ? overrides.notes[CASH_NAME]
+        : rawConfig?.notes?.[CASH_NAME] || "مبيعات وتحصيلات نقدية أسبوعية (كاش)";
+
+    cashCust = {
+      index: baseCustomers.length + 1,
+      customerName: CASH_NAME,
+      normalizedName: normalizeArabicName(CASH_NAME),
+      currentBalance: 0,
+      expectedAmount: Number(expectedAmount) || 0,
+      collectedFromSheet: 0,
+      collectedFromTreasury: 0,
+      totalCollected: 0,
+      dueDate: "",
+      rate: expectedAmount > 0 ? 0 : 1,
+      status: expectedAmount > 0 ? "لم يسدد" : "مكتمل",
+      remaining: 0,
+      notes,
+      isPinned: true,
+      treasuryTransactions: [],
+    };
+    baseCustomers.push(cashCust);
+  } else {
+    cashCust.isPinned = true;
+  }
+
   // Match live Treasury incoming transactions with customers
   const unmatchedTreasuryTx: TreasuryIncomingTx[] = [];
 
@@ -418,12 +464,18 @@ export async function getLiveCashFlowData(options?: {
       }
     }
 
-    // If not matched in base customers, check if it's a known customer from Sales report
+    // If not matched in base customers, check if it's generic cash or a known customer from Sales report
     if (!matched) {
       const normDesc = normalizeArabicName(tx.description);
       const isGenericCash = /^(نقدي|كاش|مصاريف|مرتجع|ايداع|سحب)$/.test(normDesc);
 
-      if (!isGenericCash) {
+      if (isGenericCash || tx.type === "كاش" || normDesc.includes("نقدي") || normDesc.includes("كاش")) {
+        cashCust.collectedFromTreasury += tx.amount;
+        cashCust.treasuryTransactions = cashCust.treasuryTransactions || [];
+        cashCust.treasuryTransactions.push(tx);
+        tx.matchedCustomer = cashCust.customerName;
+        matched = true;
+      } else {
         const matchedSales = Array.from(allSalesCustomersMap.values()).find((sc) =>
           matchTreasuryDescriptionToCustomer(tx.description, sc.customer_name)
         );
@@ -500,7 +552,12 @@ export async function getLiveCashFlowData(options?: {
   for (const cust of baseCustomers) {
     cust.totalCollected = cust.collectedFromSheet + cust.collectedFromTreasury;
     cust.remaining = cust.expectedAmount - cust.totalCollected;
-    cust.rate = cust.expectedAmount > 0 ? cust.totalCollected / cust.expectedAmount : 0;
+    cust.rate =
+      cust.expectedAmount > 0
+        ? cust.totalCollected / cust.expectedAmount
+        : cust.totalCollected > 0
+        ? 1
+        : 0;
 
     if (cust.expectedAmount === 0) {
       cust.status = cust.totalCollected > 0 ? "فائض" : "لا يوجد استحقاق";
