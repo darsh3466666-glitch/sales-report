@@ -29,6 +29,16 @@ def format_date(val):
         return s[:10]
     return s
 
+def get_year(val):
+    if not val:
+        return 0
+    if isinstance(val, (datetime.datetime, datetime.date)):
+        return val.year
+    s = str(val).strip()
+    if len(s) >= 4 and s[:4].isdigit():
+        return int(s[:4])
+    return 0
+
 def extract_cashflow():
     """
     Smart extraction without relying on the legacy 'cash flow' sheet.
@@ -36,7 +46,11 @@ def extract_cashflow():
     1. 'خط_سير' (Weekly Route targets and new due dates)
     2. 'عملاء الدورة ' (Cycle customers whose due date falls in the period)
     3. 'Master_Data' (Current balances and payment agreements)
-    4. Fallback merge from legacy sheet if present, ensuring zero missing accounts.
+    Enforces strict business rules:
+    - Minimum balance >= 1000 EGP (excluding cash customer)
+    - Active customer in 2026 (last payment or invoice in 2026)
+    - Excludes settled/cleared accounts (خالص / تم التصفية)
+    - Only authentic Master_Data customer accounts
     """
     if not os.path.exists(EXCEL_FILE):
         print(f"Error: {EXCEL_FILE} does not exist")
@@ -78,22 +92,38 @@ def extract_cashflow():
                 if not norm:
                     continue
                 m_bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
+                pay_yr = get_year(r[3]) if len(r) > 3 else 0
+                inv_yr = get_year(r[4]) if len(r) > 4 else 0
                 m_due = format_date(r[7]) if len(r) > 7 else ''
+                status = str(r[8]).strip() if len(r) > 8 and r[8] else ''
+                today_status = str(r[10]).strip() if len(r) > 10 and r[10] else ''
                 m_note = str(r[12]).strip() if len(r) > 12 and r[12] else ''
+
+                is_khalis = ('عميل خالص' in status) or ('خالص' in today_status) or ('تم التصفية' in m_note)
+                is_active_2026 = (pay_yr >= 2026 or inv_yr >= 2026)
+
                 master_dict[norm] = {
                     'name': m_name,
                     'balance': m_bal,
                     'dueDate': m_due,
-                    'notes': m_note
+                    'notes': m_note,
+                    'isKhalis': is_khalis,
+                    'isActive2026': is_active_2026,
+                    'lastPaymentYear': pay_yr,
+                    'lastInvoiceYear': inv_yr,
                 }
-                master_names_list.append(m_name)
-                master_names_set.add(norm)
-                master_customers_list.append({
-                    'customerName': m_name,
-                    'currentBalance': m_bal,
-                    'dueDate': m_due,
-                    'notes': m_note
-                })
+
+                # Only include in master registry if valid active customer with balance >= 1000
+                if m_bal >= 1000 and is_active_2026 and not is_khalis:
+                    master_names_list.append(m_name)
+                    master_names_set.add(norm)
+                    master_customers_list.append({
+                        'customerName': m_name,
+                        'currentBalance': m_bal,
+                        'dueDate': m_due,
+                        'notes': m_note,
+                        'isActive2026': True,
+                    })
 
     extracted_customers = {}
 
@@ -197,10 +227,32 @@ def extract_cashflow():
                         'source': 'cash flow'
                     }
 
-    # 5. Build final customer rows with pinned handling
+    # 5. Build final customer rows with pinned handling and strict business filters
     data_rows = []
     for norm, c in extracted_customers.items():
         c_name = c['customerName']
+        is_cash = (c_name == "عميل نقدي (كاش)")
+        
+        # Enforce user requirements:
+        # 1. Must be present in Master_Data
+        # 2. Balance must be >= 1000 EGP (no zeros, piasters, or small residuals)
+        # 3. Active in 2026 (last payment or invoice >= 2026)
+        # 4. Must not be settled/cleared (عميل خالص / تم التصفية)
+        if not is_cash:
+            m_info = master_dict.get(norm)
+            if not m_info:
+                continue
+            bal = m_info.get('balance', 0.0)
+            if bal < 1000:
+                continue
+            if m_info.get('isKhalis', False):
+                continue
+            if not m_info.get('isActive2026', False):
+                continue
+            c['currentBalance'] = bal
+            if not c['dueDate'] and m_info.get('dueDate'):
+                c['dueDate'] = m_info['dueDate']
+
         is_pinned = bool(pinned_customers.get(c_name, False))
         
         # Fixed amount takes precedence if customer is pinned
