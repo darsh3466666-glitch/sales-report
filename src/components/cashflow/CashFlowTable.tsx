@@ -846,6 +846,33 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                               <X className="h-3.5 w-3.5" />
                             </button>
                           </div>
+                        ) : customerToDelete === cust.customerName ? (
+                          <div className="flex items-center justify-center gap-1 bg-rose-50 dark:bg-rose-950/40 border border-rose-300 dark:border-rose-800 p-1 rounded-xl shadow-xs">
+                            <span className="text-[11px] font-black text-rose-600 dark:text-rose-400 px-1 whitespace-nowrap">
+                              حذف؟
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onCustomerDelete?.(cust.customerName);
+                                setCustomerToDelete(null);
+                                toast.success(`تم حذف العميل "${cust.customerName}" من قائمة هذا الأسبوع`);
+                              }}
+                              className="h-7 px-2 bg-rose-600 hover:bg-rose-700 text-white font-black text-[11px] rounded-lg inline-flex items-center gap-1 cursor-pointer shadow-xs"
+                              title="تأكيد الحذف"
+                            >
+                              <Check className="h-3 w-3" />
+                              <span>تأكيد</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCustomerToDelete(null)}
+                              className="h-7 px-1.5 border border-border hover:bg-muted text-muted-foreground font-bold text-[11px] rounded-lg inline-flex items-center cursor-pointer"
+                              title="تراجع"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
                         ) : (
                           <div className="flex items-center justify-center gap-1.5">
                             <button
@@ -1023,46 +1050,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               className="rounded-xl font-bold"
             >
               إلغاء
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Confirmation Modal */}
-      <Dialog
-        open={Boolean(customerToDelete)}
-        onOpenChange={(open) => !open && setCustomerToDelete(null)}
-      >
-        <DialogContent className="sm:max-w-md border-2 border-destructive/30 shadow-2xl p-6" dir="rtl">
-          <DialogHeader className="text-right">
-            <DialogTitle className="text-lg font-black text-destructive flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
-              <span>تأكيد حذف العميل من القائمة</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs sm:text-sm text-foreground/85 font-medium mt-1">
-              هل أنت متأكد من حذف العميل <strong className="text-destructive font-black">"{customerToDelete}"</strong> من قائمة التدفقات النقدية لهذا الأسبوع؟
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="gap-2 sm:gap-3 flex-row-reverse justify-start sm:justify-start mt-3">
-            <Button
-              variant="destructive"
-              onClick={() => {
-                if (customerToDelete && onCustomerDelete) {
-                  onCustomerDelete(customerToDelete);
-                }
-                setCustomerToDelete(null);
-              }}
-              className="font-black px-5 rounded-xl shadow-sm gap-1.5"
-            >
-              <Trash2 className="h-4 w-4" />
-              <span>تأكيد الحذف</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setCustomerToDelete(null)}
-              className="rounded-xl font-bold"
-            >
-              تراجع
             </Button>
           </DialogFooter>
         </DialogContent>

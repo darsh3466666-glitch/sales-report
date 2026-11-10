@@ -113,8 +113,8 @@ def extract_cashflow():
                     'lastInvoiceYear': inv_yr,
                 }
 
-                # Only include in master registry if valid active customer with balance >= 1000
-                if m_bal >= 1000 and is_active_2026 and not is_khalis:
+                # Only include in master registry if valid active customer with balance >= 5000
+                if m_bal >= 5000 and is_active_2026 and not is_khalis:
                     master_names_list.append(m_name)
                     master_names_set.add(norm)
                     master_customers_list.append({
@@ -243,7 +243,7 @@ def extract_cashflow():
             if not m_info:
                 continue
             bal = m_info.get('balance', 0.0)
-            if bal < 1000:
+            if bal < 5000:
                 continue
             if m_info.get('isKhalis', False):
                 continue

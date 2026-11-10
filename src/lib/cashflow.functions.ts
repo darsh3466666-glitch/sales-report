@@ -358,6 +358,30 @@ export function deleteCustomerFromSummary(
   const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
   const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
 
+  let comparison = summary.comparison;
+  if (comparison) {
+    const currentWeekRate = weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
+    const growthRate =
+      comparison.lastWeek.collected > 0
+        ? ((totalCollected - comparison.lastWeek.collected) / comparison.lastWeek.collected) * 100
+        : 0;
+    comparison = {
+      ...comparison,
+      currentWeek: {
+        ...comparison.currentWeek,
+        target: weeklyGoal,
+        collected: totalCollected,
+        remainingToTarget,
+        achievementRate: currentWeekRate,
+        overdueCount,
+        expected: totalExpected,
+        remainingExpected: Math.max(0, totalExpected - totalCollected),
+        collectionRate: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
+      },
+      growthRate,
+    };
+  }
+
   return {
     ...summary,
     totalExpected,
@@ -369,6 +393,7 @@ export function deleteCustomerFromSummary(
     customerCount: remainingCusts.length,
     overdueCount,
     customers: remainingCusts,
+    comparison,
   };
 }
 
@@ -447,6 +472,30 @@ export function addCustomerToSummary(
   const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
   const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
 
+  let comparison = summary.comparison;
+  if (comparison) {
+    const currentWeekRate = weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
+    const growthRate =
+      comparison.lastWeek.collected > 0
+        ? ((totalCollected - comparison.lastWeek.collected) / comparison.lastWeek.collected) * 100
+        : 0;
+    comparison = {
+      ...comparison,
+      currentWeek: {
+        ...comparison.currentWeek,
+        target: weeklyGoal,
+        collected: totalCollected,
+        remainingToTarget,
+        achievementRate: currentWeekRate,
+        overdueCount,
+        expected: totalExpected,
+        remainingExpected: Math.max(0, totalExpected - totalCollected),
+        collectionRate: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
+      },
+      growthRate,
+    };
+  }
+
   return {
     ...summary,
     totalExpected,
@@ -458,6 +507,7 @@ export function addCustomerToSummary(
     customerCount: updatedCusts.length,
     overdueCount,
     customers: updatedCusts,
+    comparison,
   };
 }
 
@@ -843,10 +893,10 @@ export async function getLiveCashFlowData(options?: {
       }
     }
 
-    // Strict validation: Filter out ANY non-master accounts, tiny balances (<1000), settled accounts, or accounting descriptions
+    // Strict validation: Filter out ANY non-master accounts, tiny balances (<5000), settled accounts, or accounting descriptions
     baseCustomers = baseCustomers.filter((c) => {
       if (c.customerName === CASH_NAME || c.customerName.includes("نقدي")) return true;
-      if (c.currentBalance < 1000) return false;
+      if (c.currentBalance < 5000) return false;
       if (c.notes?.includes("عميل خالص") || c.notes?.includes("تم التصفية")) return false;
       const norm = normalizeArabicName(c.customerName);
       if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
@@ -1309,11 +1359,11 @@ export async function archiveCurrentWeekAndStartNew(
   }
 
   // B) Populate eligible customers from Master Data
-  // Criteria: currentBalance >= 1000 AND not settled AND (due date <= nextWeekEnd OR dueDate in past/empty)
+  // Criteria: currentBalance >= 5000 AND not settled AND (due date <= nextWeekEnd OR dueDate in past/empty)
   const masterList = currentSummary.masterCustomers || [];
   for (const m of masterList) {
     if (!m.customerName) continue;
-    if (m.currentBalance < 1000) continue; // Minimum balance threshold >= 1000 EGP!
+    if (m.currentBalance < 5000) continue; // Minimum balance threshold >= 5000 EGP!
     if (m.notes?.includes("عميل خالص") || m.notes?.includes("تم التصفية")) continue;
 
     const norm = normalizeArabicName(m.customerName);
@@ -1359,9 +1409,9 @@ export async function archiveCurrentWeekAndStartNew(
     }
   }
 
-  // Also include any customer from ending week who still had unpaid remaining (provided balance >= 1000 and not settled)
+  // Also include any customer from ending week who still had unpaid remaining (provided balance >= 5000 and not settled)
   for (const c of currentSummary.customers) {
-    if (!newCustomersMap.has(c.customerName) && c.remaining > 0 && c.currentBalance >= 1000) {
+    if (!newCustomersMap.has(c.customerName) && c.remaining > 0 && c.currentBalance >= 5000) {
       if (c.notes?.includes("عميل خالص") || c.notes?.includes("تم التصفية")) continue;
       newCustomersMap.set(c.customerName, {
         ...c,
