@@ -19,7 +19,7 @@ const FIRESTORE_COLLECTION = "reports";
  * If IndexedDB is empty (e.g. brand new browser/device), it falls back to Firestore.
  */
 export async function getLocalReports() {
-  const reportsMap = new Map<string, any>();
+  const reportsByDate = new Map<string, any>();
 
   // 1. Load from local IndexedDB first (lightning fast, zero network latency)
   if (typeof window !== "undefined") {
@@ -55,7 +55,8 @@ export async function getLocalReports() {
           }
           const id = data.report.id || String(key).replace(DB_PREFIX, "");
           data.report.id = id;
-          reportsMap.set(id, data);
+          // Store by date to avoid duplicate reports per day
+          reportsByDate.set(data.report.report_date, data);
         }
       }
     } catch (error) {
@@ -63,7 +64,7 @@ export async function getLocalReports() {
     }
   }
 
-  // 2. ALWAYS fetch fresh static bundled reports from server (Realtime Live Sync like treasury-dashboard)
+  // 2. ALWAYS fetch fresh static bundled reports from server (Authoritative Realtime Live Sync)
   if (typeof window !== "undefined") {
     try {
       const basePath = window.location.pathname.includes("/sales-report")
@@ -77,9 +78,22 @@ export async function getLocalReports() {
         if (Array.isArray(staticData)) {
           for (const item of staticData) {
             if (item && item.report && item.report.report_date) {
-              const id = item.report.id || item.report.report_date;
+              const date = item.report.report_date;
+              const id = item.report.id || date;
               item.report.id = id;
-              reportsMap.set(id, item);
+
+              // If IndexedDB had an outdated record with different ID for this date, clean it up
+              const existingLocal = reportsByDate.get(date);
+              if (
+                existingLocal &&
+                existingLocal.report.id &&
+                existingLocal.report.id !== id
+              ) {
+                del(DB_PREFIX + existingLocal.report.id).catch(() => {});
+              }
+
+              // Overwrite with authoritative server data
+              reportsByDate.set(date, item);
               set(DB_PREFIX + id, item).catch(() => {});
             }
           }
@@ -98,11 +112,14 @@ export async function getLocalReports() {
         for (const docSnap of snap.docs) {
           const data = docSnap.data();
           if (data && data.report && data.report.report_date) {
+            const date = data.report.report_date;
             const id = data.report.id || docSnap.id;
             data.report.id = id;
-            reportsMap.set(id, data);
-            if (typeof window !== "undefined") {
-              set(DB_PREFIX + id, data).catch(() => {});
+            if (!reportsByDate.has(date)) {
+              reportsByDate.set(date, data);
+              if (typeof window !== "undefined") {
+                set(DB_PREFIX + id, data).catch(() => {});
+              }
             }
           }
         }
@@ -117,7 +134,7 @@ export async function getLocalReports() {
     console.warn("Firestore sync warning:", error);
   }
 
-  const reports = Array.from(reportsMap.values());
+  const reports = Array.from(reportsByDate.values());
   reports.sort(
     (a, b) =>
       new Date(b.report.report_date).getTime() -

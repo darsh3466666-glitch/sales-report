@@ -71,8 +71,10 @@ def extract_cashflow():
     fixed_amounts = existing_config.get("fixedAmounts", {})
     notes = existing_config.get("notes", {})
 
-    # 1. Index Master_Data for latest actual balances
+    # 1. Index Master_Data for latest actual balances and valid customer registry
     master_dict = {}
+    master_names_list = []
+    master_names_set = set()
     if 'Master_Data' in wb.sheetnames:
         ws_m = wb['Master_Data']
         m_rows = list(ws_m.iter_rows(values_only=True))
@@ -80,6 +82,8 @@ def extract_cashflow():
             if r and len(r) > 2 and r[1]:
                 m_name = str(r[1]).strip()
                 norm = normalize_arabic(m_name)
+                if not norm:
+                    continue
                 m_bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
                 m_due = format_date(r[7]) if len(r) > 7 else ''
                 master_dict[norm] = {
@@ -87,6 +91,8 @@ def extract_cashflow():
                     'balance': m_bal,
                     'dueDate': m_due
                 }
+                master_names_list.append(m_name)
+                master_names_set.add(norm)
 
     extracted_customers = {}
 
@@ -281,6 +287,7 @@ def extract_cashflow():
         'customerCount': len(data_rows),
         'remainingToTarget': max(0, existing_config.get('weeklyGoal', 4000000) - total_collected),
         'collectionRate': (total_collected / total_expected) if total_expected > 0 else 0.0,
+        'masterCustomerNames': master_names_list,
         'customers': data_rows
     }
 

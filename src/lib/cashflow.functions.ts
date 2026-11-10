@@ -82,6 +82,7 @@ export interface CashFlowSummary {
   customers: CashFlowCustomer[];
   unmatchedTreasuryTx: TreasuryIncomingTx[];
   comparison?: CashFlowWeeklyComparison;
+  masterCustomerNames?: string[];
 }
 
 export interface CashFlowConfig {
@@ -442,7 +443,7 @@ export async function getLiveCashFlowData(options?: {
 
   const weekInfo = getCurrentCashFlowWeekWindow(options?.referenceDate || rawData?.reportDate || new Date());
 
-  const baseCustomers: CashFlowCustomer[] = (rawData?.customers || []).map(
+  let baseCustomers: CashFlowCustomer[] = (rawData?.customers || []).map(
     (c: any, idx: number) => {
       const name = c.customerName || "";
       // Pinned status: strictly default to false! Only user explicitly decides who is pinned.
@@ -525,6 +526,14 @@ export async function getLiveCashFlowData(options?: {
     cashCust.isPinned = true;
   }
 
+  // Index master customer names from raw base data
+  const masterNamesSet = new Set<string>();
+  if (rawBaseData?.masterCustomerNames && Array.isArray(rawBaseData.masterCustomerNames)) {
+    for (const name of rawBaseData.masterCustomerNames) {
+      masterNamesSet.add(normalizeArabicName(name));
+    }
+  }
+
   // Match live Treasury incoming transactions with customers
   const unmatchedTreasuryTx: TreasuryIncomingTx[] = [];
 
@@ -553,62 +562,89 @@ export async function getLiveCashFlowData(options?: {
         tx.matchedCustomer = cashCust.customerName;
         matched = true;
       } else {
+        // Find if this transaction description corresponds to an actual customer in Master Data or Sales Report
         const matchedSales = Array.from(allSalesCustomersMap.values()).find((sc) =>
           matchTreasuryDescriptionToCustomer(tx.description, sc.customer_name)
         );
 
-        const custName = matchedSales ? matchedSales.customer_name : tx.description;
-        const currentBal = matchedSales
-          ? Number(
-              matchedSales.outstanding_amount ||
-                matchedSales.prev_balance ||
-                matchedSales.total_balance ||
-                0
-            )
-          : tx.amount;
+        let matchedMasterName = "";
+        if (rawBaseData?.masterCustomerNames) {
+          for (const mName of rawBaseData.masterCustomerNames) {
+            if (matchTreasuryDescriptionToCustomer(tx.description, mName)) {
+              matchedMasterName = mName;
+              break;
+            }
+          }
+        }
 
-        const expectedAmount =
-          overrides.fixedAmounts?.[custName] !== undefined
-            ? overrides.fixedAmounts[custName]
-            : rawConfig?.fixedAmounts?.[custName] !== undefined
-            ? rawConfig.fixedAmounts[custName]
+        const validCustName = matchedMasterName || (matchedSales ? matchedSales.customer_name : "");
+        const normValid = normalizeArabicName(validCustName);
+
+        // STRICT REQUIREMENT: Only accept if it is an authentic customer from Master Data!
+        // Never convert accounting entries or non-customer descriptions (like "ريع نقل", "سولار", "مصاريف") into customers!
+        const isMasterCustomer =
+          validCustName &&
+          !normValid.includes("ريع نقل") &&
+          !/^(ريع|ريع نقل|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(normValid) &&
+          (masterNamesSet.size === 0 || masterNamesSet.has(normValid));
+
+        if (isMasterCustomer) {
+          const custName = validCustName;
+          const currentBal = matchedSales
+            ? Number(
+                matchedSales.outstanding_amount ||
+                  matchedSales.prev_balance ||
+                  matchedSales.total_balance ||
+                  0
+              )
             : tx.amount;
 
-        const notes =
-          overrides.notes?.[custName] !== undefined
-            ? overrides.notes[custName]
-            : rawConfig?.notes?.[custName] || `تحصيل خزينة وارد (${tx.type})`;
+          const expectedAmount =
+            overrides.fixedAmounts?.[custName] !== undefined
+              ? overrides.fixedAmounts[custName]
+              : rawConfig?.fixedAmounts?.[custName] !== undefined
+              ? rawConfig.fixedAmounts[custName]
+              : tx.amount;
 
-        const newCust: CashFlowCustomer = {
-          index: baseCustomers.length + 1,
-          customerName: custName,
-          normalizedName: normalizeArabicName(custName),
-          currentBalance: currentBal,
-          expectedAmount,
-          collectedFromSheet: 0,
-          collectedFromTreasury: tx.amount,
-          totalCollected: tx.amount,
-          dueDate: "",
-          rate: expectedAmount > 0 ? tx.amount / expectedAmount : 1,
-          status:
-            tx.amount >= expectedAmount
-              ? tx.amount > expectedAmount
-                ? "فائض"
-                : "مكتمل"
-              : "جزئي",
-          remaining: Math.max(0, expectedAmount - tx.amount),
-          notes,
-          isPinned: Boolean(
-            overrides.pinnedStatus?.[custName] !== undefined
-              ? overrides.pinnedStatus[custName]
-              : rawConfig?.pinnedCustomers?.[custName] ?? false
-          ),
-          treasuryTransactions: [tx],
-        };
+          const notes =
+            overrides.notes?.[custName] !== undefined
+              ? overrides.notes[custName]
+              : rawConfig?.notes?.[custName] || `تحصيل خزينة وارد (${tx.type})`;
 
-        baseCustomers.push(newCust);
-        tx.matchedCustomer = custName;
-        matched = true;
+          const newCust: CashFlowCustomer = {
+            index: baseCustomers.length + 1,
+            customerName: custName,
+            normalizedName: normalizeArabicName(custName),
+            currentBalance: currentBal,
+            expectedAmount,
+            collectedFromSheet: 0,
+            collectedFromTreasury: tx.amount,
+            totalCollected: tx.amount,
+            dueDate: "",
+            rate: expectedAmount > 0 ? tx.amount / expectedAmount : 1,
+            status:
+              tx.amount >= expectedAmount
+                ? tx.amount > expectedAmount
+                  ? "فائض"
+                  : "مكتمل"
+                : "جزئي",
+            remaining: Math.max(0, expectedAmount - tx.amount),
+            notes,
+            isPinned: Boolean(
+              overrides.pinnedStatus?.[custName] !== undefined
+                ? overrides.pinnedStatus[custName]
+                : rawConfig?.pinnedCustomers?.[custName] ?? false
+            ),
+            treasuryTransactions: [tx],
+          };
+
+          baseCustomers.push(newCust);
+          tx.matchedCustomer = custName;
+          matched = true;
+        } else {
+          // Non-customer transaction (e.g. "ريع نقل") - keep in unmatchedTreasuryTx only
+          matched = false;
+        }
       }
     }
 
@@ -616,6 +652,24 @@ export async function getLiveCashFlowData(options?: {
       unmatchedTreasuryTx.push(tx);
     }
   }
+
+  // Strict validation: Filter out ANY non-master accounts or accounting descriptions from baseCustomers
+  baseCustomers = baseCustomers.filter((c) => {
+    if (c.customerName === CASH_NAME || c.customerName.includes("نقدي")) return true;
+    const norm = normalizeArabicName(c.customerName);
+    if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
+      return false;
+    }
+    if (masterNamesSet.size > 0) {
+      return masterNamesSet.has(norm);
+    }
+    return true;
+  });
+
+  // Re-index remaining customers 1..N
+  baseCustomers.forEach((c, idx) => {
+    c.index = idx + 1;
+  });
 
   // Recalculate each customer's final status & remaining
   let totalExpected = 0;
