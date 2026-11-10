@@ -6,6 +6,8 @@ import {
   recalculateCashFlowSummary,
   saveCustomerOverride,
   archiveCurrentWeekAndStartNew,
+  deleteCustomerFromSummary,
+  addCustomerToSummary,
   type CashFlowSummary,
 } from "@/lib/cashflow.functions";
 import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
@@ -78,6 +80,30 @@ function CashFlowPage() {
       });
 
       toast.success(`تم حفظ بيانات العميل: ${customerName}`);
+    },
+    []
+  );
+
+  const handleCustomerDelete = useCallback((customerName: string) => {
+    setActiveSummary((prev) => {
+      if (!prev) return prev;
+      return deleteCustomerFromSummary(prev, customerName);
+    });
+  }, []);
+
+  const handleCustomerAdd = useCallback(
+    (newCust: {
+      customerName: string;
+      expectedAmount: number;
+      currentBalance?: number;
+      dueDate?: string;
+      notes?: string;
+      isPinned?: boolean;
+    }) => {
+      setActiveSummary((prev) => {
+        if (!prev) return prev;
+        return addCustomerToSummary(prev, newCust);
+      });
     },
     []
   );
@@ -203,6 +229,8 @@ function CashFlowPage() {
             <CashFlowTable
               summary={activeSummary}
               onCustomerSave={handleCustomerSave}
+              onCustomerDelete={handleCustomerDelete}
+              onCustomerAdd={handleCustomerAdd}
               onRefresh={() => refetch()}
             />
             <EndCycleModal

@@ -41,6 +41,11 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
       ? Math.min(100, (summary.totalCollected / summary.weeklyGoal) * 100)
       : 0;
 
+  const hasGenuinePrev = Boolean(
+    summary.comparison?.hasGenuinePreviousSnapshot &&
+    (summary.comparison.lastWeek.collected > 0 || summary.comparison.lastWeek.expected! > 0)
+  );
+
   const lastWeek = summary.comparison?.lastWeek;
   const growthRate = summary.comparison?.growthRate ?? 0;
   const overdueDiff =
@@ -48,17 +53,17 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
   const targetDiff =
     lastWeek !== undefined ? targetAchievedPct - lastWeek.achievementRate : 0;
 
-  const expectedLast = lastWeek?.expected || 2451315;
+  const expectedLast = lastWeek?.expected || 0;
   const expDiffPct =
     expectedLast > 0
       ? ((summary.totalExpected - expectedLast) / expectedLast) * 100
       : 0;
 
-  const collRateLast = lastWeek?.collectionRate || 69.4;
+  const collRateLast = lastWeek?.collectionRate || 0;
   const collRateDiff = summary.collectionRate * 100 - collRateLast;
 
   const remCurrent = Math.max(0, summary.totalExpected - summary.totalCollected);
-  const remLast = lastWeek?.remainingExpected || 749100;
+  const remLast = lastWeek?.remainingExpected || 0;
   const remDiffPct =
     remLast > 0 ? ((remCurrent - remLast) / remLast) * 100 : 0;
 
@@ -170,7 +175,9 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
                 {fmtMoney(summary.remainingToTarget)}
               </div>
               <div className="text-[11px] font-bold text-muted-foreground mt-0.5">
-                الماضي: {fmtMoney(lastWeek?.remainingToTarget || 2297785)}
+                {hasGenuinePrev
+                  ? `الماضي: ${fmtMoney(lastWeek?.remainingToTarget || 0)}`
+                  : "دورة تأسيسية أولى"}
               </div>
             </div>
             <div className="text-center bg-card px-4 py-2 rounded-xl border-2 border-emerald-500/40 shadow-xs">
@@ -178,9 +185,15 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
               <div className="text-xl sm:text-2xl font-extrabold text-emerald-600 tabular-nums font-sans">
                 {targetAchievedPct.toFixed(1)}%
               </div>
-              <div className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5" dir="ltr">
-                ({targetDiff >= 0 ? "+" : ""}{targetDiff.toFixed(1)}%)
-              </div>
+              {hasGenuinePrev ? (
+                <div className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5" dir="ltr">
+                  ({targetDiff >= 0 ? "+" : ""}{targetDiff.toFixed(1)}%)
+                </div>
+              ) : (
+                <div className="text-[11px] font-bold text-muted-foreground mt-0.5">
+                  من هدف 4M
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -219,12 +232,18 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             </div>
             <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
               <span>الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
-                {fmtMoney(expectedLast)}
-                <span className="text-[11px] text-info font-bold" dir="ltr">
-                  ({expDiffPct >= 0 ? "+" : ""}{expDiffPct.toFixed(1)}%)
+              {hasGenuinePrev ? (
+                <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                  {fmtMoney(expectedLast)}
+                  <span className="text-[11px] text-info font-bold" dir="ltr">
+                    ({expDiffPct >= 0 ? "+" : ""}{expDiffPct.toFixed(1)}%)
+                  </span>
                 </span>
-              </span>
+              ) : (
+                <span className="font-semibold text-muted-foreground text-[11px]">
+                  بداية الدورة
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -250,12 +269,18 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             </div>
             <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
               <span>الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
-                {fmtMoney(lastWeek?.collected || 1702215)}
-                <span className="text-[11px] text-success font-bold" dir="ltr">
-                  (+{growthRate.toFixed(1)}%)
+              {hasGenuinePrev ? (
+                <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                  {fmtMoney(lastWeek?.collected || 0)}
+                  <span className="text-[11px] text-success font-bold" dir="ltr">
+                    (+{growthRate.toFixed(1)}%)
+                  </span>
                 </span>
-              </span>
+              ) : (
+                <span className="font-semibold text-muted-foreground text-[11px]">
+                  الأسبوع التأسيسي
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -281,12 +306,18 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             </div>
             <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
               <span>الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
-                {collRateLast.toFixed(1)}%
-                <span className="text-[11px] text-success font-bold" dir="ltr">
-                  (+{collRateDiff.toFixed(1)}%)
+              {hasGenuinePrev ? (
+                <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                  {collRateLast.toFixed(1)}%
+                  <span className="text-[11px] text-success font-bold" dir="ltr">
+                    (+{collRateDiff.toFixed(1)}%)
+                  </span>
                 </span>
-              </span>
+              ) : (
+                <span className="font-semibold text-muted-foreground text-[11px]">
+                  الدورة التأسيسية
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -312,12 +343,18 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             </div>
             <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
               <span>الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
-                {fmtMoney(remLast)}
-                <span className="text-[11px] text-success font-bold" dir="ltr">
-                  ({remDiffPct <= 0 ? "-" : "+"}{Math.abs(remDiffPct).toFixed(1)}%)
+              {hasGenuinePrev ? (
+                <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                  {fmtMoney(remLast)}
+                  <span className="text-[11px] text-success font-bold" dir="ltr">
+                    ({remDiffPct <= 0 ? "-" : "+"}{Math.abs(remDiffPct).toFixed(1)}%)
+                  </span>
                 </span>
-              </span>
+              ) : (
+                <span className="font-semibold text-muted-foreground text-[11px]">
+                  متابعة لحظية
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -343,12 +380,18 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
             </div>
             <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
               <span>الماضي:</span>
-              <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
-                {lastWeek?.overdueCount || 3} عملاء
-                <span className="text-[11px] text-success font-bold" dir="ltr">
-                  ({overdueDiff <= 0 ? `-${Math.abs(overdueDiff)}` : `+${overdueDiff}`})
+              {hasGenuinePrev ? (
+                <span className="font-extrabold tabular-nums text-primary-dark font-sans flex items-center gap-1">
+                  {lastWeek?.overdueCount || 0} عملاء
+                  <span className="text-[11px] text-success font-bold" dir="ltr">
+                    ({overdueDiff <= 0 ? `-${Math.abs(overdueDiff)}` : `+${overdueDiff}`})
+                  </span>
                 </span>
-              </span>
+              ) : (
+                <span className="font-semibold text-muted-foreground text-[11px]">
+                  الدورة الحالية
+                </span>
+              )}
             </div>
           </CardContent>
         </Card>

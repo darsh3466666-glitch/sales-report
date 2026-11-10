@@ -45,6 +45,7 @@ export interface CashFlowCustomer {
   isPinned?: boolean;
   treasuryTransactions?: TreasuryIncomingTx[];
   isExtraCollector?: boolean;
+  isUnexpectedInflow?: boolean;
 }
 
 export interface CashFlowComparisonMetrics {
@@ -60,9 +61,17 @@ export interface CashFlowComparisonMetrics {
 }
 
 export interface CashFlowWeeklyComparison {
+  hasGenuinePreviousSnapshot?: boolean;
   lastWeek: CashFlowComparisonMetrics;
   currentWeek: CashFlowComparisonMetrics;
   growthRate: number;
+}
+
+export interface MasterCustomerItem {
+  customerName: string;
+  currentBalance: number;
+  dueDate: string;
+  notes: string;
 }
 
 export interface CashFlowSummary {
@@ -83,6 +92,7 @@ export interface CashFlowSummary {
   unmatchedTreasuryTx: TreasuryIncomingTx[];
   comparison?: CashFlowWeeklyComparison;
   masterCustomerNames?: string[];
+  masterCustomers?: MasterCustomerItem[];
 }
 
 export interface CashFlowConfig {
@@ -91,7 +101,7 @@ export interface CashFlowConfig {
   notes: Record<string, string>;
   customExpected?: Record<string, number>;
   pinnedCustomers?: Record<string, boolean>;
-  previousWeek?: Partial<CashFlowComparisonMetrics>;
+  previousWeek?: Partial<CashFlowComparisonMetrics> | null;
   updatedAt?: string;
 }
 
@@ -211,20 +221,24 @@ export async function fetchLiveTreasuryIncoming(): Promise<TreasuryIncomingTx[]>
   }
 }
 
-/**
- * Load user local overrides from LocalStorage.
- */
-export function getUserOverrides(): {
+export interface UserOverrides {
   fixedAmounts: Record<string, number>;
   notes: Record<string, string>;
   pinnedStatus: Record<string, boolean>;
-} {
+  deletedCustomers?: string[];
+  addedCustomers?: CashFlowCustomer[];
+}
+
+/**
+ * Load user local overrides from LocalStorage.
+ */
+export function getUserOverrides(): UserOverrides {
   if (typeof window === "undefined") {
-    return { fixedAmounts: {}, notes: {}, pinnedStatus: {} };
+    return { fixedAmounts: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
   }
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) return { fixedAmounts: {}, notes: {}, pinnedStatus: {} };
+    if (!raw) return { fixedAmounts: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
     const parsed = JSON.parse(raw);
     return {
       fixedAmounts:
@@ -239,9 +253,50 @@ export function getUserOverrides(): {
         parsed && typeof parsed.pinnedStatus === "object" && parsed.pinnedStatus !== null
           ? parsed.pinnedStatus
           : {},
+      deletedCustomers: Array.isArray(parsed?.deletedCustomers) ? parsed.deletedCustomers : [],
+      addedCustomers: Array.isArray(parsed?.addedCustomers) ? parsed.addedCustomers : [],
     };
   } catch {
-    return { fixedAmounts: {}, notes: {}, pinnedStatus: {} };
+    return { fixedAmounts: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
+  }
+}
+
+/**
+ * Mark a customer as deleted by user for this cycle.
+ */
+export function markCustomerAsDeleted(customerName: string) {
+  if (typeof window === "undefined" || !customerName) return;
+  try {
+    const current = getUserOverrides();
+    const deleted = new Set(current.deletedCustomers || []);
+    deleted.add(customerName);
+    current.deletedCustomers = Array.from(deleted);
+    if (current.addedCustomers) {
+      current.addedCustomers = current.addedCustomers.filter((c) => c.customerName !== customerName);
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+  } catch (err) {
+    console.error("Failed to mark customer as deleted:", err);
+  }
+}
+
+/**
+ * Save customer added manually by user.
+ */
+export function saveManuallyAddedCustomer(customer: CashFlowCustomer) {
+  if (typeof window === "undefined" || !customer.customerName) return;
+  try {
+    const current = getUserOverrides();
+    if (current.deletedCustomers) {
+      current.deletedCustomers = current.deletedCustomers.filter((n) => n !== customer.customerName);
+    }
+    const added = current.addedCustomers || [];
+    const filtered = added.filter((c) => c.customerName !== customer.customerName);
+    filtered.push(customer);
+    current.addedCustomers = filtered;
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+  } catch (err) {
+    console.error("Failed to save manually added customer:", err);
   }
 }
 
@@ -268,6 +323,142 @@ export function saveCustomerOverride(
   } catch (err) {
     console.error("Failed to save cashflow override:", err);
   }
+}
+
+/**
+ * Delete customer from summary and update state instantly in-memory.
+ */
+export function deleteCustomerFromSummary(
+  summary: CashFlowSummary,
+  customerName: string
+): CashFlowSummary {
+  markCustomerAsDeleted(customerName);
+  const remainingCusts = summary.customers
+    .filter((c) => c.customerName !== customerName)
+    .map((c, idx) => ({ ...c, index: idx + 1 }));
+
+  let totalExpected = 0;
+  let totalCollected = 0;
+  let collectedFromSheet = 0;
+  let collectedFromTreasury = 0;
+  let overdueCount = 0;
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  for (const c of remainingCusts) {
+    totalExpected += c.expectedAmount;
+    totalCollected += c.totalCollected;
+    collectedFromSheet += c.collectedFromSheet;
+    collectedFromTreasury += c.collectedFromTreasury;
+    if (c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9) {
+      overdueCount++;
+    }
+  }
+
+  const weeklyGoal = summary.weeklyGoal || 4000000;
+  const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
+  const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
+
+  return {
+    ...summary,
+    totalExpected,
+    totalCollected,
+    collectedFromSheet,
+    collectedFromTreasury,
+    collectionRate,
+    remainingToTarget,
+    customerCount: remainingCusts.length,
+    overdueCount,
+    customers: remainingCusts,
+  };
+}
+
+/**
+ * Add customer manually to summary and update state instantly in-memory.
+ */
+export function addCustomerToSummary(
+  summary: CashFlowSummary,
+  newCust: {
+    customerName: string;
+    expectedAmount: number;
+    currentBalance?: number;
+    dueDate?: string;
+    notes?: string;
+    isPinned?: boolean;
+  }
+): CashFlowSummary {
+  const name = newCust.customerName.trim();
+  const expectedAmount = Number(newCust.expectedAmount) || 0;
+  const currentBalance = Number(newCust.currentBalance) || 0;
+  const dueDate = newCust.dueDate || "";
+  const notes = (newCust.notes || "").trim();
+  const isPinned = Boolean(newCust.isPinned);
+
+  const existingIdx = summary.customers.findIndex((c) => c.customerName === name);
+
+  const custObj: CashFlowCustomer = {
+    index: existingIdx >= 0 ? summary.customers[existingIdx].index : summary.customers.length + 1,
+    customerName: name,
+    normalizedName: normalizeArabicName(name),
+    currentBalance,
+    expectedAmount,
+    collectedFromSheet: 0,
+    collectedFromTreasury: 0,
+    totalCollected: 0,
+    dueDate,
+    rate: expectedAmount > 0 ? 0 : 1,
+    status: expectedAmount > 0 ? "لم يسدد" : "لا يوجد استحقاق",
+    remaining: expectedAmount,
+    notes,
+    isPinned,
+    treasuryTransactions: [],
+  };
+
+  saveManuallyAddedCustomer(custObj);
+  if (isPinned) {
+    saveCustomerOverride(name, { expectedAmount, isPinned: true, notes });
+  }
+
+  let updatedCusts: CashFlowCustomer[];
+  if (existingIdx >= 0) {
+    updatedCusts = summary.customers.map((c, i) => (i === existingIdx ? custObj : c));
+  } else {
+    updatedCusts = [...summary.customers, custObj];
+  }
+  updatedCusts = updatedCusts.map((c, idx) => ({ ...c, index: idx + 1 }));
+
+  let totalExpected = 0;
+  let totalCollected = 0;
+  let collectedFromSheet = 0;
+  let collectedFromTreasury = 0;
+  let overdueCount = 0;
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  for (const c of updatedCusts) {
+    totalExpected += c.expectedAmount;
+    totalCollected += c.totalCollected;
+    collectedFromSheet += c.collectedFromSheet;
+    collectedFromTreasury += c.collectedFromTreasury;
+    if (c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9) {
+      overdueCount++;
+    }
+  }
+
+  const weeklyGoal = summary.weeklyGoal || 4000000;
+  const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
+  const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
+
+  return {
+    ...summary,
+    totalExpected,
+    totalCollected,
+    collectedFromSheet,
+    collectedFromTreasury,
+    collectionRate,
+    remainingToTarget,
+    customerCount: updatedCusts.length,
+    overdueCount,
+    customers: updatedCusts,
+  };
 }
 
 /**
@@ -600,17 +791,19 @@ export async function getLiveCashFlowData(options?: {
               )
             : tx.amount;
 
+            // STRICT USER REQUIREMENT:
+            // "عميل سدد واسمه مكنش ف القايمة اول م اتعملت سعتها ضيفه ولكن خلي المتوقع منه صفر وضيف له السداد بتاعه عادي لان ف الحالة دي انا كنت مش متوقع انه يجي"
             const expectedAmount =
               overrides.fixedAmounts?.[custName] !== undefined
                 ? overrides.fixedAmounts[custName]
                 : rawConfig?.fixedAmounts?.[custName] !== undefined
                 ? rawConfig.fixedAmounts[custName]
-                : tx.amount;
+                : 0; // Strictly 0 for unexpected inflow!
 
             const notes =
               overrides.notes?.[custName] !== undefined
                 ? overrides.notes[custName]
-                : rawConfig?.notes?.[custName] || `تحصيل خزينة وارد (${tx.type})`;
+                : rawConfig?.notes?.[custName] || `سداد وارد غير متوقع (${tx.type})`;
 
             const newCust: CashFlowCustomer = {
               index: baseCustomers.length + 1,
@@ -622,15 +815,16 @@ export async function getLiveCashFlowData(options?: {
               collectedFromTreasury: tx.amount,
               totalCollected: tx.amount,
               dueDate: "",
-              rate: expectedAmount > 0 ? tx.amount / expectedAmount : 1,
-              status: tx.amount >= expectedAmount ? "مكتمل" : "جزئي",
-              remaining: Math.max(0, expectedAmount - tx.amount),
+              rate: 1,
+              status: "مكتمل",
+              remaining: 0,
               notes,
               isPinned: Boolean(
                 overrides.pinnedStatus?.[custName] !== undefined
                   ? overrides.pinnedStatus[custName]
                   : rawConfig?.pinnedCustomers?.[custName] ?? false
               ),
+              isUnexpectedInflow: true,
               treasuryTransactions: [tx],
             };
 
@@ -661,6 +855,24 @@ export async function getLiveCashFlowData(options?: {
       }
       return true;
     });
+
+    // Filter out user-deleted customers for this active week
+    if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
+      const deletedSet = new Set(overrides.deletedCustomers);
+      baseCustomers = baseCustomers.filter((c) => !deletedSet.has(c.customerName));
+    }
+
+    // Append user-added customers for this active week
+    if (overrides.addedCustomers && overrides.addedCustomers.length > 0) {
+      for (const ac of overrides.addedCustomers) {
+        if (!baseCustomers.some((c) => c.customerName === ac.customerName)) {
+          baseCustomers.push({
+            ...ac,
+            index: baseCustomers.length + 1,
+          });
+        }
+      }
+    }
 
     // Re-index remaining customers 1..N
     baseCustomers.forEach((c, idx) => {
@@ -722,69 +934,102 @@ export async function getLiveCashFlowData(options?: {
     const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
 
     // Build Weekly Comparison Metrics (Executive Totals)
-    const lastWeekCollected =
-      rawConfig?.previousWeek?.collected !== undefined
-        ? Number(rawConfig.previousWeek.collected)
-        : 1702215;
-    const lastWeekTarget =
-      rawConfig?.previousWeek?.target !== undefined
-        ? Number(rawConfig.previousWeek.target)
-        : weeklyGoal;
-    const lastWeekOverdue =
-      rawConfig?.previousWeek?.overdueCount !== undefined
-        ? Number(rawConfig.previousWeek.overdueCount)
-        : 3;
-    const lastWeekTitle =
-      rawConfig?.previousWeek?.title || "اللقطة السابقة (قبل القائمة الجديدة)";
+    const prevOverrideRaw =
+      typeof window !== "undefined"
+        ? localStorage.getItem("cashflow_previous_week_override")
+        : null;
+    let storedPreviousWeek: CashFlowComparisonMetrics | null = null;
+    if (prevOverrideRaw) {
+      try {
+        storedPreviousWeek = JSON.parse(prevOverrideRaw);
+      } catch (e) {}
+    }
 
-    const lastWeekExpected =
-      rawConfig?.previousWeek?.expected !== undefined
-        ? Number(rawConfig.previousWeek.expected)
-        : 2451315;
-    const lastWeekRemainingExpected =
-      rawConfig?.previousWeek?.remainingExpected !== undefined
-        ? Number(rawConfig.previousWeek.remainingExpected)
-        : 749100;
-    const lastWeekCollectionRate =
-      rawConfig?.previousWeek?.collectionRate !== undefined
-        ? Number(rawConfig.previousWeek.collectionRate)
-        : 69.4;
+    const activePreviousWeek = storedPreviousWeek || rawConfig?.previousWeek;
+    const hasGenuinePreviousSnapshot = Boolean(
+      activePreviousWeek &&
+      typeof activePreviousWeek.collected === "number" &&
+      activePreviousWeek.collected > 0
+    );
 
-    const lastWeekRemaining = Math.max(0, lastWeekTarget - lastWeekCollected);
-    const lastWeekRate =
-      lastWeekTarget > 0 ? (lastWeekCollected / lastWeekTarget) * 100 : 0;
-    const currentWeekRate =
-      weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
-    const growthRate =
-      lastWeekCollected > 0
-        ? ((totalCollected - lastWeekCollected) / lastWeekCollected) * 100
-        : 0;
+    let comparison: CashFlowWeeklyComparison | undefined = undefined;
+    if (hasGenuinePreviousSnapshot && activePreviousWeek) {
+      const lastWeekCollected = Number(activePreviousWeek.collected) || 0;
+      const lastWeekTarget = Number(activePreviousWeek.target) || weeklyGoal;
+      const lastWeekOverdue = Number(activePreviousWeek.overdueCount) || 0;
+      const lastWeekTitle = activePreviousWeek.title || "الأسبوع السابق";
+      const lastWeekExpected = Number(activePreviousWeek.expected) || lastWeekCollected;
+      const lastWeekRemainingExpected = Math.max(0, lastWeekExpected - lastWeekCollected);
+      const lastWeekCollectionRate =
+        Number(activePreviousWeek.collectionRate) ||
+        (lastWeekExpected > 0 ? (lastWeekCollected / lastWeekExpected) * 100 : 0);
 
-    const comparison: CashFlowWeeklyComparison = {
-      lastWeek: {
-        title: lastWeekTitle,
-        target: lastWeekTarget,
-        collected: lastWeekCollected,
-        remainingToTarget: lastWeekRemaining,
-        achievementRate: lastWeekRate,
-        overdueCount: lastWeekOverdue,
-        expected: lastWeekExpected,
-        remainingExpected: lastWeekRemainingExpected,
-        collectionRate: lastWeekCollectionRate,
-      },
-      currentWeek: {
-        title: weekInfo.weekLabel || "هذا الأسبوع",
-        target: weeklyGoal,
-        collected: totalCollected,
-        remainingToTarget,
-        achievementRate: currentWeekRate,
-        overdueCount,
-        expected: totalExpected,
-        remainingExpected: Math.max(0, totalExpected - totalCollected),
-        collectionRate: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
-      },
-      growthRate,
-    };
+      const lastWeekRemaining = Math.max(0, lastWeekTarget - lastWeekCollected);
+      const lastWeekRate =
+        lastWeekTarget > 0 ? (lastWeekCollected / lastWeekTarget) * 100 : 0;
+      const currentWeekRate =
+        weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
+      const growthRate =
+        lastWeekCollected > 0
+          ? ((totalCollected - lastWeekCollected) / lastWeekCollected) * 100
+          : 0;
+
+      comparison = {
+        hasGenuinePreviousSnapshot: true,
+        lastWeek: {
+          title: lastWeekTitle,
+          target: lastWeekTarget,
+          collected: lastWeekCollected,
+          remainingToTarget: lastWeekRemaining,
+          achievementRate: lastWeekRate,
+          overdueCount: lastWeekOverdue,
+          expected: lastWeekExpected,
+          remainingExpected: lastWeekRemainingExpected,
+          collectionRate: lastWeekCollectionRate,
+        },
+        currentWeek: {
+          title: weekInfo.weekLabel || "هذا الأسبوع",
+          target: weeklyGoal,
+          collected: totalCollected,
+          remainingToTarget,
+          achievementRate: currentWeekRate,
+          overdueCount,
+          expected: totalExpected,
+          remainingExpected: Math.max(0, totalExpected - totalCollected),
+          collectionRate: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
+        },
+        growthRate,
+      };
+    } else {
+      const currentWeekRate =
+        weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
+      comparison = {
+        hasGenuinePreviousSnapshot: false,
+        lastWeek: {
+          title: "الأسبوع التأسيسي الأول (لا توجد دورة سابقة)",
+          target: 0,
+          collected: 0,
+          remainingToTarget: 0,
+          achievementRate: 0,
+          overdueCount: 0,
+          expected: 0,
+          remainingExpected: 0,
+          collectionRate: 0,
+        },
+        currentWeek: {
+          title: weekInfo.weekLabel || "هذا الأسبوع",
+          target: weeklyGoal,
+          collected: totalCollected,
+          remainingToTarget,
+          achievementRate: currentWeekRate,
+          overdueCount,
+          expected: totalExpected,
+          remainingExpected: Math.max(0, totalExpected - totalCollected),
+          collectionRate: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
+        },
+        growthRate: 0,
+      };
+    }
 
     return {
       reportDate: rawData?.reportDate || todayStr,
@@ -803,6 +1048,8 @@ export async function getLiveCashFlowData(options?: {
       customers: baseCustomers,
       unmatchedTreasuryTx,
       comparison,
+      masterCustomerNames: rawData?.masterCustomerNames || [],
+      masterCustomers: rawData?.masterCustomers || [],
     };
   } catch (err) {
     console.error("Critical error in getLiveCashFlowData processing:", err);
@@ -1004,30 +1251,140 @@ export async function archiveCurrentWeekAndStartNew(
 
   const nextWeekInfo = getCurrentCashFlowWeekWindow(nextStart);
 
-  // 5. Build clean customers list for the new week (resetting collected, keeping expected and pinned status)
-  const newCustomers: CashFlowCustomer[] = currentSummary.customers.map(
-    (c, idx) => {
-      const isPinned =
-        c.isPinned || overrides.pinnedStatus?.[c.customerName] || false;
-      const expectedAmount =
-        isPinned && overrides.fixedAmounts?.[c.customerName] !== undefined
+  // 5. Build clean customers list for the new week from Master Data + Pinned Accounts
+  // User Criteria:
+  // - "يجيب كل الي عليهم مستحقات من شيت الماستر لحد يوم التلات الجي 17/11 وهكذا"
+  // - "لازم يكون حسابه مش صفر يعني فيه رصيد"
+  // - "الي متثبت له مبلغ متلعبش فيه خالص مش بيتغير ولا مبلغه بيتغير"
+  const newCustomersMap = new Map<string, CashFlowCustomer>();
+
+  // A) Carry over all pinned customers (preserving their exact fixed amounts)
+  for (const c of currentSummary.customers) {
+    const isPinned = c.isPinned || overrides.pinnedStatus?.[c.customerName] || false;
+    if (isPinned) {
+      const fixedAmt =
+        overrides.fixedAmounts?.[c.customerName] !== undefined
           ? overrides.fixedAmounts[c.customerName]
           : c.expectedAmount;
 
-      return {
+      newCustomersMap.set(c.customerName, {
         ...c,
-        index: idx + 1,
+        index: newCustomersMap.size + 1,
+        expectedAmount: fixedAmt,
         collectedFromSheet: 0,
         collectedFromTreasury: 0,
         totalCollected: 0,
-        remaining: expectedAmount,
+        remaining: fixedAmt,
         rate: 0,
-        status: expectedAmount > 0 ? "لم يسدد" : "لا يوجد استحقاق",
+        status: fixedAmt > 0 ? "لم يسدد" : "لا يوجد استحقاق",
         treasuryTransactions: [],
-        isPinned,
-      };
+        isPinned: true,
+      });
     }
-  );
+  }
+
+  // Ensure Cash Customer is present and pinned
+  const CASH_NAME = "عميل نقدي (كاش)";
+  if (!newCustomersMap.has(CASH_NAME)) {
+    const cashAmt = overrides.fixedAmounts?.[CASH_NAME] ?? 0;
+    newCustomersMap.set(CASH_NAME, {
+      index: newCustomersMap.size + 1,
+      customerName: CASH_NAME,
+      normalizedName: normalizeArabicName(CASH_NAME),
+      currentBalance: 0,
+      expectedAmount: cashAmt,
+      collectedFromSheet: 0,
+      collectedFromTreasury: 0,
+      totalCollected: 0,
+      dueDate: "",
+      rate: cashAmt > 0 ? 0 : 1,
+      status: cashAmt > 0 ? "لم يسدد" : "مكتمل",
+      remaining: cashAmt,
+      notes: overrides.notes?.[CASH_NAME] || "مبيعات وتحصيلات نقدية أسبوعية (كاش)",
+      isPinned: true,
+      treasuryTransactions: [],
+    });
+  }
+
+  // B) Populate eligible customers from Master Data
+  // Criteria: currentBalance > 0 AND (due date <= nextWeekEnd OR dueDate in past/empty)
+  const masterList = currentSummary.masterCustomers || [];
+  for (const m of masterList) {
+    if (!m.customerName) continue;
+    if (m.currentBalance <= 0) continue; // Must have balance > 0!
+
+    const norm = normalizeArabicName(m.customerName);
+    if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
+      continue;
+    }
+
+    if (newCustomersMap.has(m.customerName)) {
+      // Update balance if already present as pinned
+      const existing = newCustomersMap.get(m.customerName)!;
+      existing.currentBalance = m.currentBalance;
+      if (m.dueDate && !existing.dueDate) existing.dueDate = m.dueDate;
+      continue;
+    }
+
+    // Check due date limit (up to next Tuesday)
+    const isDueInNextWeek = !m.dueDate || m.dueDate <= nextWeekInfo.weekEnd;
+    if (isDueInNextWeek) {
+      const expAmt =
+        overrides.fixedAmounts?.[m.customerName] !== undefined
+          ? overrides.fixedAmounts[m.customerName]
+          : m.currentBalance;
+
+      const custNotes = overrides.notes?.[m.customerName] || m.notes || "";
+
+      newCustomersMap.set(m.customerName, {
+        index: newCustomersMap.size + 1,
+        customerName: m.customerName,
+        normalizedName: norm,
+        currentBalance: m.currentBalance,
+        expectedAmount: expAmt,
+        collectedFromSheet: 0,
+        collectedFromTreasury: 0,
+        totalCollected: 0,
+        dueDate: m.dueDate || "",
+        rate: 0,
+        status: expAmt > 0 ? "لم يسدد" : "لا يوجد استحقاق",
+        remaining: expAmt,
+        notes: custNotes,
+        isPinned: Boolean(overrides.pinnedStatus?.[m.customerName]),
+        treasuryTransactions: [],
+      });
+    }
+  }
+
+  // Also include any customer from ending week who still had unpaid remaining
+  for (const c of currentSummary.customers) {
+    if (!newCustomersMap.has(c.customerName) && c.remaining > 0 && c.currentBalance > 0) {
+      newCustomersMap.set(c.customerName, {
+        ...c,
+        index: newCustomersMap.size + 1,
+        collectedFromSheet: 0,
+        collectedFromTreasury: 0,
+        totalCollected: 0,
+        remaining: c.expectedAmount,
+        rate: 0,
+        status: c.expectedAmount > 0 ? "لم يسدد" : "لا يوجد استحقاق",
+        treasuryTransactions: [],
+      });
+    }
+  }
+
+  const newCustomers: CashFlowCustomer[] = Array.from(newCustomersMap.values()).map((c, idx) => ({
+    ...c,
+    index: idx + 1,
+  }));
+
+  // Clear cycle-specific temporary customer deletions and additions for the clean new week
+  try {
+    const freshOverrides = getUserOverrides();
+    freshOverrides.deletedCustomers = [];
+    freshOverrides.addedCustomers = [];
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(freshOverrides));
+  } catch (e) {}
 
   let totalExpected = 0;
   for (const c of newCustomers) {
@@ -1071,6 +1428,8 @@ export async function archiveCurrentWeekAndStartNew(
       },
       growthRate,
     },
+    masterCustomerNames: currentSummary.masterCustomerNames || [],
+    masterCustomers: currentSummary.masterCustomers || [],
   };
 
   // Persist the new active cycle locally

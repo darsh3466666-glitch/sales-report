@@ -50,15 +50,7 @@ def extract_cashflow():
         "fixedAmounts": {},
         "notes": {},
         "pinnedCustomers": {},
-        "previousWeek": {
-            "title": "اللقطة السابقة (قبل القائمة الجديدة)",
-            "target": 4000000,
-            "collected": 1702215,
-            "overdueCount": 3,
-            "expected": 2451315,
-            "remainingExpected": 749100,
-            "collectionRate": 69.4
-        }
+        "previousWeek": None
     }
     if os.path.exists(config_path):
         try:
@@ -75,6 +67,7 @@ def extract_cashflow():
     master_dict = {}
     master_names_list = []
     master_names_set = set()
+    master_customers_list = []
     if 'Master_Data' in wb.sheetnames:
         ws_m = wb['Master_Data']
         m_rows = list(ws_m.iter_rows(values_only=True))
@@ -86,13 +79,21 @@ def extract_cashflow():
                     continue
                 m_bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
                 m_due = format_date(r[7]) if len(r) > 7 else ''
+                m_note = str(r[12]).strip() if len(r) > 12 and r[12] else ''
                 master_dict[norm] = {
                     'name': m_name,
                     'balance': m_bal,
-                    'dueDate': m_due
+                    'dueDate': m_due,
+                    'notes': m_note
                 }
                 master_names_list.append(m_name)
                 master_names_set.add(norm)
+                master_customers_list.append({
+                    'customerName': m_name,
+                    'currentBalance': m_bal,
+                    'dueDate': m_due,
+                    'notes': m_note
+                })
 
     extracted_customers = {}
 
@@ -288,6 +289,7 @@ def extract_cashflow():
         'remainingToTarget': max(0, existing_config.get('weeklyGoal', 4000000) - total_collected),
         'collectionRate': (total_collected / total_expected) if total_expected > 0 else 0.0,
         'masterCustomerNames': master_names_list,
+        'masterCustomers': master_customers_list,
         'customers': data_rows
     }
 

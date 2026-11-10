@@ -22,6 +22,26 @@ interface Props {
 export const WeeklyComparisonSection: React.FC<Props> = ({ comparison }) => {
   const [isOpen, setIsOpen] = useState(true);
 
+  if (!comparison.hasGenuinePreviousSnapshot) {
+    return (
+      <div className="bg-primary/5 border-2 border-primary/20 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 text-xs sm:text-sm font-semibold text-foreground/80">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-primary/10 text-primary rounded-xl shrink-0">
+            <Scale className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="font-black text-foreground text-sm sm:text-base">
+              دورة الأسبوع التأسيسي الأول (4 نوفمبر - 10 نوفمبر 2026)
+            </div>
+            <p className="text-xs text-muted-foreground mt-0.5 font-medium">
+              هذه هي بداية أول دورة أسبوعية منتظمة للنظام (لا توجد لقطة سابقة للمقارنة بها). سيتم حفظ أرقام هذا الأسبوع تلقائياً كمرجع للمقارنة فور إنهاء الأسبوع وبدء الدورة الجديدة.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   const growthIsPositive = comparison.growthRate >= 0;
   const overdueDiff =
     comparison.currentWeek.overdueCount - comparison.lastWeek.overdueCount;

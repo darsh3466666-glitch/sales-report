@@ -12,6 +12,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   Search,
   Download,
   Edit2,
@@ -27,6 +35,8 @@ import {
   ArrowUp,
   ArrowDown,
   RotateCcw,
+  UserPlus,
+  Trash2,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
@@ -37,6 +47,15 @@ interface CashFlowTableProps {
     customerName: string,
     updates: { expectedAmount: number; isPinned: boolean; notes: string }
   ) => void;
+  onCustomerDelete?: (customerName: string) => void;
+  onCustomerAdd?: (newCustomer: {
+    customerName: string;
+    expectedAmount: number;
+    currentBalance?: number;
+    dueDate?: string;
+    notes?: string;
+    isPinned?: boolean;
+  }) => void;
   onRefresh?: () => void;
 }
 
@@ -84,12 +103,25 @@ interface EditingState {
 export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   summary,
   onCustomerSave,
+  onCustomerDelete,
+  onCustomerAdd,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [showUnmatchedTreasury, setShowUnmatchedTreasury] = useState(false);
+
+  // Add Customer Modal State
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newCustName, setNewCustName] = useState("");
+  const [newCustExpected, setNewCustExpected] = useState("");
+  const [newCustDueDate, setNewCustDueDate] = useState("");
+  const [newCustNotes, setNewCustNotes] = useState("");
+  const [newCustIsPinned, setNewCustIsPinned] = useState(false);
+
+  // Delete Customer Confirmation State
+  const [customerToDelete, setCustomerToDelete] = useState<string | null>(null);
 
   // Single editing state — 100% controlled, NO useEffect, NO focus thrashing, ZERO freeze!
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -254,32 +286,33 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           cmp = a.rate - b.rate;
           break;
         case "status": {
+          // User Directive: "وعايز فالطبيعي يتم عرض الي لم يسدد في اول الجدول"
           const order: Record<string, number> = {
-            "مكتمل": 1,
+            "لم يسدد": 1,
             "جزئي": 2,
-            "لم يسدد": 3,
+            "مكتمل": 3,
             "لا يوجد استحقاق": 4,
           };
-          const orderA = order[a.status] || (a.status === "فائض" ? 1 : 99);
-          const orderB = order[b.status] || (b.status === "فائض" ? 1 : 99);
+          const orderA = order[a.status] || (a.status === "فائض" ? 3 : 99);
+          const orderB = order[b.status] || (b.status === "فائض" ? 3 : 99);
           const statusDiff = orderA - orderB;
           if (statusDiff !== 0) {
             cmp = statusDiff;
           } else {
             // Secondary sorting within status groups
             if (orderA === 1) {
-              // Within "مكتمل": sort by totalCollected descending
-              cmp = (b.totalCollected || 0) - (a.totalCollected || 0);
-            } else if (orderA === 2) {
-              // Within "جزئي": sort by collection rate descending
-              const rateDiff = (b.rate || 0) - (a.rate || 0);
-              cmp = rateDiff !== 0 ? rateDiff : (b.totalCollected || 0) - (a.totalCollected || 0);
-            } else if (orderA === 3) {
-              // Within "لم يسدد": sort by earliest dueDate, then expectedAmount
+              // Within "لم يسدد": sort by earliest dueDate, then highest expectedAmount
               const dA = a.dueDate || "9999-99-99";
               const dB = b.dueDate || "9999-99-99";
               const dateDiff = dA.localeCompare(dB);
               cmp = dateDiff !== 0 ? dateDiff : (b.expectedAmount || 0) - (a.expectedAmount || 0);
+            } else if (orderA === 2) {
+              // Within "جزئي": sort by collection rate descending, then totalCollected
+              const rateDiff = (b.rate || 0) - (a.rate || 0);
+              cmp = rateDiff !== 0 ? rateDiff : (b.totalCollected || 0) - (a.totalCollected || 0);
+            } else if (orderA === 3) {
+              // Within "مكتمل": sort by totalCollected descending
+              cmp = (b.totalCollected || 0) - (a.totalCollected || 0);
             } else {
               cmp = a.index - b.index;
             }
@@ -398,16 +431,31 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           )}
         </div>
 
-        {/* Export button */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleExport}
-          className="rounded-full gap-2 border-2 border-primary/30 font-black text-sm h-11 px-5 hover:bg-primary/10 mr-auto shadow-xs cursor-pointer"
-        >
-          <Download className="h-4 w-4 text-primary" />
-          <span>تصدير شيت Excel</span>
-        </Button>
+        {/* Action buttons: Add Customer and Export */}
+        <div className="flex items-center gap-2 mr-auto flex-wrap">
+          {onCustomerAdd && (
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => setIsAddModalOpen(true)}
+              className="rounded-full gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs sm:text-sm h-11 px-4 sm:px-5 shadow-xs cursor-pointer"
+              title="إضافة عميل يدوي إلى خطة هذا الأسبوع"
+            >
+              <UserPlus className="h-4 w-4" />
+              <span>إضافة عميل</span>
+            </Button>
+          )}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExport}
+            className="rounded-full gap-2 border-2 border-primary/30 font-black text-xs sm:text-sm h-11 px-4 sm:px-5 hover:bg-primary/10 shadow-xs cursor-pointer"
+          >
+            <Download className="h-4 w-4 text-primary" />
+            <span>تصدير Excel</span>
+          </Button>
+        </div>
       </div>
 
       {/* Filter Chips & Active Summary Toolbar */}
@@ -799,15 +847,27 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                             </button>
                           </div>
                         ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleStartEdit(cust)}
-                            className="h-8 px-3 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-black text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                            title="تعديل المبلغ والملاحظات"
-                          >
-                            <Edit2 className="h-3.5 w-3.5" />
-                            <span>تعديل</span>
-                          </button>
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEdit(cust)}
+                              className="h-8 px-2.5 rounded-xl border-2 border-primary/30 hover:border-primary hover:bg-primary/10 text-primary font-black text-xs inline-flex items-center gap-1 cursor-pointer shadow-2xs"
+                              title="تعديل المبلغ والملاحظات"
+                            >
+                              <Edit2 className="h-3.5 w-3.5" />
+                              <span>تعديل</span>
+                            </button>
+                            {onCustomerDelete && cust.customerName !== "عميل نقدي (كاش)" && (
+                              <button
+                                type="button"
+                                onClick={() => setCustomerToDelete(cust.customerName)}
+                                className="h-8 px-2 rounded-xl border border-rose-300 dark:border-rose-900/50 hover:bg-rose-500/10 text-rose-600 dark:text-rose-400 font-black text-xs inline-flex items-center cursor-pointer shadow-2xs"
+                                title="حذف العميل من قائمة هذا الأسبوع"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            )}
+                          </div>
                         )}
                       </TableCell>
                     </TableRow>
@@ -818,6 +878,195 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           </Table>
         </div>
       </div>
+
+      {/* Add Customer Modal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="sm:max-w-md border-2 border-primary/30 shadow-2xl p-6" dir="rtl">
+          <DialogHeader className="text-right">
+            <DialogTitle className="text-lg font-black text-foreground flex items-center gap-2">
+              <UserPlus className="h-5 w-5 text-emerald-600" />
+              <span>إضافة عميل إلى قائمة الأسبوع</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground font-semibold">
+              اختر من عملاء الماستر أو أدخل عميلاً نقدياً ومبلغه المستهدف لهذا الأسبوع
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 my-2 text-right">
+            <div>
+              <label className="text-xs font-bold text-foreground block mb-1.5">
+                اسم العميل <span className="text-destructive">*</span>
+              </label>
+              <input
+                list="master-customers-list"
+                type="text"
+                placeholder="ابحث أو اكتب اسم العميل..."
+                value={newCustName}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setNewCustName(val);
+                  const found = summary.masterCustomers?.find(
+                    (m) => m.customerName === val
+                  );
+                  if (found) {
+                    if (found.currentBalance > 0 && !newCustExpected) {
+                      setNewCustExpected(String(found.currentBalance));
+                    }
+                    if (found.dueDate && !newCustDueDate) {
+                      setNewCustDueDate(found.dueDate);
+                    }
+                    if (found.notes && !newCustNotes) {
+                      setNewCustNotes(found.notes);
+                    }
+                  }
+                }}
+                className="w-full text-sm font-bold px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary"
+              />
+              <datalist id="master-customers-list">
+                {(summary.masterCustomerNames || []).map((name) => (
+                  <option key={name} value={name} />
+                ))}
+              </datalist>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1.5">
+                  المبلغ المتوقع (ج.م) <span className="text-destructive">*</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="500"
+                  placeholder="0"
+                  value={newCustExpected}
+                  onChange={(e) => setNewCustExpected(e.target.value)}
+                  className="w-full text-sm font-bold font-mono px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary text-left"
+                  dir="ltr"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1.5">
+                  موعد السداد (اختياري)
+                </label>
+                <input
+                  type="date"
+                  value={newCustDueDate}
+                  onChange={(e) => setNewCustDueDate(e.target.value)}
+                  className="w-full text-sm font-bold px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="text-xs font-bold text-foreground block mb-1.5">
+                ملاحظات التحصيل
+              </label>
+              <input
+                type="text"
+                placeholder="سداد نقدي، اتفاق جديد..."
+                value={newCustNotes}
+                onChange={(e) => setNewCustNotes(e.target.value)}
+                className="w-full text-xs font-medium px-3.5 py-2 rounded-xl border-2 border-border bg-background text-foreground focus:outline-none focus:border-primary"
+              />
+            </div>
+
+            <label className="flex items-center gap-2.5 cursor-pointer bg-primary/5 p-3 rounded-xl border border-primary/20 select-none">
+              <input
+                type="checkbox"
+                checked={newCustIsPinned}
+                onChange={(e) => setNewCustIsPinned(e.target.checked)}
+                className="h-4 w-4 rounded accent-primary cursor-pointer"
+              />
+              <div className="text-xs">
+                <span className="font-black text-foreground block">تثبيت العميل أسبوعياً</span>
+                <span className="text-muted-foreground font-semibold">ترحيل هذا المبلغ كقسط ثابت في الأسابيع القادمة</span>
+              </div>
+            </label>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-3 flex-row-reverse justify-start sm:justify-start">
+            <Button
+              variant="default"
+              onClick={() => {
+                if (!newCustName.trim()) {
+                  toast.error("يرجى إدخال اسم العميل");
+                  return;
+                }
+                const exp = parseFloat(newCustExpected) || 0;
+                const found = summary.masterCustomers?.find(
+                  (m) => m.customerName === newCustName.trim()
+                );
+                onCustomerAdd?.({
+                  customerName: newCustName.trim(),
+                  expectedAmount: exp,
+                  currentBalance: found?.currentBalance ?? exp,
+                  dueDate: newCustDueDate,
+                  notes: newCustNotes.trim(),
+                  isPinned: newCustIsPinned,
+                });
+                setIsAddModalOpen(false);
+                setNewCustName("");
+                setNewCustExpected("");
+                setNewCustDueDate("");
+                setNewCustNotes("");
+                setNewCustIsPinned(false);
+              }}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 rounded-xl shadow-sm"
+            >
+              <UserPlus className="h-4 w-4 ml-1.5" />
+              <span>إضافة العميل</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsAddModalOpen(false)}
+              className="rounded-xl font-bold"
+            >
+              إلغاء
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Modal */}
+      <Dialog
+        open={Boolean(customerToDelete)}
+        onOpenChange={(open) => !open && setCustomerToDelete(null)}
+      >
+        <DialogContent className="sm:max-w-md border-2 border-destructive/30 shadow-2xl p-6" dir="rtl">
+          <DialogHeader className="text-right">
+            <DialogTitle className="text-lg font-black text-destructive flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <span>تأكيد حذف العميل من القائمة</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs sm:text-sm text-foreground/85 font-medium mt-1">
+              هل أنت متأكد من حذف العميل <strong className="text-destructive font-black">"{customerToDelete}"</strong> من قائمة التدفقات النقدية لهذا الأسبوع؟
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-3 flex-row-reverse justify-start sm:justify-start mt-3">
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (customerToDelete && onCustomerDelete) {
+                  onCustomerDelete(customerToDelete);
+                }
+                setCustomerToDelete(null);
+              }}
+              className="font-black px-5 rounded-xl shadow-sm gap-1.5"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>تأكيد الحذف</span>
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setCustomerToDelete(null)}
+              className="rounded-xl font-bold"
+            >
+              تراجع
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

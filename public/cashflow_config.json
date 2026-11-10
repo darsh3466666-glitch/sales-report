@@ -30,17 +30,8 @@
     "مزرعه السلام": "00:00:00"
   },
   "customExpected": {},
-  "updatedAt": "2026-11-10T11:48:12.916648",
+  "updatedAt": "2026-11-10T12:59:03.391540",
   "pinnedCustomers": {
     "عميل نقدي (كاش)": true
-  },
-  "previousWeek": {
-    "title": "اللقطة السابقة (قبل القائمة الجديدة)",
-    "target": 4000000,
-    "collected": 1702215,
-    "overdueCount": 3,
-    "expected": 2451315,
-    "remainingExpected": 749100,
-    "collectionRate": 69.4
   }
 }
