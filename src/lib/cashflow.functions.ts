@@ -233,6 +233,39 @@ export interface UserOverrides {
   addedCustomers?: CashFlowCustomer[];
 }
 
+export interface ActiveCashFlowCycleState {
+  cycleId: string;
+  weekStart: string;
+  weekEnd: string;
+  weekLabel: string;
+  weeklyGoal: number;
+  customers: CashFlowCustomer[];
+  updatedAt: string;
+}
+
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v2";
+
+export function getActiveCycleState(): ActiveCashFlowCycleState | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(ACTIVE_CYCLE_STORAGE_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch (e) {
+    console.error("Failed to read active cycle state:", e);
+    return null;
+  }
+}
+
+export function saveActiveCycleState(state: ActiveCashFlowCycleState) {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(ACTIVE_CYCLE_STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.error("Failed to save active cycle state:", e);
+  }
+}
+
 /**
  * Load user local overrides from LocalStorage.
  */
@@ -386,6 +419,15 @@ export function deleteCustomerFromSummary(
     };
   }
 
+  try {
+    const cycle = getActiveCycleState();
+    if (cycle) {
+      cycle.customers = remainingCusts;
+      cycle.updatedAt = new Date().toISOString();
+      saveActiveCycleState(cycle);
+    }
+  } catch (e) {}
+
   return {
     ...summary,
     totalExpected,
@@ -500,6 +542,15 @@ export function addCustomerToSummary(
     };
   }
 
+  try {
+    const cycle = getActiveCycleState();
+    if (cycle) {
+      cycle.customers = updatedCusts;
+      cycle.updatedAt = new Date().toISOString();
+      saveActiveCycleState(cycle);
+    }
+  } catch (e) {}
+
   return {
     ...summary,
     totalExpected,
@@ -611,6 +662,15 @@ export function recalculateCashFlowSummary(
     };
   }
 
+  try {
+    const cycle = getActiveCycleState();
+    if (cycle) {
+      cycle.customers = updatedCustomers;
+      cycle.updatedAt = new Date().toISOString();
+      saveActiveCycleState(cycle);
+    }
+  } catch (e) {}
+
   return {
     ...currentSummary,
     totalExpected,
@@ -688,11 +748,61 @@ export async function getLiveCashFlowData(options?: {
     const overrides = getUserOverrides();
 
     const weekInfo = getCurrentCashFlowWeekWindow(options?.referenceDate || rawData?.reportDate || new Date());
+    const currentCycleId = `week_${weekInfo.weekStart}_to_${weekInfo.weekEnd}`;
+    const savedCycle = getActiveCycleState();
 
-    let baseCustomers: CashFlowCustomer[] = (rawData?.customers || []).map(
-      (c: any, idx: number) => {
+    const CASH_NAME = "عميل نقدي (كاش)";
+    let baseCustomers: CashFlowCustomer[] = [];
+
+    // Index master customer names from raw base data
+    const masterNamesSet = new Set<string>();
+    if (rawData?.masterCustomerNames && Array.isArray(rawData.masterCustomerNames)) {
+      for (const name of rawData.masterCustomerNames) {
+        masterNamesSet.add(normalizeArabicName(name));
+      }
+    }
+
+    const isSavedCycleValid = Boolean(
+      savedCycle &&
+      savedCycle.cycleId === currentCycleId &&
+      Array.isArray(savedCycle.customers) &&
+      savedCycle.customers.length > 0
+    );
+
+    if (isSavedCycleValid && savedCycle) {
+      // 1. REUSE ACTIVE CYCLE BASELINE - DO NOT RE-EXTRACT FROM RAW DATA!
+      // This strictly enforces user rule:
+      // "التحديث التلقائي قولت يحصل مرة واحدة بس بالنسبة للعملاء والمتوقع منهم وده لما نبدأ ف الاسبوع الجديد"
+      // Expected amounts, pinned status, notes, added customers, and deleted customers remain strictly frozen!
+      baseCustomers = savedCycle.customers.map((c) => {
+        const expectedAmount =
+          overrides.fixedAmounts?.[c.customerName] !== undefined
+            ? overrides.fixedAmounts[c.customerName]
+            : c.expectedAmount;
+
+        const notes =
+          overrides.notes?.[c.customerName] !== undefined
+            ? overrides.notes[c.customerName]
+            : c.notes;
+
+        const isPinned =
+          overrides.pinnedStatus?.[c.customerName] !== undefined
+            ? overrides.pinnedStatus[c.customerName]
+            : Boolean(c.isPinned);
+
+        return {
+          ...c,
+          expectedAmount,
+          notes,
+          isPinned,
+          collectedFromTreasury: 0,
+          treasuryTransactions: [] as TreasuryIncomingTx[],
+        };
+      });
+    } else {
+      // 2. INITIALIZE FRESH BASELINE FOR THE CYCLE (ONCE AT CYCLE START / RESET)
+      baseCustomers = (rawData?.customers || []).map((c: any, idx: number) => {
         const name = c.customerName || "";
-        // Pinned status: strictly default to false! Only user explicitly decides who is pinned.
         const isPinned =
           overrides.pinnedStatus?.[name] !== undefined
             ? overrides.pinnedStatus[name]
@@ -729,11 +839,61 @@ export async function getLiveCashFlowData(options?: {
           isPinned,
           treasuryTransactions: [] as TreasuryIncomingTx[],
         };
+      });
+
+      // Strict validation: Filter out < 5000, settled, and next-week unpaid customers
+      baseCustomers = baseCustomers.filter((c) => {
+        if (c.customerName === CASH_NAME || c.customerName.includes("نقدي")) return true;
+        if (c.currentBalance < 5000) return false;
+        if (c.notes?.includes("عميل خالص") || c.notes?.includes("تم التصفية")) return false;
+        const norm = normalizeArabicName(c.customerName);
+        if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
+          return false;
+        }
+        if (masterNamesSet.size > 0 && !masterNamesSet.has(norm)) {
+          return false;
+        }
+
+        const isDueThisWeekOrPast = !c.dueDate || c.dueDate <= weekInfo.weekEnd;
+        const hasPaid = (c.collectedFromSheet > 0 || c.collectedFromTreasury > 0);
+
+        if (!isDueThisWeekOrPast && !hasPaid) {
+          return false;
+        }
+
+        if (!isDueThisWeekOrPast && hasPaid) {
+          if (overrides.fixedAmounts?.[c.customerName] !== undefined) {
+            c.expectedAmount = Number(overrides.fixedAmounts[c.customerName]) || 0;
+          } else if (rawConfig?.fixedAmounts?.[c.customerName] !== undefined) {
+            c.expectedAmount = Number(rawConfig.fixedAmounts[c.customerName]) || 0;
+          } else {
+            c.expectedAmount = 0;
+          }
+        }
+
+        return true;
+      });
+
+      // Filter out user-deleted customers for this active week
+      if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
+        const deletedSet = new Set(overrides.deletedCustomers);
+        baseCustomers = baseCustomers.filter((c) => !deletedSet.has(c.customerName));
       }
-    );
+
+      // Append user-added customers for this active week
+      if (overrides.addedCustomers && overrides.addedCustomers.length > 0) {
+        for (const ac of overrides.addedCustomers) {
+          if (!baseCustomers.some((c) => c.customerName === ac.customerName)) {
+            baseCustomers.push({
+              ...ac,
+              index: baseCustomers.length + 1,
+            });
+          }
+        }
+      }
+    }
 
     // Ensure permanent Cash Customer exists and is pinned weekly
-    const CASH_NAME = "عميل نقدي (كاش)";
     let cashCust = baseCustomers.find(
       (c) => c.customerName === CASH_NAME || c.customerName.includes("نقدي")
     );
@@ -770,14 +930,6 @@ export async function getLiveCashFlowData(options?: {
       baseCustomers.push(cashCust);
     } else {
       cashCust.isPinned = true;
-    }
-
-    // Index master customer names from raw base data
-    const masterNamesSet = new Set<string>();
-    if (rawData?.masterCustomerNames && Array.isArray(rawData.masterCustomerNames)) {
-      for (const name of rawData.masterCustomerNames) {
-        masterNamesSet.add(normalizeArabicName(name));
-      }
     }
 
     // Match live Treasury incoming transactions with customers
@@ -897,64 +1049,6 @@ export async function getLiveCashFlowData(options?: {
       }
     }
 
-    // Strict validation: Filter out ANY non-master accounts, tiny balances (<5000), settled accounts, or accounting descriptions
-    // AND strictly enforce week boundary: Exclude customers belonging to next week who have not paid!
-    baseCustomers = baseCustomers.filter((c) => {
-      if (c.customerName === CASH_NAME || c.customerName.includes("نقدي")) return true;
-      if (c.currentBalance < 5000) return false;
-      if (c.notes?.includes("عميل خالص") || c.notes?.includes("تم التصفية")) return false;
-      const norm = normalizeArabicName(c.customerName);
-      if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
-        return false;
-      }
-      if (masterNamesSet.size > 0 && !masterNamesSet.has(norm)) {
-        return false;
-      }
-
-      // STRICT WEEK BOUNDARY:
-      // Customers whose due date is strictly after weekEnd (e.g. 11/11 to 17/11) belong to the NEXT week!
-      // Only include them if they have actually paid during this week (unexpected payment), or if due on/before weekEnd.
-      const isDueThisWeekOrPast = !c.dueDate || c.dueDate <= weekInfo.weekEnd;
-      const hasPaid = (c.collectedFromSheet > 0 || c.collectedFromTreasury > 0);
-
-      if (!isDueThisWeekOrPast && !hasPaid) {
-        // Belongs to the next week!
-        return false;
-      }
-
-      if (!isDueThisWeekOrPast && hasPaid) {
-        // Customer paid unexpectedly this week (scheduled due date is after active week):
-        // User manual edit ALWAYS takes absolute precedence! Only default to 0 if user hasn't set an override.
-        if (overrides.fixedAmounts?.[c.customerName] !== undefined) {
-          c.expectedAmount = Number(overrides.fixedAmounts[c.customerName]) || 0;
-        } else if (rawConfig?.fixedAmounts?.[c.customerName] !== undefined) {
-          c.expectedAmount = Number(rawConfig.fixedAmounts[c.customerName]) || 0;
-        } else {
-          c.expectedAmount = 0;
-        }
-      }
-
-      return true;
-    });
-
-    // Filter out user-deleted customers for this active week
-    if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
-      const deletedSet = new Set(overrides.deletedCustomers);
-      baseCustomers = baseCustomers.filter((c) => !deletedSet.has(c.customerName));
-    }
-
-    // Append user-added customers for this active week
-    if (overrides.addedCustomers && overrides.addedCustomers.length > 0) {
-      for (const ac of overrides.addedCustomers) {
-        if (!baseCustomers.some((c) => c.customerName === ac.customerName)) {
-          baseCustomers.push({
-            ...ac,
-            index: baseCustomers.length + 1,
-          });
-        }
-      }
-    }
-
     // Re-index remaining customers 1..N
     baseCustomers.forEach((c, idx) => {
       c.index = idx + 1;
@@ -1013,6 +1107,17 @@ export async function getLiveCashFlowData(options?: {
     const weeklyGoal = rawConfig?.weeklyGoal || rawData?.weeklyGoal || 4000000;
     const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
     const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
+
+    // Persist active cycle state so baseline customers and expected amounts stay frozen across all 30s background queries
+    saveActiveCycleState({
+      cycleId: currentCycleId,
+      weekStart: weekInfo.weekStart,
+      weekEnd: weekInfo.weekEnd,
+      weekLabel: weekInfo.weekLabel,
+      weeklyGoal,
+      customers: baseCustomers,
+      updatedAt: new Date().toISOString(),
+    });
 
     // Build Weekly Comparison Metrics (Executive Totals)
     const prevOverrideRaw =
@@ -1521,6 +1626,16 @@ export async function archiveCurrentWeekAndStartNew(
       localStorage.setItem("cashflow_active_cycle", JSON.stringify(newSummary));
     } catch (e) {}
   }
+
+  saveActiveCycleState({
+    cycleId: `week_${nextWeekInfo.weekStart}_to_${nextWeekInfo.weekEnd}`,
+    weekStart: nextWeekInfo.weekStart,
+    weekEnd: nextWeekInfo.weekEnd,
+    weekLabel: nextWeekInfo.weekLabel,
+    weeklyGoal,
+    customers: newCustomers,
+    updatedAt: new Date().toISOString(),
+  });
 
   return { newSummary, archivedWeek };
 }
