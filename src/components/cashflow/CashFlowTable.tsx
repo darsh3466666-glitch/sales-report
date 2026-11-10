@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { createPortal } from "react-dom";
 import { CashFlowCustomer, CashFlowSummary } from "@/lib/cashflow.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
@@ -116,8 +115,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   // Delete Customer Confirmation State
   const [customerToDelete, setCustomerToDelete] = useState<string | null>(null);
 
-  // Floating Hover Note State (pure 0ms hover tooltip without sticky focus or freeze)
-  const [hoveredNote, setHoveredNote] = useState<{ text: string; x: number; y: number } | null>(null);
 
   // Single editing state — 100% controlled, NO useEffect, NO focus thrashing, ZERO freeze!
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -815,17 +812,8 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                           />
                         ) : (
                           <span
-                            className={`${FONT.notes} text-foreground/80 block truncate cursor-help hover:text-primary transition-colors`}
-                            onMouseEnter={(e) => {
-                              if (!cust.notes) return;
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              setHoveredNote({
-                                text: cust.notes,
-                                x: rect.left + rect.width / 2,
-                                y: rect.top,
-                              });
-                            }}
-                            onMouseLeave={() => setHoveredNote(null)}
+                            className={`${FONT.notes} text-foreground/80 block truncate`}
+                            title={cust.notes || undefined}
                           >
                             {cust.notes || "-"}
                           </span>
@@ -914,22 +902,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         </div>
       </div>
 
-      {/* Floating Hover Note Portal - Instant 0ms show, instant hide on mouse leave, displays ONLY the note text */}
-      {hoveredNote && typeof document !== "undefined" && createPortal(
-        <div
-          style={{
-            position: "fixed",
-            top: Math.max(10, hoveredNote.y - 12),
-            left: hoveredNote.x,
-            transform: "translate(-50%, -100%)",
-          }}
-          className="pointer-events-none z-[9999] bg-slate-900/95 text-white dark:bg-slate-800 dark:text-slate-100 text-xs font-bold px-3.5 py-2 rounded-xl shadow-2xl max-w-sm sm:max-w-md whitespace-normal break-words border border-slate-700/80 backdrop-blur-xs select-none text-center leading-relaxed"
-          dir="rtl"
-        >
-          {hoveredNote.text}
-        </div>,
-        document.body
-      )}
 
       {/* Add Customer Modal - Pure React Modal (Zero freeze, Zero lag, No Radix Focus Lock) */}
       {isAddModalOpen && (
