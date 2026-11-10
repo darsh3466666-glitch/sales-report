@@ -574,7 +574,7 @@
       "collectedFromSheet": 3000.0,
       "dueDate": "2026-11-11",
       "rate": 4.615384615384615,
-      "status": "فائض",
+      "status": "مكتمل",
       "remaining": 0.0,
       "notes": "الخميس 5/11/2026",
       "isPinned": false
@@ -658,7 +658,7 @@
       "collectedFromSheet": 1100.0,
       "dueDate": "2026-10-10",
       "rate": 5.641025641025641,
-      "status": "فائض",
+      "status": "مكتمل",
       "remaining": 0.0,
       "notes": "السبت او الاحد",
       "isPinned": false
@@ -840,7 +840,7 @@
       "collectedFromSheet": 68000.0,
       "dueDate": "2026-11-12",
       "rate": 10.70053911833851,
-      "status": "فائض",
+      "status": "مكتمل",
       "remaining": 0.0,
       "notes": "",
       "isPinned": false
@@ -1372,7 +1372,7 @@
       "collectedFromSheet": 110000.0,
       "dueDate": "2026-12-01",
       "rate": 2.4732996065205173,
-      "status": "فائض",
+      "status": "مكتمل",
       "remaining": 0.0,
       "notes": "",
       "isPinned": false
@@ -1624,7 +1624,7 @@
       "collectedFromSheet": 300000.0,
       "dueDate": "2026-12-05",
       "rate": 1.5,
-      "status": "فائض",
+      "status": "مكتمل",
       "remaining": 0.0,
       "notes": "",
       "isPinned": false
@@ -1820,7 +1820,7 @@
       "collectedFromSheet": 150000.0,
       "dueDate": "2026-12-13",
       "rate": 1.5,
-      "status": "فائض",
+      "status": "مكتمل",
       "remaining": 0.0,
       "notes": "",
       "isPinned": false
@@ -1890,7 +1890,7 @@
       "collectedFromSheet": 200000.0,
       "dueDate": "2026-11-16",
       "rate": 2.0,
-      "status": "فائض",
+      "status": "مكتمل",
       "remaining": 0.0,
       "notes": "",
       "isPinned": false

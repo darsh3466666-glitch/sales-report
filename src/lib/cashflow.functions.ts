@@ -39,7 +39,7 @@ export interface CashFlowCustomer {
   totalCollected: number;
   dueDate: string;
   rate: number;
-  status: "مكتمل" | "جزئي" | "لم يسدد" | "فائض" | "لا يوجد استحقاق";
+  status: "مكتمل" | "جزئي" | "لم يسدد" | "لا يوجد استحقاق";
   remaining: number;
   notes: string;
   isPinned?: boolean;
@@ -305,7 +305,7 @@ export function recalculateCashFlowSummary(
     if (expectedAmount === 0) {
       status = totalCollected > 0 ? "مكتمل" : "لا يوجد استحقاق";
     } else if (totalCollected >= expectedAmount) {
-      status = totalCollected > expectedAmount ? "فائض" : "مكتمل";
+      status = "مكتمل";
     } else if (totalCollected > 0) {
       status = "جزئي";
     } else {
@@ -623,12 +623,7 @@ export async function getLiveCashFlowData(options?: {
               totalCollected: tx.amount,
               dueDate: "",
               rate: expectedAmount > 0 ? tx.amount / expectedAmount : 1,
-              status:
-                tx.amount >= expectedAmount
-                  ? tx.amount > expectedAmount
-                    ? "فائض"
-                    : "مكتمل"
-                  : "جزئي",
+              status: tx.amount >= expectedAmount ? "مكتمل" : "جزئي",
               remaining: Math.max(0, expectedAmount - tx.amount),
               notes,
               isPinned: Boolean(
@@ -705,7 +700,7 @@ export async function getLiveCashFlowData(options?: {
       if (cust.expectedAmount === 0) {
         cust.status = cust.totalCollected > 0 ? "مكتمل" : "لا يوجد استحقاق";
       } else if (cust.totalCollected >= cust.expectedAmount) {
-        cust.status = cust.totalCollected > cust.expectedAmount ? "فائض" : "مكتمل";
+        cust.status = "مكتمل";
       } else if (cust.totalCollected > 0) {
         cust.status = "جزئي";
       } else {

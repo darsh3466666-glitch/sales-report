@@ -45,7 +45,6 @@ type FilterStatus =
   | "completed"
   | "partial"
   | "unpaid"
-  | "surplus"
   | "overdue"
   | "pinned"
   | "has_treasury";
@@ -88,7 +87,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
-  const [sortKey, setSortKey] = useState<SortKey>("index");
+  const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [showUnmatchedTreasury, setShowUnmatchedTreasury] = useState(false);
 
@@ -164,7 +163,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const handleResetFilters = useCallback(() => {
     setSearchTerm("");
     setStatusFilter("all");
-    setSortKey("index");
+    setSortKey("status");
     setSortDirection("asc");
   }, []);
 
@@ -173,16 +172,14 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     let completed = 0;
     let partial = 0;
     let unpaid = 0;
-    let surplus = 0;
     let overdue = 0;
     let pinned = 0;
     let hasTreasury = 0;
 
     for (const c of summary.customers) {
-      if (c.status === "مكتمل") completed++;
+      if (c.status === "مكتمل" || (c as any).status === "فائض") completed++;
       else if (c.status === "جزئي") partial++;
       else if (c.status === "لم يسدد") unpaid++;
-      else if (c.status === "فائض") surplus++;
 
       if (c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9) {
         overdue++;
@@ -199,7 +196,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       completed,
       partial,
       unpaid,
-      surplus,
       overdue,
       pinned,
       hasTreasury,
@@ -218,10 +214,9 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         if (!matchesName && !matchesNotes) return false;
       }
 
-      if (statusFilter === "completed") return c.status === "مكتمل";
+      if (statusFilter === "completed") return c.status === "مكتمل" || (c as any).status === "فائض";
       if (statusFilter === "partial") return c.status === "جزئي";
       if (statusFilter === "unpaid") return c.status === "لم يسدد";
-      if (statusFilter === "surplus") return c.status === "فائض";
       if (statusFilter === "overdue") {
         return Boolean(c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9);
       }
@@ -261,11 +256,34 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         case "status": {
           const order: Record<string, number> = {
             "مكتمل": 1,
-            "فائض": 2,
-            "جزئي": 3,
-            "لم يسدد": 4,
+            "جزئي": 2,
+            "لم يسدد": 3,
+            "لا يوجد استحقاق": 4,
           };
-          cmp = (order[a.status] || 99) - (order[b.status] || 99);
+          const orderA = order[a.status] || (a.status === "فائض" ? 1 : 99);
+          const orderB = order[b.status] || (b.status === "فائض" ? 1 : 99);
+          const statusDiff = orderA - orderB;
+          if (statusDiff !== 0) {
+            cmp = statusDiff;
+          } else {
+            // Secondary sorting within status groups
+            if (orderA === 1) {
+              // Within "مكتمل": sort by totalCollected descending
+              cmp = (b.totalCollected || 0) - (a.totalCollected || 0);
+            } else if (orderA === 2) {
+              // Within "جزئي": sort by collection rate descending
+              const rateDiff = (b.rate || 0) - (a.rate || 0);
+              cmp = rateDiff !== 0 ? rateDiff : (b.totalCollected || 0) - (a.totalCollected || 0);
+            } else if (orderA === 3) {
+              // Within "لم يسدد": sort by earliest dueDate, then expectedAmount
+              const dA = a.dueDate || "9999-99-99";
+              const dB = b.dueDate || "9999-99-99";
+              const dateDiff = dA.localeCompare(dB);
+              cmp = dateDiff !== 0 ? dateDiff : (b.expectedAmount || 0) - (a.expectedAmount || 0);
+            } else {
+              cmp = a.index - b.index;
+            }
+          }
           break;
         }
         case "remaining":
@@ -293,6 +311,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const renderStatusBadge = useCallback((status: CashFlowCustomer["status"]) => {
     switch (status) {
       case "مكتمل":
+      case "فائض" as any:
         return (
           <Badge className={`bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-2 border-emerald-400 ${FONT.badge} gap-1 py-1 px-2.5 shadow-2xs`}>
             <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
@@ -311,13 +330,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           <Badge className={`bg-rose-100 text-rose-900 dark:bg-rose-950 dark:text-rose-300 border-2 border-rose-400 ${FONT.badge} gap-1 py-1 px-2.5 shadow-2xs`}>
             <XCircle className="h-3.5 w-3.5 text-rose-600" />
             <span>لم يسدد</span>
-          </Badge>
-        );
-      case "فائض":
-        return (
-          <Badge className={`bg-blue-100 text-blue-900 dark:bg-blue-950 dark:text-blue-300 border-2 border-blue-400 ${FONT.badge} gap-1 py-1 px-2.5 shadow-2xs`}>
-            <Zap className="h-3.5 w-3.5 text-blue-600" />
-            <span>فائض</span>
           </Badge>
         );
       default:
@@ -442,16 +454,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             <AlertTriangle className="h-4 w-4" />
             <span>متأخرون ({counts.overdue})</span>
           </Button>
-          {counts.surplus > 0 && (
-            <Button
-              variant={statusFilter === "surplus" ? "default" : "outline"}
-              size="sm"
-              onClick={() => setStatusFilter("surplus")}
-              className="rounded-full text-xs font-black h-9 px-4 text-blue-700 dark:text-blue-300 border-2 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40 cursor-pointer shadow-2xs"
-            >
-              فائض ({counts.surplus})
-            </Button>
-          )}
           {counts.pinned > 0 && (
             <Button
               variant={statusFilter === "pinned" ? "default" : "outline"}
@@ -482,7 +484,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             عرض <strong className="text-foreground font-black">{filteredCustomers.length}</strong> من{" "}
             {summary.customers.length} عميل
           </span>
-          {(statusFilter !== "all" || searchTerm || sortKey !== "index" || sortDirection !== "asc") && (
+          {(statusFilter !== "all" || searchTerm || sortKey !== "status" || sortDirection !== "asc") && (
             <button
               onClick={handleResetFilters}
               className="inline-flex items-center gap-1 text-xs text-primary font-black hover:underline cursor-pointer bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20"
@@ -569,7 +571,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredCustomers.map((cust) => {
+                filteredCustomers.map((cust, idx) => {
                   const isEditingThisRow = editing?.customerName === cust.customerName;
                   const isOverdue =
                     Boolean(cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0 && (cust.rate || 0) < 0.9);
@@ -577,12 +579,10 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
                   const rowClass = isEditingThisRow
                     ? "bg-primary/10 border-2 border-primary"
-                    : cust.status === "مكتمل"
+                    : cust.status === "مكتمل" || (cust as any).status === "فائض"
                     ? "bg-emerald-500/[0.04] border-b border-border/80 hover:bg-muted/40"
                     : cust.status === "جزئي"
                     ? "bg-amber-500/[0.04] border-b border-border/80 hover:bg-muted/40"
-                    : cust.status === "فائض"
-                    ? "bg-blue-500/[0.04] border-b border-border/80 hover:bg-muted/40"
                     : "border-b border-border/80 hover:bg-muted/40";
 
                   return (
@@ -593,7 +593,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                           isEditingThisRow ? "text-primary" : "text-muted-foreground"
                         }`}
                       >
-                        {cust.index}
+                        {idx + 1}
                       </TableCell>
 
                       {/* Current Balance */}
@@ -747,8 +747,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                           className={`${FONT.money} ${
                             cust.remaining > 0
                               ? "text-rose-600 dark:text-rose-400"
-                              : cust.remaining < 0
-                              ? "text-blue-600 dark:text-blue-400"
                               : "text-emerald-600 dark:text-emerald-400"
                           }`}
                         >

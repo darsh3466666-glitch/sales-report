@@ -214,7 +214,7 @@ def extract_cashflow():
         if expected == 0:
             status = 'مكتمل' if collected > 0 else 'لا يوجد استحقاق'
         elif collected >= expected:
-            status = 'فائض' if collected > expected else 'مكتمل'
+            status = 'مكتمل'
         elif collected > 0:
             status = 'جزئي'
         else:
