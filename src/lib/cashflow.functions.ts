@@ -542,7 +542,7 @@ export function recalculateCashFlowSummary(
       expectedAmount = Math.max(expectedAmount, totalCollected);
     }
 
-    const remaining = expectedAmount - totalCollected;
+    const remaining = Math.max(0, expectedAmount - totalCollected);
     const rate =
       expectedAmount > 0 ? totalCollected / expectedAmount : totalCollected > 0 ? 1 : 0;
 
@@ -923,8 +923,15 @@ export async function getLiveCashFlowData(options?: {
       }
 
       if (!isDueThisWeekOrPast && hasPaid) {
-        // Paid unexpectedly this week: set expected to 0!
-        c.expectedAmount = 0;
+        // Customer paid unexpectedly this week (scheduled due date is after active week):
+        // User manual edit ALWAYS takes absolute precedence! Only default to 0 if user hasn't set an override.
+        if (overrides.fixedAmounts?.[c.customerName] !== undefined) {
+          c.expectedAmount = Number(overrides.fixedAmounts[c.customerName]) || 0;
+        } else if (rawConfig?.fixedAmounts?.[c.customerName] !== undefined) {
+          c.expectedAmount = Number(rawConfig.fixedAmounts[c.customerName]) || 0;
+        } else {
+          c.expectedAmount = 0;
+        }
       }
 
       return true;
@@ -975,7 +982,7 @@ export async function getLiveCashFlowData(options?: {
         cust.expectedAmount = Math.max(cust.expectedAmount || 0, cust.totalCollected);
       }
 
-      cust.remaining = cust.expectedAmount - cust.totalCollected;
+      cust.remaining = Math.max(0, cust.expectedAmount - cust.totalCollected);
       cust.rate =
         cust.expectedAmount > 0
           ? cust.totalCollected / cust.expectedAmount

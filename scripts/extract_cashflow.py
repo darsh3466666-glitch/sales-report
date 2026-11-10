@@ -294,12 +294,13 @@ def extract_cashflow():
 
             if not is_due_this_week and has_paid_this_week:
                 # User rule: "عميل سدد واسمه مكنش ف القايمة اول م اتعملت سعتها ضيفه ولكن خلي المتوقع منه صفر وضيف له السداد بتاعه عادي"
-                c['expectedAmount'] = 0.0
+                if c_name not in fixed_amounts:
+                    c['expectedAmount'] = 0.0
 
         is_pinned = bool(pinned_customers.get(c_name, False))
         
-        # Fixed amount takes precedence if customer is pinned
-        if is_pinned and c_name in fixed_amounts:
+        # Fixed amount takes precedence
+        if c_name in fixed_amounts:
             expected = float(fixed_amounts[c_name])
         else:
             expected = float(c['expectedAmount'])

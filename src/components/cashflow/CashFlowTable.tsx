@@ -795,10 +795,10 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                           className={`${FONT.money} ${
                             cust.remaining > 0
                               ? "text-rose-600 dark:text-rose-400"
-                              : "text-emerald-600 dark:text-emerald-400"
+                              : "text-muted-foreground font-semibold"
                           }`}
                         >
-                          {fmtMoney(cust.remaining)}
+                          {fmtMoney(Math.max(0, cust.remaining))}
                         </span>
                       </TableCell>
 
