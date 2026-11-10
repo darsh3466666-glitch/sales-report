@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { CashFlowCustomer, CashFlowSummary } from "@/lib/cashflow.functions";
+import { normalizeArabicName } from "@/lib/excel-parser.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
   Table,
@@ -111,6 +112,33 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const [newCustDueDate, setNewCustDueDate] = useState("");
   const [newCustNotes, setNewCustNotes] = useState("");
   const [newCustIsPinned, setNewCustIsPinned] = useState(false);
+
+  // Smart Arabic-normalized suggestions for Add Customer Modal (matches with or without Hamza)
+  const suggestedCustomers = useMemo(() => {
+    const q = newCustName.trim();
+    if (!q || q.length < 2) return [];
+    const normQ = normalizeArabicName(q);
+    const pool = summary.masterCustomerNames || [];
+    return pool
+      .filter((name) => normalizeArabicName(name).includes(normQ))
+      .slice(0, 5);
+  }, [newCustName, summary.masterCustomerNames]);
+
+  const handleSelectCustomer = useCallback((name: string) => {
+    setNewCustName(name);
+    const found = summary.masterCustomers?.find((m) => m.customerName === name);
+    if (found) {
+      if (found.currentBalance > 0 && !newCustExpected) {
+        setNewCustExpected(String(found.currentBalance));
+      }
+      if (found.dueDate && !newCustDueDate) {
+        setNewCustDueDate(found.dueDate);
+      }
+      if (found.notes && !newCustNotes) {
+        setNewCustNotes(found.notes);
+      }
+    }
+  }, [summary.masterCustomers, newCustExpected, newCustDueDate, newCustNotes]);
 
   // Delete Customer Confirmation State
   const [customerToDelete, setCustomerToDelete] = useState<string | null>(null);
@@ -969,6 +997,24 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                     <option key={name} value={name} />
                   ))}
                 </datalist>
+
+                {suggestedCustomers.length > 0 && newCustName !== suggestedCustomers[0] && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-bold text-muted-foreground ml-1">
+                      اقتراحات:
+                    </span>
+                    {suggestedCustomers.map((sName) => (
+                      <button
+                        key={sName}
+                        type="button"
+                        onClick={() => handleSelectCustomer(sName)}
+                        className="text-xs font-bold px-2.5 py-1 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 cursor-pointer transition-colors active:scale-95"
+                      >
+                        + {sName}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">

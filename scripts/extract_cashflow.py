@@ -137,8 +137,9 @@ def extract_cashflow():
                     'lastInvoiceYear': inv_yr,
                 }
 
-                # Only include in master registry if valid active customer with balance >= 5000
-                if m_bal >= 5000 and is_active_2026 and not is_khalis:
+                # Include all legitimate master customers in the searchable master registry for autocomplete/adding
+                is_expense = any(k in norm for k in ['ريع نقل', 'سولار', 'مصاريف', 'مرتبات', 'كهرباء', 'مياه', 'صيانة', 'بوفيه', 'ادوات', 'ايجار', 'ايراد'])
+                if not is_expense and m_name:
                     master_names_list.append(m_name)
                     master_names_set.add(norm)
                     master_customers_list.append({
@@ -146,7 +147,8 @@ def extract_cashflow():
                         'currentBalance': m_bal,
                         'dueDate': m_due,
                         'notes': m_note,
-                        'isActive2026': True,
+                        'isActive2026': is_active_2026,
+                        'isKhalis': is_khalis,
                     })
 
     extracted_customers = {}
