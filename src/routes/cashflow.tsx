@@ -184,7 +184,7 @@ function CashFlowPage() {
 
       {/* Main Content Area */}
       <main className="container mx-auto px-3 sm:px-4 py-6 space-y-6">
-        {isLoading ? (
+        {isLoading && !activeSummary ? (
           <div className="p-16 text-center space-y-3" dir="rtl">
             <div className="h-8 w-8 border-3 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
             <div className="text-sm font-semibold text-muted-foreground">
