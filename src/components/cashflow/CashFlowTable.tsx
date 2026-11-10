@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { CashFlowCustomer, CashFlowSummary } from "@/lib/cashflow.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
@@ -11,14 +12,6 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Search,
   Download,
@@ -40,12 +33,6 @@ import {
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 
 interface CashFlowTableProps {
   summary: CashFlowSummary;
@@ -128,6 +115,9 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
   // Delete Customer Confirmation State
   const [customerToDelete, setCustomerToDelete] = useState<string | null>(null);
+
+  // Floating Hover Note State (pure 0ms hover tooltip without sticky focus or freeze)
+  const [hoveredNote, setHoveredNote] = useState<{ text: string; x: number; y: number } | null>(null);
 
   // Single editing state — 100% controlled, NO useEffect, NO focus thrashing, ZERO freeze!
   const [editing, setEditing] = useState<EditingState | null>(null);
@@ -824,32 +814,21 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                             className="w-full text-xs font-medium px-3 py-1.5 bg-background border-2 border-border rounded-xl focus:outline-none focus:border-primary text-foreground"
                           />
                         ) : (
-                          <TooltipProvider delayDuration={150}>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span
-                                  className={`${FONT.notes} text-foreground/80 block truncate cursor-help hover:text-foreground transition-colors`}
-                                  title={cust.notes || undefined}
-                                >
-                                  {cust.notes || "-"}
-                                </span>
-                              </TooltipTrigger>
-                              {cust.notes ? (
-                                <TooltipContent
-                                  side="top"
-                                  className="max-w-xs sm:max-w-md bg-card border-2 border-primary/40 text-foreground p-3 shadow-2xl rounded-xl z-50 text-right leading-relaxed"
-                                  dir="rtl"
-                                >
-                                  <div className="font-bold text-xs text-primary mb-1">
-                                    الملاحظة كاملة ({cust.customerName}):
-                                  </div>
-                                  <div className="text-xs font-semibold whitespace-normal break-words text-foreground/90">
-                                    {cust.notes}
-                                  </div>
-                                </TooltipContent>
-                              ) : null}
-                            </Tooltip>
-                          </TooltipProvider>
+                          <span
+                            className={`${FONT.notes} text-foreground/80 block truncate cursor-help hover:text-primary transition-colors`}
+                            onMouseEnter={(e) => {
+                              if (!cust.notes) return;
+                              const rect = e.currentTarget.getBoundingClientRect();
+                              setHoveredNote({
+                                text: cust.notes,
+                                x: rect.left + rect.width / 2,
+                                y: rect.top,
+                              });
+                            }}
+                            onMouseLeave={() => setHoveredNote(null)}
+                          >
+                            {cust.notes || "-"}
+                          </span>
                         )}
                       </TableCell>
 
@@ -935,154 +914,190 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         </div>
       </div>
 
-      {/* Add Customer Modal */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="sm:max-w-md border-2 border-primary/30 shadow-2xl p-6" dir="rtl">
-          <DialogHeader className="text-right">
-            <DialogTitle className="text-lg font-black text-foreground flex items-center gap-2">
-              <UserPlus className="h-5 w-5 text-emerald-600" />
-              <span>إضافة عميل إلى قائمة الأسبوع</span>
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground font-semibold">
-              اختر من عملاء الماستر أو أدخل عميلاً نقدياً ومبلغه المستهدف لهذا الأسبوع
-            </DialogDescription>
-          </DialogHeader>
+      {/* Floating Hover Note Portal - Instant 0ms show, instant hide on mouse leave, displays ONLY the note text */}
+      {hoveredNote && typeof document !== "undefined" && createPortal(
+        <div
+          style={{
+            position: "fixed",
+            top: Math.max(10, hoveredNote.y - 12),
+            left: hoveredNote.x,
+            transform: "translate(-50%, -100%)",
+          }}
+          className="pointer-events-none z-[9999] bg-slate-900/95 text-white dark:bg-slate-800 dark:text-slate-100 text-xs font-bold px-3.5 py-2 rounded-xl shadow-2xl max-w-sm sm:max-w-md whitespace-normal break-words border border-slate-700/80 backdrop-blur-xs select-none text-center leading-relaxed"
+          dir="rtl"
+        >
+          {hoveredNote.text}
+        </div>,
+        document.body
+      )}
 
-          <div className="space-y-4 my-2 text-right">
-            <div>
-              <label className="text-xs font-bold text-foreground block mb-1.5">
-                اسم العميل <span className="text-destructive">*</span>
-              </label>
-              <input
-                list="master-customers-list"
-                type="text"
-                placeholder="ابحث أو اكتب اسم العميل..."
-                value={newCustName}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  setNewCustName(val);
-                  const found = summary.masterCustomers?.find(
-                    (m) => m.customerName === val
-                  );
-                  if (found) {
-                    if (found.currentBalance > 0 && !newCustExpected) {
-                      setNewCustExpected(String(found.currentBalance));
-                    }
-                    if (found.dueDate && !newCustDueDate) {
-                      setNewCustDueDate(found.dueDate);
-                    }
-                    if (found.notes && !newCustNotes) {
-                      setNewCustNotes(found.notes);
-                    }
-                  }
-                }}
-                className="w-full text-sm font-bold px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary"
-              />
-              <datalist id="master-customers-list">
-                {(summary.masterCustomerNames || []).map((name) => (
-                  <option key={name} value={name} />
-                ))}
-              </datalist>
+      {/* Add Customer Modal - Pure React Modal (Zero freeze, Zero lag, No Radix Focus Lock) */}
+      {isAddModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+          dir="rtl"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsAddModalOpen(false);
+          }}
+        >
+          <div className="bg-card text-card-foreground border-2 border-primary/30 shadow-2xl rounded-2xl w-full max-w-md p-6 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-border/50">
+              <div className="flex items-center gap-2">
+                <UserPlus className="h-5 w-5 text-emerald-600" />
+                <h3 className="text-lg font-black text-foreground">
+                  إضافة عميل إلى قائمة الأسبوع
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors"
+                title="إغلاق"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
+            <p className="text-xs text-muted-foreground font-semibold">
+              اختر من عملاء الماستر أو أدخل عميلاً نقدياً ومبلغه المستهدف لهذا الأسبوع
+            </p>
+
+            <div className="space-y-4 my-2 text-right">
               <div>
                 <label className="text-xs font-bold text-foreground block mb-1.5">
-                  المبلغ المتوقع (ج.م) <span className="text-destructive">*</span>
+                  اسم العميل <span className="text-destructive">*</span>
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  step="500"
-                  placeholder="0"
-                  value={newCustExpected}
-                  onChange={(e) => setNewCustExpected(e.target.value)}
-                  className="w-full text-sm font-bold font-mono px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary text-left"
-                  dir="ltr"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-foreground block mb-1.5">
-                  موعد السداد (اختياري)
-                </label>
-                <input
-                  type="date"
-                  value={newCustDueDate}
-                  onChange={(e) => setNewCustDueDate(e.target.value)}
+                  list="master-customers-list"
+                  type="text"
+                  placeholder="ابحث أو اكتب اسم العميل..."
+                  value={newCustName}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setNewCustName(val);
+                    const found = summary.masterCustomers?.find(
+                      (m) => m.customerName === val
+                    );
+                    if (found) {
+                      if (found.currentBalance > 0 && !newCustExpected) {
+                        setNewCustExpected(String(found.currentBalance));
+                      }
+                      if (found.dueDate && !newCustDueDate) {
+                        setNewCustDueDate(found.dueDate);
+                      }
+                      if (found.notes && !newCustNotes) {
+                        setNewCustNotes(found.notes);
+                      }
+                    }
+                  }}
                   className="w-full text-sm font-bold px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary"
                 />
+                <datalist id="master-customers-list">
+                  {(summary.masterCustomerNames || []).map((name) => (
+                    <option key={name} value={name} />
+                  ))}
+                </datalist>
               </div>
-            </div>
 
-            <div>
-              <label className="text-xs font-bold text-foreground block mb-1.5">
-                ملاحظات التحصيل
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1.5">
+                    المبلغ المتوقع (ج.م) <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="500"
+                    placeholder="0"
+                    value={newCustExpected}
+                    onChange={(e) => setNewCustExpected(e.target.value)}
+                    className="w-full text-sm font-bold font-mono px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary text-left"
+                    dir="ltr"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-foreground block mb-1.5">
+                    موعد السداد (اختياري)
+                  </label>
+                  <input
+                    type="date"
+                    value={newCustDueDate}
+                    onChange={(e) => setNewCustDueDate(e.target.value)}
+                    className="w-full text-sm font-bold px-3.5 py-2.5 rounded-xl border-2 border-primary/25 bg-background text-foreground focus:outline-none focus:border-primary"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-foreground block mb-1.5">
+                  ملاحظات التحصيل
+                </label>
+                <input
+                  type="text"
+                  placeholder="سداد نقدي، اتفاق جديد..."
+                  value={newCustNotes}
+                  onChange={(e) => setNewCustNotes(e.target.value)}
+                  className="w-full text-xs font-medium px-3.5 py-2 rounded-xl border-2 border-border bg-background text-foreground focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <label className="flex items-center gap-2.5 cursor-pointer bg-primary/5 p-3 rounded-xl border border-primary/20 select-none">
+                <input
+                  type="checkbox"
+                  checked={newCustIsPinned}
+                  onChange={(e) => setNewCustIsPinned(e.target.checked)}
+                  className="h-4 w-4 rounded accent-primary cursor-pointer"
+                />
+                <div className="text-xs">
+                  <span className="font-black text-foreground block">تثبيت العميل أسبوعياً</span>
+                  <span className="text-muted-foreground font-semibold">ترحيل هذا المبلغ كقسط ثابت في الأسابيع القادمة</span>
+                </div>
               </label>
-              <input
-                type="text"
-                placeholder="سداد نقدي، اتفاق جديد..."
-                value={newCustNotes}
-                onChange={(e) => setNewCustNotes(e.target.value)}
-                className="w-full text-xs font-medium px-3.5 py-2 rounded-xl border-2 border-border bg-background text-foreground focus:outline-none focus:border-primary"
-              />
             </div>
 
-            <label className="flex items-center gap-2.5 cursor-pointer bg-primary/5 p-3 rounded-xl border border-primary/20 select-none">
-              <input
-                type="checkbox"
-                checked={newCustIsPinned}
-                onChange={(e) => setNewCustIsPinned(e.target.checked)}
-                className="h-4 w-4 rounded accent-primary cursor-pointer"
-              />
-              <div className="text-xs">
-                <span className="font-black text-foreground block">تثبيت العميل أسبوعياً</span>
-                <span className="text-muted-foreground font-semibold">ترحيل هذا المبلغ كقسط ثابت في الأسابيع القادمة</span>
-              </div>
-            </label>
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/50">
+              <Button
+                variant="outline"
+                onClick={() => setIsAddModalOpen(false)}
+                className="rounded-xl font-bold cursor-pointer"
+              >
+                إلغاء
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => {
+                  if (!newCustName.trim()) {
+                    toast.error("يرجى إدخال اسم العميل");
+                    return;
+                  }
+                  const exp = parseFloat(newCustExpected) || 0;
+                  const found = summary.masterCustomers?.find(
+                    (m) => m.customerName === newCustName.trim()
+                  );
+                  onCustomerAdd?.({
+                    customerName: newCustName.trim(),
+                    expectedAmount: exp,
+                    currentBalance: found?.currentBalance ?? exp,
+                    dueDate: newCustDueDate,
+                    notes: newCustNotes.trim(),
+                    isPinned: newCustIsPinned,
+                  });
+                  setIsAddModalOpen(false);
+                  setNewCustName("");
+                  setNewCustExpected("");
+                  setNewCustDueDate("");
+                  setNewCustNotes("");
+                  setNewCustIsPinned(false);
+                }}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 rounded-xl shadow-xs cursor-pointer"
+              >
+                <UserPlus className="h-4 w-4 ml-1.5" />
+                <span>إضافة العميل</span>
+              </Button>
+            </div>
           </div>
-
-          <DialogFooter className="gap-2 sm:gap-3 flex-row-reverse justify-start sm:justify-start">
-            <Button
-              variant="default"
-              onClick={() => {
-                if (!newCustName.trim()) {
-                  toast.error("يرجى إدخال اسم العميل");
-                  return;
-                }
-                const exp = parseFloat(newCustExpected) || 0;
-                const found = summary.masterCustomers?.find(
-                  (m) => m.customerName === newCustName.trim()
-                );
-                onCustomerAdd?.({
-                  customerName: newCustName.trim(),
-                  expectedAmount: exp,
-                  currentBalance: found?.currentBalance ?? exp,
-                  dueDate: newCustDueDate,
-                  notes: newCustNotes.trim(),
-                  isPinned: newCustIsPinned,
-                });
-                setIsAddModalOpen(false);
-                setNewCustName("");
-                setNewCustExpected("");
-                setNewCustDueDate("");
-                setNewCustNotes("");
-                setNewCustIsPinned(false);
-              }}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-5 rounded-xl shadow-sm"
-            >
-              <UserPlus className="h-4 w-4 ml-1.5" />
-              <span>إضافة العميل</span>
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddModalOpen(false)}
-              className="rounded-xl font-bold"
-            >
-              إلغاء
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </div>
   );
 };
