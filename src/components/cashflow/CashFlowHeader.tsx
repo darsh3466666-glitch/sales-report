@@ -9,7 +9,6 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
-  Zap,
   ArrowUp,
   ArrowDown,
   Percent,
@@ -80,10 +79,6 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
               <h1 className="text-xl sm:text-2xl font-black text-foreground">
                 التدفقات النقدية الأسبوعية (Cash Flow)
               </h1>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border-2 border-emerald-400 shadow-2xs">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                مباشر مع الخزينة ⚡
-              </span>
             </div>
             <p className="text-xs sm:text-sm text-foreground/80 flex items-center gap-1.5 mt-1 font-bold">
               <Calendar className="h-4 w-4 text-primary" />
@@ -96,9 +91,6 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
         <div className="flex items-center gap-2 mr-auto flex-wrap">
           <div className="text-left text-xs text-muted-foreground hidden lg:block">
             <div className="font-semibold">آخر تحديث: {lastUpdatedTime}</div>
-            <div className="text-emerald-600 dark:text-emerald-400 font-bold">
-              تحديث تلقائي كل 30 ثانية
-            </div>
           </div>
           <Link to="/cashflow/history">
             <Button
@@ -162,12 +154,6 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
               <div className="text-xl sm:text-2xl font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums font-sans">
                 {fmtMoney(summary.totalCollected)}
               </div>
-              {summary.collectedFromTreasury > 0 && (
-                <div className="text-xs font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1 mt-0.5">
-                  <Zap className="h-3.5 w-3.5 fill-emerald-500" />
-                  منها {fmtMoney(summary.collectedFromTreasury)} من الخزينة مباشر
-                </div>
-              )}
             </div>
             <div className="border-r-2 border-primary/30 pr-4 sm:pr-6">
               <div className="text-xs sm:text-sm text-foreground/70 font-bold">المتبقي للمستهدف</div>
