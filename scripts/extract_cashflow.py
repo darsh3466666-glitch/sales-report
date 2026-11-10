@@ -39,6 +39,30 @@ def get_year(val):
         return int(s[:4])
     return 0
 
+def get_current_week_window(ref_date=None):
+    if ref_date is None:
+        ref_date = datetime.datetime.now()
+    elif isinstance(ref_date, str):
+        ref_date = datetime.datetime.strptime(ref_date[:10], '%Y-%m-%d')
+        
+    day = ref_date.weekday() # 0: Mon, 1: Tue, 2: Wed, 3: Thu, 4: Fri, 5: Sat, 6: Sun
+    hour = ref_date.hour
+    
+    # Automatic cycle transition: Week ends Tuesday at 7:00 PM (19:00)
+    if day == 1 and hour >= 19:
+        # Tuesday after 7 PM -> transitions to new cycle starting tomorrow Wednesday!
+        days_to_wed = -1
+    elif day >= 2:
+        # Wed(2), Thu(3), Fri(4), Sat(5), Sun(6)
+        days_to_wed = day - 2
+    else:
+        # Mon(0), Tue(1) before 7 PM
+        days_to_wed = day + 5
+        
+    start_date = ref_date.date() - datetime.timedelta(days=days_to_wed)
+    end_date = start_date + datetime.timedelta(days=6)
+    return start_date.strftime('%Y-%m-%d'), end_date.strftime('%Y-%m-%d')
+
 def extract_cashflow():
     """
     Smart extraction without relying on the legacy 'cash flow' sheet.
@@ -228,6 +252,7 @@ def extract_cashflow():
                     }
 
     # 5. Build final customer rows with pinned handling and strict business filters
+    week_start, week_end = get_current_week_window()
     data_rows = []
     for norm, c in extracted_customers.items():
         c_name = c['customerName']
@@ -235,9 +260,15 @@ def extract_cashflow():
         
         # Enforce user requirements:
         # 1. Must be present in Master_Data
-        # 2. Balance must be >= 1000 EGP (no zeros, piasters, or small residuals)
+        # 2. Balance must be >= 5000 EGP (no zeros, piasters, or small residuals)
         # 3. Active in 2026 (last payment or invoice >= 2026)
         # 4. Must not be settled/cleared (عميل خالص / تم التصفية)
+        # 5. Strict Week Boundary: Only customers due on or before weekEnd (<= 2026-11-10)
+        #    belong to the current week baseline! Customers due after weekEnd belong to the NEXT week!
+        #    Exception: If a customer paid during this week, include with expectedAmount = 0.0!
+        c_due = c.get('dueDate', '')
+        collected = float(c.get('collectedFromSheet', 0.0))
+
         if not is_cash:
             m_info = master_dict.get(norm)
             if not m_info:
@@ -252,6 +283,18 @@ def extract_cashflow():
             c['currentBalance'] = bal
             if not c['dueDate'] and m_info.get('dueDate'):
                 c['dueDate'] = m_info['dueDate']
+                c_due = m_info['dueDate']
+
+            is_due_this_week = bool(c_due and c_due <= week_end)
+            has_paid_this_week = (collected > 0)
+
+            if not is_due_this_week and not has_paid_this_week:
+                # Customer belongs to the next week (e.g. 11/11 to 17/11)! Exclude from current week!
+                continue
+
+            if not is_due_this_week and has_paid_this_week:
+                # User rule: "عميل سدد واسمه مكنش ف القايمة اول م اتعملت سعتها ضيفه ولكن خلي المتوقع منه صفر وضيف له السداد بتاعه عادي"
+                c['expectedAmount'] = 0.0
 
         is_pinned = bool(pinned_customers.get(c_name, False))
         
@@ -334,6 +377,8 @@ def extract_cashflow():
 
     summary = {
         'reportDate': datetime.date.today().strftime('%Y-%m-%d'),
+        'weekStart': week_start,
+        'weekEnd': week_end,
         'weeklyGoal': existing_config.get('weeklyGoal', 4000000),
         'totalExpected': total_expected,
         'totalCollected': total_collected,

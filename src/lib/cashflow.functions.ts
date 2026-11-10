@@ -117,13 +117,17 @@ export function getCurrentCashFlowWeekWindow(refDate: Date | string = new Date()
 } {
   const d = typeof refDate === "string" ? new Date(refDate) : new Date(refDate);
   const day = d.getDay(); // 0: Sun, 1: Mon, 2: Tue, 3: Wed, 4: Thu, 5: Fri, 6: Sat
+  const hours = d.getHours();
 
   let daysToWed = 0;
-  if (day >= 3) {
+  if (day === 2 && hours >= 19) {
+    // Tuesday after 7:00 PM -> automatically transition to the new week cycle starting tomorrow Wednesday!
+    daysToWed = -1;
+  } else if (day >= 3) {
     // Wed (3), Thu (4), Fri (5), Sat (6) -> started this week's Wednesday
     daysToWed = day - 3;
   } else {
-    // Sun (0), Mon (1), Tue (2) -> started last week's Wednesday
+    // Sun (0), Mon (1), Tue (2) before 7 PM -> started last week's Wednesday
     daysToWed = day + 4;
   }
 
@@ -894,6 +898,7 @@ export async function getLiveCashFlowData(options?: {
     }
 
     // Strict validation: Filter out ANY non-master accounts, tiny balances (<5000), settled accounts, or accounting descriptions
+    // AND strictly enforce week boundary: Exclude customers belonging to next week who have not paid!
     baseCustomers = baseCustomers.filter((c) => {
       if (c.customerName === CASH_NAME || c.customerName.includes("نقدي")) return true;
       if (c.currentBalance < 5000) return false;
@@ -902,9 +907,26 @@ export async function getLiveCashFlowData(options?: {
       if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
         return false;
       }
-      if (masterNamesSet.size > 0) {
-        return masterNamesSet.has(norm);
+      if (masterNamesSet.size > 0 && !masterNamesSet.has(norm)) {
+        return false;
       }
+
+      // STRICT WEEK BOUNDARY:
+      // Customers whose due date is strictly after weekEnd (e.g. 11/11 to 17/11) belong to the NEXT week!
+      // Only include them if they have actually paid during this week (unexpected payment), or if due on/before weekEnd.
+      const isDueThisWeekOrPast = !c.dueDate || c.dueDate <= weekInfo.weekEnd;
+      const hasPaid = (c.collectedFromSheet > 0 || c.collectedFromTreasury > 0);
+
+      if (!isDueThisWeekOrPast && !hasPaid) {
+        // Belongs to the next week!
+        return false;
+      }
+
+      if (!isDueThisWeekOrPast && hasPaid) {
+        // Paid unexpectedly this week: set expected to 0!
+        c.expectedAmount = 0;
+      }
+
       return true;
     });
 
