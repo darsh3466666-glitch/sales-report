@@ -40,6 +40,12 @@ import {
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface CashFlowTableProps {
   summary: CashFlowSummary;
@@ -818,9 +824,32 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                             className="w-full text-xs font-medium px-3 py-1.5 bg-background border-2 border-border rounded-xl focus:outline-none focus:border-primary text-foreground"
                           />
                         ) : (
-                          <span className={`${FONT.notes} text-foreground/80 block truncate`}>
-                            {cust.notes || "-"}
-                          </span>
+                          <TooltipProvider delayDuration={150}>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span
+                                  className={`${FONT.notes} text-foreground/80 block truncate cursor-help hover:text-foreground transition-colors`}
+                                  title={cust.notes || undefined}
+                                >
+                                  {cust.notes || "-"}
+                                </span>
+                              </TooltipTrigger>
+                              {cust.notes ? (
+                                <TooltipContent
+                                  side="top"
+                                  className="max-w-xs sm:max-w-md bg-card border-2 border-primary/40 text-foreground p-3 shadow-2xl rounded-xl z-50 text-right leading-relaxed"
+                                  dir="rtl"
+                                >
+                                  <div className="font-bold text-xs text-primary mb-1">
+                                    الملاحظة كاملة ({cust.customerName}):
+                                  </div>
+                                  <div className="text-xs font-semibold whitespace-normal break-words text-foreground/90">
+                                    {cust.notes}
+                                  </div>
+                                </TooltipContent>
+                              ) : null}
+                            </Tooltip>
+                          </TooltipProvider>
                         )}
                       </TableCell>
 
