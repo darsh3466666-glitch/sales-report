@@ -317,9 +317,12 @@ def extract_cashflow():
             status = 'لم يسدد'
 
         remaining = max(0.0, expected - collected)
-        note = c['notes'] or notes.get(c_name, '')
+        if not is_cash:
+            note = m_info.get('notes', '') or c.get('notes', '') or notes.get(c_name, '')
+        else:
+            note = notes.get(c_name, 'مبيعات وتحصيلات نقدية أسبوعية (كاش)')
 
-        if note and c_name not in notes:
+        if note:
             notes[c_name] = note
 
         data_rows.append({
