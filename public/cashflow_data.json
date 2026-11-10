@@ -4,10 +4,10 @@
   "weekEnd": "2026-11-10",
   "weeklyGoal": 4000000,
   "totalExpected": 1109804.0,
-  "totalCollected": 1575500.0,
+  "totalCollected": 1874145.0,
   "customerCount": 30,
-  "remainingToTarget": 2424500.0,
-  "collectionRate": 1.4196200410162516,
+  "remainingToTarget": 2125855.0,
+  "collectionRate": 1.6887171068044446,
   "masterCustomerNames": [
     "محمد سيف الترساوي(ابو شويقي)",
     "احمد صابر ضيف الله (ابوشويقي)",
@@ -1260,7 +1260,7 @@
     {
       "customerName": "عارف صلاح قيصر",
       "currentBalance": 169275.0,
-      "dueDate": "2026-11-12",
+      "dueDate": "2026-12-10",
       "notes": "عارف صلاح ممكن ياخد طن تاني ويطلع بهايمه",
       "isActive2026": true,
       "isKhalis": false
@@ -3380,8 +3380,8 @@
     {
       "customerName": "الحاج /ايمن منصور - البحيرة",
       "currentBalance": 155750.0,
-      "dueDate": "2026-11-15",
-      "notes": "10 ايام بلاغ عماد منصور اخوه",
+      "dueDate": "2026-11-19",
+      "notes": "الخميس 19/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -3756,7 +3756,7 @@
     {
       "customerName": "حسام عدلي عبود(قيصر)",
       "currentBalance": 86885.0,
-      "dueDate": "2026-11-12",
+      "dueDate": "2026-11-11",
       "notes": "الاربعاء11/11/2026",
       "isActive2026": true,
       "isKhalis": false
@@ -4477,11 +4477,11 @@
       "normalizedName": "مدحت محمد الخرابه",
       "currentBalance": 298645.0,
       "expectedAmount": 298645.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 298645.0,
       "dueDate": "2026-11-10",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 298645.0,
+      "rate": 1.0,
+      "status": "مكتمل",
+      "remaining": 0.0,
       "notes": "الثلاثاء 10/11/2026",
       "isPinned": false
     },
