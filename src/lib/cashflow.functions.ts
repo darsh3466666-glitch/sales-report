@@ -25,6 +25,7 @@ export interface TreasuryIncomingTx {
   amount: number;
   description: string;
   type: string;
+  date?: string;
   matchedCustomer?: string;
 }
 
@@ -211,11 +212,13 @@ export async function fetchLiveTreasuryIncoming(): Promise<TreasuryIncomingTx[]>
     );
     if (!res.ok) return [];
     const data = await res.json();
+    const reportDate = String(data?.reportDate || "").trim();
     if (data?.transactions?.incoming && Array.isArray(data.transactions.incoming)) {
       return data.transactions.incoming.map((tx: any) => ({
         amount: Number(tx.amount) || 0,
         description: String(tx.description || ""),
         type: String(tx.type || ""),
+        date: String(tx.date || reportDate || ""),
       }));
     }
     return [];
@@ -240,6 +243,7 @@ export interface ActiveCashFlowCycleState {
   weekLabel: string;
   weeklyGoal: number;
   customers: CashFlowCustomer[];
+  archivedTxSignatures?: string[];
   updatedAt: string;
 }
 
@@ -932,10 +936,41 @@ export async function getLiveCashFlowData(options?: {
       cashCust.isPinned = true;
     }
 
+    // Determine active week cycle boundaries for treasury transaction isolation
+    const effectiveWeekStart = (isSavedCycleValid && savedCycle?.weekStart) ? savedCycle.weekStart : weekInfo.weekStart;
+    const effectiveWeekEnd = (isSavedCycleValid && savedCycle?.weekEnd) ? savedCycle.weekEnd : weekInfo.weekEnd;
+
+    // Track signatures of treasury transactions from previous/archived cycles
+    const archivedTxSet = new Set<string>(savedCycle?.archivedTxSignatures || []);
+    if (savedCycle && savedCycle.cycleId !== currentCycleId) {
+      // Transitioning across cycles (e.g. 7:00 PM Tuesday auto-transition):
+      // Seal all transactions of the old cycle so they never leak into the new one!
+      for (const c of savedCycle.customers || []) {
+        for (const tx of c.treasuryTransactions || []) {
+          const sig = `${tx.date || savedCycle.weekEnd || ""}_${tx.description}_${tx.amount}_${tx.type}`;
+          archivedTxSet.add(sig);
+        }
+      }
+    }
+
+    // Filter live Treasury incoming transactions:
+    // 1) Must NOT have been counted in the previous cycle
+    // 2) Must belong strictly to this active week window (tx.date >= effectiveWeekStart && tx.date <= effectiveWeekEnd)
+    const cycleTreasuryTx = liveTreasuryTx.filter((tx) => {
+      const sig = `${tx.date || ""}_${tx.description}_${tx.amount}_${tx.type}`;
+      if (archivedTxSet.has(sig)) return false;
+
+      if (tx.date) {
+        if (tx.date < effectiveWeekStart) return false;
+        if (tx.date > effectiveWeekEnd) return false;
+      }
+      return true;
+    });
+
     // Match live Treasury incoming transactions with customers
     const unmatchedTreasuryTx: TreasuryIncomingTx[] = [];
 
-    for (const tx of liveTreasuryTx) {
+    for (const tx of cycleTreasuryTx) {
       let matched = false;
       for (const cust of baseCustomers) {
         if (matchTreasuryDescriptionToCustomer(tx.description, cust.customerName)) {
@@ -1116,6 +1151,7 @@ export async function getLiveCashFlowData(options?: {
       weekLabel: weekInfo.weekLabel,
       weeklyGoal,
       customers: baseCustomers,
+      archivedTxSignatures: Array.from(archivedTxSet),
       updatedAt: new Date().toISOString(),
     });
 
@@ -1627,6 +1663,20 @@ export async function archiveCurrentWeekAndStartNew(
     } catch (e) {}
   }
 
+  // Collect signatures of all treasury transactions in the week being ended
+  // This guarantees that none of them can EVER be counted in the new week
+  const currentTreasurySigs: string[] = [];
+  for (const c of currentSummary.customers || []) {
+    for (const tx of c.treasuryTransactions || []) {
+      const sig = `${tx.date || currentSummary.reportDate || ""}_${tx.description}_${tx.amount}_${tx.type}`;
+      currentTreasurySigs.push(sig);
+    }
+  }
+  for (const tx of currentSummary.unmatchedTreasuryTx || []) {
+    const sig = `${tx.date || currentSummary.reportDate || ""}_${tx.description}_${tx.amount}_${tx.type}`;
+    currentTreasurySigs.push(sig);
+  }
+
   saveActiveCycleState({
     cycleId: `week_${nextWeekInfo.weekStart}_to_${nextWeekInfo.weekEnd}`,
     weekStart: nextWeekInfo.weekStart,
@@ -1634,6 +1684,7 @@ export async function archiveCurrentWeekAndStartNew(
     weekLabel: nextWeekInfo.weekLabel,
     weeklyGoal,
     customers: newCustomers,
+    archivedTxSignatures: currentTreasurySigs,
     updatedAt: new Date().toISOString(),
   });
 
