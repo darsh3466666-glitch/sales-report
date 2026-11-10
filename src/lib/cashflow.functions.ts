@@ -174,79 +174,73 @@ const GENERIC_PREFIXES = new Set([
   "مكتب",
 ]);
 
-/**
- * Matches a Treasury description against a customer name using strict Arabic normalizations.
- * Guaranteed never to confuse distinct customers (e.g. "مزرعة السلام" vs "مزرعة المهندس").
- */
-export function matchTreasuryDescriptionToCustomer(
-  desc: string,
-  customerName: string
-): boolean {
-  if (!desc || !customerName) return false;
-  const nd = normalizeArabicName(desc);
-  const nc = normalizeArabicName(customerName);
-  if (!nd || !nc) return false;
-
-  // 1. Exact normalized match (e.g. "مزرعة السلام" === "مزرعه السلام")
-  if (nd === nc) return true;
-
-  // 2. Generic cash matching
-  const isDescCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|نقدى)$/.test(nd);
-  const isCustCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|عميل نقدي كاش)$/.test(nc);
-  if (isDescCash && isCustCash) return true;
-  if (isDescCash || isCustCash) return false;
-
-  // 3. Substring containment ONLY IF it contains the non-generic distinguishing parts
-  if (nc.includes(nd) || nd.includes(nc)) {
-    const smaller = nd.length < nc.length ? nd : nc;
-    const larger = nd.length < nc.length ? nc : nd;
-    const smallerWords = smaller.split(" ").filter((w) => w.length >= 2);
-    const nonGeneric = smallerWords.filter((w) => !GENERIC_PREFIXES.has(w));
-    if (nonGeneric.length > 0) {
-      if (nonGeneric.every((w) => larger.includes(w))) {
-        return true;
-      }
-    }
-  }
-
-  // 4. Honorific prefixes: only strip from the START of string, e.g. "المعلم احمد" -> "احمد"
-  const stripPrefixHonorific = (s: string) =>
-    s
-      .replace(
-        /^(المعلم|حاج|الحاج|مهندس|المهندس|استاذ|الاستاذ|شيخ|الشيخ|دكتور|د)\s+/g,
-        ""
-      )
-      .trim();
-
-  const sd = stripPrefixHonorific(nd);
-  const sc = stripPrefixHonorific(nc);
-  if (sd && sc && sd === sc) return true;
-
-  // 5. Multi-word token matching:
-  // Both strings must share AT LEAST 2 non-generic words of length >= 3
-  const wordsD = nd.split(" ").filter((w) => w.length >= 3 && !GENERIC_PREFIXES.has(w));
-  const wordsC = nc.split(" ").filter((w) => w.length >= 3 && !GENERIC_PREFIXES.has(w));
-
-  if (wordsD.length >= 2 && wordsD.every((w) => nc.includes(w))) {
-    return true;
-  }
-  if (wordsC.length >= 2 && wordsC.every((w) => nd.includes(w))) {
-    return true;
-  }
-
-  // 6. Single distinguishing word match ONLY if both have exactly 1 distinguishing word of length >= 4
-  if (
-    wordsD.length === 1 &&
-    wordsC.length === 1 &&
-    wordsD[0] === wordsC[0] &&
-    wordsD[0].length >= 4
-  ) {
-    return true;
-  }
-
-  return false;
-}
-
+/**
+ * Matches a Treasury description against a customer name using strict Arabic normalizations.
+ * Strictly enforces full-name reading ("قراءة للاسم بالكامل") so that distinct entities (e.g. "مزرعة السلام" vs "مزرعة المهندس")
+ * can NEVER be mixed up or falsely matched.
+ */
+export function matchTreasuryDescriptionToCustomer(
+  desc: string,
+  customerName: string
+): boolean {
+  if (!desc || !customerName) return false;
+  const nd = normalizeArabicName(desc);
+  const nc = normalizeArabicName(customerName);
+  if (!nd || !nc) return false;
+
+  // 1. Exact full normalized match (e.g. "مزرعة السلام" === "مزرعه السلام")
+  if (nd === nc) return true;
+
+  // 2. Generic cash matching
+  const isDescCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|نقدى)$/.test(nd);
+  const isCustCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|عميل نقدي كاش)$/.test(nc);
+  if (isDescCash && isCustCash) return true;
+  if (isDescCash || isCustCash) return false;
+
+  // 3. Honorific prefixes at start only: "المعلم عبدالفتاح ربيع" === "عبدالفتاح ربيع"
+  const stripPrefixHonorific = (s: string) =>
+    s
+      .replace(
+        /^(المعلم|حاج|الحاج|مهندس|المهندس|استاذ|الاستاذ|شيخ|الشيخ|دكتور|د)\s+/g,
+        ""
+      )
+      .trim();
+
+  const sd = stripPrefixHonorific(nd);
+  const sc = stripPrefixHonorific(nc);
+  if (sd && sc && sd === sc) return true;
+
+  // 4. Match full name ignoring parenthesized nickname/branch annotation
+  // e.g. "عيد احمد عبدالفتاح" matches "عيد احمد عبد الفتاح (ابو السعود)"
+  const cleanParens = (s: string) => {
+    const idx = s.indexOf("(");
+    return idx >= 0 ? s.slice(0, idx).trim() : s;
+  };
+  const bd = normalizeArabicName(cleanParens(desc));
+  const bc = normalizeArabicName(cleanParens(customerName));
+  if (bd && bc && (bd === bc || sd === bc || bd === sc)) return true;
+
+  // 5. STRICT ENTITY GUARD:
+  // If the description or customer name represents an entity (farm, shop, company, station, factory, showroom, etc.),
+  // NO partial, prefix, or token matching is ever permitted! Full name match only!
+  const isEntity = Array.from(GENERIC_PREFIXES).some(
+    (k) => nd.includes(k) || nc.includes(k)
+  );
+  if (isEntity) return false;
+
+  // 6. Full personal name prefix (must have at least 2 full words):
+  // e.g. "سيد رشيد" matches "سيد رشيد الحموى", "شحات قرني" matches "شحات قرني البسيونيه"
+  // Must match on a clean word boundary at the start of the full personal name.
+  const dWords = nd.split(" ").filter((w) => w.length >= 2);
+  if (dWords.length >= 2) {
+    if (nc.startsWith(nd + " ") || bc.startsWith(nd + " ")) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Fetch incoming transactions from live Treasury Dashboard.
  */
