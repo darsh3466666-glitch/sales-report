@@ -1,20 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState, useRef } from "react";
-import { getLatestReportFull, resetAllReports } from "@/lib/reports.functions";
+import { useEffect, useMemo, useState } from "react";
+import { getLatestReportFull } from "@/lib/reports.functions";
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Trash2, Moon, Sun, History, Download, BarChart3, Wallet, RefreshCw } from "lucide-react";
+import { Moon, Sun, History, Download, BarChart3, Wallet, RefreshCw } from "lucide-react";
 import { CustomerProductsDrawer } from "@/components/dashboard/CustomerProductsDrawer";
 import { PrintDialog } from "@/components/dashboard/PrintDialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -193,7 +182,14 @@ function Dashboard() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => refetch()}
+              onClick={async () => {
+                try {
+                  await refetch();
+                  toast.success("تم تحديث البيانات لحظياً بنجاح");
+                } catch {
+                  toast.error("فشل تحديث البيانات");
+                }
+              }}
               disabled={isFetching}
               className="px-2.5 sm:px-3 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
               title="تحديث لحظي"
@@ -239,7 +235,6 @@ function Dashboard() {
               printLayout={printLayout}
               setPrintLayout={setPrintLayout}
             />
-            <ResetButton onDone={() => refetch()} />
             <Button
               variant="ghost"
               size="icon"
@@ -298,66 +293,5 @@ function Dashboard() {
         invoices={customerInvoicesForSelected as any}
       />
     </div>
-  );
-}
-
-function ResetButton({ onDone }: { onDone: () => void }) {
-  const [loading, setLoading] = useState(false);
-  const isMounted = useRef(false);
-
-  useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  async function handleReset() {
-    setLoading(true);
-    try {
-      await resetAllReports();
-      toast.success("تم تصفير جميع السجلات");
-      onDone();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "فشل التصفير");
-    } finally {
-      if (isMounted.current) {
-        setLoading(false);
-      }
-    }
-  }
-  return (
-    <AlertDialog>
-      <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="px-2 sm:px-3 text-destructive hover:text-destructive"
-          title="تصفير"
-        >
-          <Trash2 className="h-4 w-4 sm:ml-1" />
-          <span className="hidden sm:inline">تصفير</span>
-        </Button>
-      </AlertDialogTrigger>
-      <AlertDialogContent dir="rtl">
-        <AlertDialogHeader>
-          <AlertDialogTitle>تصفير جميع السجلات؟</AlertDialogTitle>
-          <AlertDialogDescription>
-            سيتم حذف جميع التقارير اليومية والعملاء والمنتجات والمديونية القديمة
-            نهائياً. هذا الإجراء لا يمكن التراجع عنه.
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel>إلغاء</AlertDialogCancel>
-          <AlertDialogAction
-            onClick={handleReset}
-            disabled={loading}
-            className="bg-destructive hover:bg-destructive/90"
-          >
-            {loading ? "جاري التصفير..." : "نعم، صفّر الكل"}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
   );
 }

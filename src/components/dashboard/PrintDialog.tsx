@@ -1,20 +1,12 @@
-import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import React, { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Printer,
   Monitor,
   Smartphone,
-  AlertTriangle,
-  ExternalLink,
+  ChevronDown,
+  Check,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,182 +21,211 @@ export function PrintDialog({
   setPrintLayout,
   trigger,
 }: PrintDialogProps) {
-  const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<"pc" | "mobile">(printLayout);
-  const [isIframe, setIsIframe] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
+  // Close dropdown on outside click
   useEffect(() => {
-    setIsIframe(window.self !== window.top);
-  }, []);
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
+        setIsOpen(false);
+      }
+    }
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isOpen]);
 
-  function handleStartPrint() {
-    setPrintLayout(selected);
-    setOpen(false);
+  // Clean execution that never freezes the page or locks pointer events
+  const handlePrint = (layout: "pc" | "mobile") => {
+    setPrintLayout(layout);
+    setIsOpen(false);
 
-    // Give a clear, longer delay for full Dialog unmounting/fading and focus release to finish, resolving focus trap blocks on print.
-    setTimeout(() => {
-      const wasDark = document.documentElement.classList.contains("dark");
+    // 1. Immediately ensure clean body/HTML styles so nothing ever freezes
+    document.body.style.pointerEvents = "";
+    document.body.style.overflow = "";
+    document.body.removeAttribute("data-scroll-locked");
+    if (document.documentElement) {
+      document.documentElement.style.pointerEvents = "";
+      document.documentElement.style.overflow = "";
+    }
+
+    // 2. Temporarily remove dark mode for crisp white-paper printing
+    const wasDark = document.documentElement.classList.contains("dark");
+    if (wasDark) {
+      document.documentElement.classList.remove("dark");
+    }
+
+    const restoreStyles = () => {
       if (wasDark) {
-        document.documentElement.classList.remove("dark");
+        document.documentElement.classList.add("dark");
       }
+      document.body.style.pointerEvents = "";
+      document.body.style.overflow = "";
+      document.body.removeAttribute("data-scroll-locked");
+      window.removeEventListener("afterprint", restoreStyles);
+    };
 
-      const restore = () => {
-        if (wasDark) {
-          document.documentElement.classList.add("dark");
+    window.addEventListener("afterprint", restoreStyles);
+
+    // Fallback restoration in case afterprint does not fire (common in Chrome PDF save/cancel)
+    setTimeout(restoreStyles, 1500);
+
+    // 3. Trigger native print after brief frame render
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        try {
+          window.print();
+        } catch (err) {
+          console.error("Print error:", err);
+          toast.error("تعذر فتح نافذة الطباعة تلقائياً");
+          restoreStyles();
         }
-        window.removeEventListener("afterprint", restore);
-      };
-
-      window.addEventListener("afterprint", restore);
-
-      try {
-        window.print();
-      } catch (e) {
-        console.error("Print blocked or failed", e);
-        toast.error(
-          "فشلت عملية الطباعة. يرجى تجربة فتح التطبيق في نافذة مستقلة.",
-        );
-      }
-    }, 550);
-  }
+      }, 120);
+    });
+  };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || (
+    <div className="relative inline-flex items-center" ref={containerRef}>
+      {trigger ? (
+        <div onClick={() => setIsOpen(!isOpen)}>{trigger}</div>
+      ) : (
+        <div className="inline-flex items-center rounded-full bg-card shadow-xs border border-muted hover:border-primary/30 divide-x divide-x-reverse divide-muted">
+          {/* Main Direct Print Button (One-click Google Studio Landscape Print) */}
           <Button
             variant="ghost"
             size="sm"
-            className="px-2 sm:px-3 text-primary-dark hover:bg-primary-bg rounded-full"
+            onClick={() => handlePrint(printLayout || "pc")}
+            className="px-2.5 sm:px-3 h-8 sm:h-9 rounded-r-full font-bold text-primary-dark hover:bg-primary-bg gap-1.5"
+            title="طباعة التقرير مباشرة (تنسيق جوجل استوديو - عرضي)"
           >
-            <Printer className="h-4 w-4 sm:ml-1 shrink-0 text-accent-dark" />
+            <Printer className="h-4 w-4 text-accent-dark shrink-0" />
             <span className="hidden sm:inline font-bold">طباعة التقرير</span>
           </Button>
-        )}
-      </DialogTrigger>
 
-      <DialogContent
-        className="max-w-md w-[95%] rounded-[32px] border-[3px] border-primary-light gap-4 p-5 sm:p-6 bg-cream shadow-xl"
-        dir="rtl"
-      >
-        <DialogHeader className="text-right">
-          <DialogTitle className="text-lg font-bold flex items-center gap-2 text-primary-dark">
-            <div className="text-xl flex items-center justify-center">🖨️</div>
-            <span>إعداد وتنسيق طباعة التقرير</span>
-          </DialogTitle>
-          <DialogDescription className="text-xs sm:text-sm text-primary-dark/80 font-bold">
-            اختر التنسيق والنموذج المناسب لطباعة هذا التقرير أو حفظه كـ PDF.
-          </DialogDescription>
-        </DialogHeader>
+          {/* Options Dropdown Trigger */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsOpen(!isOpen)}
+            className="px-1.5 sm:px-2 h-8 sm:h-9 rounded-l-full font-bold text-primary-dark hover:bg-primary-bg"
+            title="خيارات وتنسيق الطباعة"
+          >
+            <ChevronDown
+              className={`h-3.5 w-3.5 transition-transform duration-200 text-muted-foreground ${
+                isOpen ? "rotate-180 text-primary" : ""
+              }`}
+            />
+          </Button>
+        </div>
+      )}
 
-        {/* Iframe Warning */}
-        {isIframe && (
-          <div className="bg-coral/10 border-[3px] border-coral-light p-3 sm:p-4 rounded-[24px] text-coral-dark text-xs sm:text-sm leading-relaxed space-y-2 font-bold shadow-sm">
-            <div className="flex items-start gap-2 font-black">
-              <div className="text-base flex items-center justify-center mt-0.5">
-                ⚠️
-              </div>
-              <span>تنبيه هام ومساعد للطباعة:</span>
+      {/* Google Studio Style Print Options Dropdown */}
+      {isOpen && (
+        <div
+          dir="rtl"
+          className="absolute left-0 sm:right-auto top-full mt-2 w-72 sm:w-80 rounded-2xl bg-card border-2 border-primary/20 shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div className="px-3 py-2 border-b border-muted/60 mb-1">
+            <div className="flex items-center gap-1.5 text-xs font-black text-primary">
+              <FileText className="h-3.5 w-3.5" />
+              <span>خيارات الطباعة وتصدير PDF</span>
             </div>
-            <p className="font-extrabold text-right">
-              بسبب قيود المتصفح الأمنية داخل نافذة المعاينة، لن يتم عرض نافذة
-              الطباعة مباشرة.
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              اختر التنسيق المطلوب للطباعة أو الحفظ كملف PDF
             </p>
-            <p>
-              يرجى الضغط على الزر أدناه لفتح التطبيق في نافذة مستقلة لتفعيل
-              خيارات الطباعة والحفظ كملف PDF بنجاح وبأعلى جودة:
-            </p>
-            <Button
+          </div>
+
+          <div className="space-y-1">
+            {/* Option 1: Google Studio Landscape PC Layout */}
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              className="w-full flex items-center justify-center gap-2 border-[3px] border-coral-light bg-white hover:bg-cream text-coral-dark font-extrabold rounded-full py-2 mt-2 cursor-pointer no-print shadow-sm"
-              onClick={() => window.open(window.location.href, "_blank")}
+              onClick={() => handlePrint("pc")}
+              className={`w-full text-right p-2.5 rounded-xl transition-all flex items-start gap-2.5 cursor-pointer text-xs ${
+                printLayout === "pc"
+                  ? "bg-primary/10 text-primary-dark font-black border border-primary/30"
+                  : "hover:bg-muted/60 text-foreground font-semibold"
+              }`}
             >
-              <ExternalLink className="h-4 w-4 text-coral shrink-0" />
-              <span>افتح في نافذة مستقلة وجديدة ↗</span>
+              <div
+                className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
+                  printLayout === "pc"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                <Monitor className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">تنسيق جوجل استوديو (A4 Landscape)</span>
+                  {printLayout === "pc" && (
+                    <Check className="h-3.5 w-3.5 text-primary" />
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                  عرضي ممتد مثل تقرير جوجل استوديو الأصلي، تظهر فيه الكروت والرسوم البيانية متجاورة بعرض الصفحة.
+                </p>
+              </div>
+            </button>
+
+            {/* Option 2: Mobile / Portrait Layout */}
+            <button
+              type="button"
+              onClick={() => handlePrint("mobile")}
+              className={`w-full text-right p-2.5 rounded-xl transition-all flex items-start gap-2.5 cursor-pointer text-xs ${
+                printLayout === "mobile"
+                  ? "bg-primary/10 text-primary-dark font-black border border-primary/30"
+                  : "hover:bg-muted/60 text-foreground font-semibold"
+              }`}
+            >
+              <div
+                className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${
+                  printLayout === "mobile"
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-muted text-muted-foreground"
+                }`}
+              >
+                <Smartphone className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold">تنسيق طولي (A4 Portrait)</span>
+                  {printLayout === "mobile" && (
+                    <Check className="h-3.5 w-3.5 text-primary" />
+                  )}
+                </div>
+                <p className="text-[10px] text-muted-foreground mt-0.5 leading-snug">
+                  طولي رأسي مناسب للهاتف والقراءة المتسلسلة وحفظ ملفات PDF الطولية القياسية.
+                </p>
+              </div>
+            </button>
+          </div>
+
+          <div className="mt-2 pt-2 border-t border-muted/60 flex items-center justify-between px-1">
+            <span className="text-[10px] text-muted-foreground">
+              النمط النشط:{" "}
+              <strong className="text-foreground">
+                {printLayout === "pc" ? "عرضي (استوديو)" : "طولي (Portrait)"}
+              </strong>
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsOpen(false)}
+              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground"
+            >
+              إغلاق
             </Button>
           </div>
-        )}
-
-        {/* Layout Selection */}
-        <div className="space-y-3 my-2">
-          <h3 className="text-xs sm:text-sm font-black text-primary-dark">
-            شكل وتصميم الطباعة:
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {/* PC Layout Option */}
-            <button
-              type="button"
-              onClick={() => setSelected("pc")}
-              className={`flex flex-col items-center justify-center p-3 sm:p-4 border-[3px] rounded-[24px] text-center transition-all gap-2 bg-white cursor-pointer shadow-sm ${
-                selected === "pc"
-                  ? "border-accent ring-[4px] ring-accent/30 scale-[1.02]"
-                  : "border-primary-light/50 hover:border-primary-light"
-              }`}
-            >
-              <div
-                className={`p-2 rounded-[16px] ${selected === "pc" ? "bg-accent/20 text-accent-dark" : "bg-primary-bg text-primary-dark"}`}
-              >
-                <Monitor className="h-6 w-6" />
-              </div>
-              <span className="text-xs sm:text-sm font-extrabold block text-primary-dark">
-                تنسيق شاشات الكمبيوتر
-              </span>
-              <span className="text-[10px] sm:text-xs text-primary-dark/70 font-bold block max-w-[150px] leading-tight">
-                (عرضي ممتد - A4 Landscape)
-                <br />
-                تنظيم البيانات عريضاً في صفوف كالبينتو جارد.
-              </span>
-            </button>
-
-            {/* Mobile Layout Option */}
-            <button
-              type="button"
-              onClick={() => setSelected("mobile")}
-              className={`flex flex-col items-center justify-center p-3 sm:p-4 border-[3px] rounded-[24px] text-center transition-all gap-2 bg-white cursor-pointer shadow-sm ${
-                selected === "mobile"
-                  ? "border-accent ring-[4px] ring-accent/30 scale-[1.02]"
-                  : "border-primary-light/50 hover:border-primary-light"
-              }`}
-            >
-              <div
-                className={`p-2 rounded-[16px] ${selected === "mobile" ? "bg-accent/20 text-accent-dark" : "bg-primary-bg text-primary-dark"}`}
-              >
-                <Smartphone className="h-6 w-6" />
-              </div>
-              <span className="text-xs sm:text-sm font-extrabold block text-primary-dark">
-                تنسيق المحمول والـ PDF الطولي
-              </span>
-              <span className="text-[10px] sm:text-xs text-primary-dark/70 font-bold block max-w-[150px] leading-tight">
-                (طولي مرتب - A4 Portrait)
-                <br />
-                يبسط العناصر بشكل عمودي لتكون واضحة ومقروءة جداً على الهاتف.
-              </span>
-            </button>
-          </div>
         </div>
-
-        <DialogFooter className="flex flex-col sm:flex-row-reverse gap-2 mt-2">
-          <Button
-            type="button"
-            className="w-full sm:w-auto font-bold gap-1.5"
-            onClick={handleStartPrint}
-          >
-            <Printer className="h-4 w-4 shrink-0" />
-            <span>عرض خيارات وبدء الطباعة</span>
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full sm:w-auto rounded-full font-bold"
-            onClick={() => setOpen(false)}
-          >
-            إلغاء
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      )}
+    </div>
   );
 }
