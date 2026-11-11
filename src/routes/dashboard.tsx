@@ -15,7 +15,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Trash2, Moon, Sun, History, Download, BarChart3, Wallet, RefreshCw } from "lucide-react";
-import { UploadDialog } from "@/components/dashboard/UploadDialog";
 import { CustomerProductsDrawer } from "@/components/dashboard/CustomerProductsDrawer";
 import { PrintDialog } from "@/components/dashboard/PrintDialog";
 import { Card, CardContent } from "@/components/ui/card";
@@ -273,19 +272,10 @@ function Dashboard() {
       </div>
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 print:space-y-4 print:p-0 print:m-0">
-        <div className="no-print">
-          <UploadDialog
-            onUploaded={() => {
-              refetch();
-              toast.success("تم التحديث");
-            }}
-          />
-        </div>
-
         {!data && (
           <Card>
             <CardContent className="p-12 text-center text-muted-foreground">
-              لا توجد تقارير مستوردة بعد. ارفع ملفاتك للبدء.
+              لا توجد تقارير متاحة حالياً.
             </CardContent>
           </Card>
         )}
