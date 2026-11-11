@@ -84,6 +84,16 @@ function ManagementView() {
     );
   }, [selectedCustomer, data]);
 
+  const customerInvoicesForSelected = useMemo(() => {
+    if (!selectedCustomer || !data) return [];
+    const targetNorm = normalizeArabicName(selectedCustomer);
+    return (data.invoices || []).filter(
+      (inv: any) =>
+        inv.customer_name === selectedCustomer ||
+        normalizeArabicName(inv.customer_name) === targetNorm,
+    );
+  }, [selectedCustomer, data]);
+
   function handleExport() {
     if (!data) {
       toast.error("لا توجد بيانات للتصدير");
@@ -270,6 +280,7 @@ function ManagementView() {
         onClose={() => setSelectedCustomer(null)}
         customer={selectedCustomer}
         products={customerProductsForSelected as any}
+        invoices={customerInvoicesForSelected as any}
       />
     </div>
   );
