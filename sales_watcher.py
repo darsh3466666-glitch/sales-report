@@ -46,7 +46,9 @@ SYNC_SCRIPT = os.path.join(REPO_DIR, 'scripts', 'sync_reports.ts')
 WATCHED_FILES = [
     r'D:\Mostafa Ibrahim\شيت تحصيل.xlsm',
     r'D:\Mostafa Ibrahim\بيان اسعار فواتير اليوم\فواتير اليوم.xlsx',
-    r'D:\Mostafa Ibrahim\جرد يومي\تقارير  ارصدة المخازن.xlsx'
+    r'D:\Mostafa Ibrahim\جرد يومي\تقارير  ارصدة المخازن.xlsx',
+    r'D:\Mostafa Ibrahim\جرد يومي\تقرير حركة الاصناف تفصيلي .xlsx',
+    r'D:\Mostafa Ibrahim\جرد يومي\تقرير حركة الاصناف تفصيلي.xlsx'
 ]
 
 _MUTEX_HANDLE = None
