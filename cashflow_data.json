@@ -3,7 +3,7 @@
   "weekStart": "2026-11-11",
   "weekEnd": "2026-11-17",
   "weeklyGoal": 4000000,
-  "totalExpected": 8846380.82,
+  "totalExpected": 8780945.82,
   "totalCollected": 0.0,
   "customerCount": 37,
   "remainingToTarget": 4000000.0,
@@ -4795,6 +4795,20 @@
     },
     {
       "index": 30,
+      "customerName": "ناصر سيد جبالي (مهدي بيه)",
+      "normalizedName": "ناصر سيد جبالي مهدي بيه",
+      "currentBalance": 115435.0,
+      "expectedAmount": 50000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-15",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 50000.0,
+      "notes": "يوم 15/11/2026 50 الف وتصفية  رمضان",
+      "isPinned": false
+    },
+    {
+      "index": 31,
       "customerName": "هليل عبدالحليم(الهداهده)",
       "normalizedName": "هليل عبدالحليم الهداهده",
       "currentBalance": 311300.0,
@@ -4808,7 +4822,7 @@
       "isPinned": false
     },
     {
-      "index": 31,
+      "index": 32,
       "customerName": "حمدي عبد الحميد(سيلا)",
       "normalizedName": "حمدي عبدالحميد سيلا",
       "currentBalance": 80210.0,
@@ -4822,7 +4836,7 @@
       "isPinned": false
     },
     {
-      "index": 32,
+      "index": 33,
       "customerName": "بدوي حجازي البطل (الشوبك )",
       "normalizedName": "بدوي حجازي البطل الشوبك",
       "currentBalance": 80600.0,
@@ -4836,7 +4850,7 @@
       "isPinned": false
     },
     {
-      "index": 33,
+      "index": 34,
       "customerName": "محمود اسماعيل",
       "normalizedName": "محمود اسماعيل",
       "currentBalance": 60000.0,
@@ -4850,7 +4864,7 @@
       "isPinned": false
     },
     {
-      "index": 34,
+      "index": 35,
       "customerName": "احمد سلامه (حلوان)",
       "normalizedName": "احمد سلامه حلوان",
       "currentBalance": 98370.0,
@@ -4864,7 +4878,7 @@
       "isPinned": false
     },
     {
-      "index": 35,
+      "index": 36,
       "customerName": "توفيق محمد (نجع العرب)",
       "normalizedName": "توفيق محمد نجع العرب",
       "currentBalance": 20310.0,
@@ -4875,20 +4889,6 @@
       "status": "لم يسدد",
       "remaining": 20310.0,
       "notes": "بعد 10 ايام الباقي",
-      "isPinned": false
-    },
-    {
-      "index": 36,
-      "customerName": "ناصر سيد جبالي (مهدي بيه)",
-      "normalizedName": "ناصر سيد جبالي مهدي بيه",
-      "currentBalance": 115435.0,
-      "expectedAmount": 115435.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-15",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 115435.0,
-      "notes": "يوم 15/11/2026 50 الف وتصفية  رمضان",
       "isPinned": false
     },
     {
