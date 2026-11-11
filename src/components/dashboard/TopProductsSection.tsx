@@ -4,6 +4,8 @@ import { fmtMoney, fmtNumber } from "@/lib/formatters";
 export interface ProductSaleItem {
   name: string;
   qty: number;
+  salesQty?: number;
+  mfgQty?: number;
   amount: number;
   color: string;
 }
@@ -53,6 +55,12 @@ export function TopProductsSection({
                     >
                       {p.name}
                     </span>
+                    {p.mfgQty && p.mfgQty > 0 ? (
+                      <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300">
+                        فواتير: {fmtNumber(p.salesQty || 0, 1)} | تصنيع:{" "}
+                        {fmtNumber(p.mfgQty, 1)}
+                      </span>
+                    ) : null}
                     {invItem ? (
                       <span className="text-[13px] font-bold text-primary-dark/80 truncate">
                         رصيد:{" "}

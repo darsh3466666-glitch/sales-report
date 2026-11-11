@@ -13,11 +13,14 @@ import {
 import { Search, ArrowUpDown, UserPlus } from "lucide-react";
 import { fmtMoney, fmtNumber, fmtPct } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
+import { normalizeArabicName } from "@/lib/excel-parser.functions";
 
 export interface CustomerRow {
   id: string;
   customer_name: string;
   sales_amount: number;
+  pure_sales_amount?: number;
+  mfg_amount?: number;
   collected_amount: number;
   prev_balance: number;
   outstanding_amount: number;
@@ -29,8 +32,18 @@ export interface CustomerRow {
   is_new?: boolean;
 }
 
+export interface CustomerProductItemLike {
+  customer_name?: string;
+  product_name: string;
+  quantity?: number;
+  total_amount?: number;
+  unit_price?: number;
+}
+
 type SortKey =
   | "sales_amount"
+  | "pure_sales_amount"
+  | "mfg_amount"
   | "collected_amount"
   | "prev_balance"
   | "outstanding_amount"
@@ -41,9 +54,11 @@ type SortKey =
 
 export function CustomerTable({
   customers,
+  customerProducts = [],
   onSelect,
 }: {
   customers: CustomerRow[];
+  customerProducts?: CustomerProductItemLike[];
   onSelect: (name: string) => void;
 }) {
   const [search, setSearch] = useState("");
@@ -54,6 +69,25 @@ export function CustomerTable({
   const [asc, setAsc] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 50;
+
+  // Pre-index manufacturing amounts per customer from customerProducts
+  const mfgByCustomer = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const cp of customerProducts) {
+      if (!cp || !cp.customer_name || !cp.product_name) continue;
+      const isMfg =
+        cp.product_name.includes("تصنيع") || cp.product_name.includes("تشغيل");
+      if (isMfg) {
+        const norm = normalizeArabicName(cp.customer_name);
+        map.set(norm, (map.get(norm) || 0) + (cp.total_amount || 0));
+        map.set(
+          cp.customer_name,
+          (map.get(cp.customer_name) || 0) + (cp.total_amount || 0),
+        );
+      }
+    }
+    return map;
+  }, [customerProducts]);
 
   const newCustomersCount = useMemo(() => {
     return customers.filter((c) => c.is_new && (c.sales_amount || 0) > 0)
@@ -71,15 +105,46 @@ export function CustomerTable({
       r = r.filter((c) => c.collected_amount === 0 && c.sales_amount > 0);
 
     r = [...r].sort((a, b) => {
-      const valA = a[sortKey];
-      const valB = b[sortKey];
+      let valA: any = a[sortKey as keyof CustomerRow];
+      let valB: any = b[sortKey as keyof CustomerRow];
+
+      if (sortKey === "mfg_amount") {
+        const normA = normalizeArabicName(a.customer_name);
+        const normB = normalizeArabicName(b.customer_name);
+        valA =
+          a.mfg_amount ??
+          mfgByCustomer.get(normA) ??
+          mfgByCustomer.get(a.customer_name) ??
+          0;
+        valB =
+          b.mfg_amount ??
+          mfgByCustomer.get(normB) ??
+          mfgByCustomer.get(b.customer_name) ??
+          0;
+      } else if (sortKey === "pure_sales_amount" || sortKey === "sales_amount") {
+        const normA = normalizeArabicName(a.customer_name);
+        const normB = normalizeArabicName(b.customer_name);
+        const mfgA =
+          a.mfg_amount ??
+          mfgByCustomer.get(normA) ??
+          mfgByCustomer.get(a.customer_name) ??
+          0;
+        const mfgB =
+          b.mfg_amount ??
+          mfgByCustomer.get(normB) ??
+          mfgByCustomer.get(b.customer_name) ??
+          0;
+        valA = a.sales_amount - mfgA;
+        valB = b.sales_amount - mfgB;
+      }
+
       if (typeof valA === "number" && typeof valB === "number") {
         return asc ? valA - valB : valB - valA;
       }
       return 0;
     });
     return r;
-  }, [customers, search, filter, sortKey, asc]);
+  }, [customers, search, filter, sortKey, asc, mfgByCustomer]);
 
   const paginatedRows = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
@@ -194,10 +259,18 @@ export function CustomerTable({
                   العميل
                 </TableHead>
                 <TableHead
-                  onClick={() => toggleSort("sales_amount")}
+                  onClick={() => toggleSort("pure_sales_amount")}
                   className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  title="مبيعات فواتير البضاعة والأعلاف والخامات الصافية"
                 >
-                  المبيعات <ArrowUpDown className="inline h-3 w-3" />
+                  مبيعات فواتير <ArrowUpDown className="inline h-3 w-3" />
+                </TableHead>
+                <TableHead
+                  onClick={() => toggleSort("mfg_amount")}
+                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  title="تشغيل تصنيع للغير ومصنعيات التشغيل"
+                >
+                  تشغيل تصنيع <ArrowUpDown className="inline h-3 w-3" />
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("collected_amount")}
@@ -240,6 +313,15 @@ export function CustomerTable({
             <TableBody>
               {paginatedRows.map((c, i) => {
                 const idx = (currentPage - 1) * pageSize + i;
+                const normCname = normalizeArabicName(c.customer_name);
+                const mfg =
+                  c.mfg_amount ??
+                  mfgByCustomer.get(normCname) ??
+                  mfgByCustomer.get(c.customer_name) ??
+                  0;
+                const pureSales =
+                  c.pure_sales_amount ?? Math.max(0, c.sales_amount - mfg);
+
                 let rowBorderClass =
                   c.risk_score >= 70
                     ? "border-r-[6px] border-r-coral"
@@ -290,10 +372,28 @@ export function CustomerTable({
                         )}
                       </div>
                     </TableCell>
+                    {/* عمود مبيعات فواتير */}
                     <TableCell
                       className={`text-right font-bold tabular-nums ${idx === 0 ? "text-xl text-accent-dark" : idx === 1 ? "text-lg" : idx === 2 ? "text-coral" : "text-info"}`}
                     >
-                      {fmtMoney(c.sales_amount)}
+                      {fmtMoney(pureSales)}
+                      {mfg > 0 && (
+                        <div className="text-[10px] text-muted-foreground font-normal tracking-tight">
+                          إجمالي: {fmtMoney(c.sales_amount)}
+                        </div>
+                      )}
+                    </TableCell>
+                    {/* عمود تشغيل تصنيع */}
+                    <TableCell className="text-right font-bold tabular-nums whitespace-nowrap">
+                      {mfg > 0 ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-black bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 shadow-2xs">
+                          {fmtMoney(mfg)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/50 text-xs font-normal">
+                          -
+                        </span>
+                      )}
                     </TableCell>
                     <TableCell className="text-success text-right font-bold tabular-nums">
                       {fmtMoney(c.collected_amount)}
@@ -358,7 +458,7 @@ export function CustomerTable({
               {!paginatedRows.length && (
                 <TableRow>
                   <TableCell
-                    colSpan={10}
+                    colSpan={11}
                     className="text-center text-muted-foreground py-8 font-semibold"
                   >
                     لا توجد بيانات

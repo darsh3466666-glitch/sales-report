@@ -223,6 +223,8 @@ export function DashboardContent({
         return {
           name: p.product_name,
           qty: p.total_qty,
+          salesQty: (p as any).sales_qty ?? p.total_qty,
+          mfgQty: (p as any).mfg_qty ?? 0,
           amount: p.total_amount,
           color,
         };
@@ -348,7 +350,11 @@ export function DashboardContent({
         avgInvoiceValue={avgInvoiceValue}
       />
 
-      <CustomerTable customers={data.customers} onSelect={onCustomerSelect} />
+      <CustomerTable
+        customers={data.customers}
+        customerProducts={data.customerProducts || []}
+        onSelect={onCustomerSelect}
+      />
 
       {/* Daily Pricing Matrix Report */}
       <DailyPricingReport

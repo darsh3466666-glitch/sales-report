@@ -155,7 +155,15 @@ export function CustomerProductsDrawer({
                         className="hover:bg-primary/5 transition-colors font-medium"
                       >
                         <td className="py-2.5 px-3.5 font-bold text-foreground">
-                          {p.product_name}
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span>{p.product_name}</span>
+                            {(p.product_name.includes("تصنيع") ||
+                              p.product_name.includes("تشغيل")) && (
+                              <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700/60 shadow-2xs">
+                                تشغيل تصنيع
+                              </span>
+                            )}
+                          </div>
                         </td>
                         <td className="py-2.5 px-3 text-center font-sans tabular-nums text-foreground/90">
                           {fmtNumber(p.quantity, 2)}
