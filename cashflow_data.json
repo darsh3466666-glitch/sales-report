@@ -3,9 +3,9 @@
   "weekStart": "2026-11-11",
   "weekEnd": "2026-11-17",
   "weeklyGoal": 4000000,
-  "totalExpected": 8370710.0,
+  "totalExpected": 8625959.5,
   "totalCollected": 0.0,
-  "customerCount": 31,
+  "customerCount": 32,
   "remainingToTarget": 4000000.0,
   "collectionRate": 0.0,
   "masterCustomerNames": [
@@ -1236,8 +1236,8 @@
     {
       "customerName": "احمد محمد مرداشي (وحيد كامل)",
       "currentBalance": 255249.5,
-      "dueDate": "2026-12-07",
-      "notes": "بلاغ ا احمد  الحساب علي",
+      "dueDate": "2026-11-14",
+      "notes": "السبت 14/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4585,6 +4585,20 @@
     },
     {
       "index": 15,
+      "customerName": "احمد محمد مرداشي (وحيد كامل)",
+      "normalizedName": "احمد محمد مرداشي وحيد كامل",
+      "currentBalance": 255249.5,
+      "expectedAmount": 255249.5,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-14",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 255249.5,
+      "notes": "السبت 14/11/2026",
+      "isPinned": false
+    },
+    {
+      "index": 16,
       "customerName": "محمد سيد (مصطفي الصعيدي)",
       "normalizedName": "محمد سيد مصطفي الصعيدي",
       "currentBalance": 63485.0,
@@ -4598,7 +4612,7 @@
       "isPinned": false
     },
     {
-      "index": 16,
+      "index": 17,
       "customerName": "جمعه محمد حسن (الحطي)",
       "normalizedName": "جمعه محمد حسن الحطي",
       "currentBalance": 76325.0,
@@ -4612,7 +4626,7 @@
       "isPinned": false
     },
     {
-      "index": 17,
+      "index": 18,
       "customerName": "مجدي محمد عبد العال",
       "normalizedName": "مجدي محمد عبدالعال",
       "currentBalance": 4110300.0,
@@ -4626,7 +4640,7 @@
       "isPinned": false
     },
     {
-      "index": 18,
+      "index": 19,
       "customerName": "عيد ادريس (ابو بساط)",
       "normalizedName": "عيد ادريس ابو بساط",
       "currentBalance": 50070.0,
@@ -4640,7 +4654,7 @@
       "isPinned": false
     },
     {
-      "index": 19,
+      "index": 20,
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
       "normalizedName": "كرم مسعود ابو بكر الهداهده",
       "currentBalance": 182765.0,
@@ -4654,7 +4668,7 @@
       "isPinned": false
     },
     {
-      "index": 20,
+      "index": 21,
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
       "normalizedName": "عيد احمد عبدالفتاح ابو السعود",
       "currentBalance": 374591.0,
@@ -4668,7 +4682,7 @@
       "isPinned": false
     },
     {
-      "index": 21,
+      "index": 22,
       "customerName": "المعلم/ عبد الفتاح ربيع",
       "normalizedName": "المعلم عبدالفتاح ربيع",
       "currentBalance": 255400.0,
@@ -4682,7 +4696,7 @@
       "isPinned": false
     },
     {
-      "index": 22,
+      "index": 23,
       "customerName": "ابراهيم عيد (الخواجات)",
       "normalizedName": "ابراهيم عيد الخواجات",
       "currentBalance": 207670.0,
@@ -4696,7 +4710,7 @@
       "isPinned": false
     },
     {
-      "index": 23,
+      "index": 24,
       "customerName": "د.محمد العسكري (اطفيح)",
       "normalizedName": "د محمد العسكري اطفيح",
       "currentBalance": 1181981.6500000004,
@@ -4710,7 +4724,7 @@
       "isPinned": false
     },
     {
-      "index": 24,
+      "index": 25,
       "customerName": "ناصر سيد جبالي (مهدي بيه)",
       "normalizedName": "ناصر سيد جبالي مهدي بيه",
       "currentBalance": 115435.0,
@@ -4724,7 +4738,7 @@
       "isPinned": false
     },
     {
-      "index": 25,
+      "index": 26,
       "customerName": "هليل عبدالحليم(الهداهده)",
       "normalizedName": "هليل عبدالحليم الهداهده",
       "currentBalance": 311300.0,
@@ -4738,7 +4752,7 @@
       "isPinned": false
     },
     {
-      "index": 26,
+      "index": 27,
       "customerName": "حمدي عبد الحميد(سيلا)",
       "normalizedName": "حمدي عبدالحميد سيلا",
       "currentBalance": 80210.0,
@@ -4752,7 +4766,7 @@
       "isPinned": false
     },
     {
-      "index": 27,
+      "index": 28,
       "customerName": "بدوي حجازي البطل (الشوبك )",
       "normalizedName": "بدوي حجازي البطل الشوبك",
       "currentBalance": 80600.0,
@@ -4766,7 +4780,7 @@
       "isPinned": false
     },
     {
-      "index": 28,
+      "index": 29,
       "customerName": "محمود اسماعيل",
       "normalizedName": "محمود اسماعيل",
       "currentBalance": 60000.0,
@@ -4780,7 +4794,7 @@
       "isPinned": false
     },
     {
-      "index": 29,
+      "index": 30,
       "customerName": "احمد سلامه (حلوان)",
       "normalizedName": "احمد سلامه حلوان",
       "currentBalance": 98370.0,
@@ -4794,7 +4808,7 @@
       "isPinned": false
     },
     {
-      "index": 30,
+      "index": 31,
       "customerName": "توفيق محمد (نجع العرب)",
       "normalizedName": "توفيق محمد نجع العرب",
       "currentBalance": 20310.0,
@@ -4808,7 +4822,7 @@
       "isPinned": false
     },
     {
-      "index": 31,
+      "index": 32,
       "customerName": "عميل نقدي (كاش)",
       "normalizedName": "عميل نقدي كاش",
       "currentBalance": 0.0,
