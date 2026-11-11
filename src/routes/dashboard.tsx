@@ -89,6 +89,16 @@ function Dashboard() {
     );
   }, [selectedCustomer, data]);
 
+  const customerInvoicesForSelected = useMemo(() => {
+    if (!selectedCustomer || !data) return [];
+    const targetNorm = normalizeArabicName(selectedCustomer);
+    return (data.invoices || []).filter(
+      (inv: any) =>
+        inv.customer_name === selectedCustomer ||
+        normalizeArabicName(inv.customer_name) === targetNorm,
+    );
+  }, [selectedCustomer, data]);
+
   if (isLoading)
     return (
       <div className="p-8 text-center" dir="rtl">
@@ -295,6 +305,7 @@ function Dashboard() {
         onClose={() => setSelectedCustomer(null)}
         customer={selectedCustomer}
         products={customerProductsForSelected as any}
+        invoices={customerInvoicesForSelected as any}
       />
     </div>
   );
