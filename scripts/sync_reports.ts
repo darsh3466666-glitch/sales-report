@@ -41,12 +41,25 @@ async function main() {
       ? fs.readFileSync(WATCHED_FILES.inventory).toString('base64')
       : undefined;
 
+    const MOVEMENTS_PATHS = [
+      'D:\\Mostafa Ibrahim\\جرد يومي\\تقرير حركة الاصناف تفصيلي .xlsx',
+      'D:\\Mostafa Ibrahim\\جرد يومي\\تقرير حركة الاصناف تفصيلي.xlsx',
+    ];
+    const movementsFile = MOVEMENTS_PATHS.find((p) => fs.existsSync(p));
+    const movementsB64 = movementsFile
+      ? fs.readFileSync(movementsFile).toString('base64')
+      : undefined;
+    if (movementsFile) {
+      console.log(`[sync_reports] Reading genuine movements file: ${movementsFile}`);
+    }
+
     console.log('[sync_reports] Parsing and updating report with verified engine...');
     const res = await parseAndImportReport({
       data: {
         collectionsB64,
         invoicesB64,
         inventoryB64,
+        movementsB64,
         isManual: true,
         existingReports: preloadedReports,
       },

@@ -47,18 +47,28 @@ export function TopProductsSection({
                   key={p.name}
                   className="flex flex-col sm:flex-row sm:items-center gap-2 p-2 bg-transparent hover:bg-cream/50 rounded-lg transition-colors border-b last:border-0 border-border pb-2"
                 >
-                  {/* Name - Right aligned */}
-                  <div className="w-full sm:w-48 text-right shrink-0 flex flex-col justify-center gap-0.5">
+                  {/* Name & Breakdown - Right aligned */}
+                  <div className="w-full sm:w-64 text-right shrink-0 flex flex-col justify-center gap-1">
                     <span
                       className="font-bold text-sm text-foreground truncate"
                       title={p.name}
                     >
                       {p.name}
                     </span>
+                    {(p.mfgQty || 0) > 0 ? (
+                      <div className="flex flex-wrap items-center gap-1 text-[11px] font-bold">
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                          فواتير: {fmtNumber(p.salesQty || 0, 1)} كجم
+                        </span>
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
+                          تصنيع: {fmtNumber(p.mfgQty, 1)} كجم
+                        </span>
+                      </div>
+                    ) : null}
                     {invItem ? (
-                      <span className="text-[13px] font-bold text-primary-dark/80 truncate">
+                      <span className="text-[12px] font-bold text-primary-dark/80 truncate">
                         رصيد:{" "}
-                        <span className="tabular-nums font-black text-[#5D4037] text-[15px]">
+                        <span className="tabular-nums font-black text-[#5D4037] text-[14px]">
                           {fmtNumber(invItem.balance, 1)}
                         </span>{" "}
                         {invItem.unit}

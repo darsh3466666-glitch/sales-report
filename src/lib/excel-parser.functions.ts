@@ -9,6 +9,7 @@ const InputSchema = z.object({
   reportDate: z.string().optional(), // YYYY-MM-DD override
   isManual: z.boolean().optional(),
   inventoryB64: z.string().optional(),
+  movementsB64: z.string().optional(),
   existingReports: z.array(z.any()).optional(),
 });
 
@@ -1128,6 +1129,112 @@ export async function parseAndImportReport(args: { data: any }) {
 
   applyManufacturingToReportProducts(reportPayload, previousReport);
 
+  if (data.movementsB64) {
+    try {
+      const wbMov = parseWorkbook(data.movementsB64);
+      const sheetName = wbMov.SheetNames[0];
+      const movRows = sheetRows(wbMov, sheetName);
+      if (movRows && movRows.length > 3) {
+        const header = movRows[2] || [];
+        let itemCol = header.findIndex((h) => str(h).includes("الصنف"));
+        if (itemCol === -1) itemCol = 1;
+        let outCol = header.findIndex((h) => str(h).includes("الصادر"));
+        if (outCol === -1) outCol = 4;
+        let bayanCol = header.findIndex((h) => str(h).includes("بيان"));
+        if (bayanCol === -1) bayanCol = 7;
+        let dateCol = header.findIndex((h) => str(h).includes("التاريخ"));
+        if (dateCol === -1) dateCol = 8;
+
+        const mfgByProduct = new Map<string, number>();
+        const salesByProduct = new Map<string, number>();
+        const displayNameByNorm = new Map<string, string>();
+
+        function serialToDateStr(val: any): string {
+          if (val instanceof Date) {
+            return val.toISOString().slice(0, 10);
+          }
+          if (typeof val === "number") {
+            const ms = Math.round((val - 25569) * 86400 * 1000);
+            return new Date(ms).toISOString().slice(0, 10);
+          }
+          const s = str(val).trim();
+          if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+          const parts = s.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+          if (parts) {
+            return `${parts[3]}-${parts[2].padStart(2, "0")}-${parts[1].padStart(2, "0")}`;
+          }
+          return s.slice(0, 10);
+        }
+
+        for (let i = 3; i < movRows.length; i++) {
+          const r = movRows[i];
+          if (!r || !r[itemCol]) continue;
+          const rowDate = serialToDateStr(r[dateCol]);
+          if (rowDate !== reportDate) continue;
+
+          const pName = str(r[itemCol]).trim();
+          const normPName = normalizeArabicName(pName);
+          const outQty = num(r[outCol]);
+          const bayan = str(r[bayanCol]);
+
+          if (!displayNameByNorm.has(normPName)) {
+            displayNameByNorm.set(normPName, pName);
+          }
+
+          if (bayan.includes("كارت تصنيع")) {
+            if (outQty > 0) {
+              mfgByProduct.set(
+                normPName,
+                (mfgByProduct.get(normPName) || 0) + outQty,
+              );
+            }
+          } else if (bayan.includes("فاتورة بيع")) {
+            if (outQty > 0) {
+              salesByProduct.set(
+                normPName,
+                (salesByProduct.get(normPName) || 0) + outQty,
+              );
+            }
+          }
+        }
+
+        // Apply genuine ERP movements to reportPayload.products
+        for (const prod of reportPayload.products) {
+          const norm = normalizeArabicName(prod.product_name);
+          const mfg = mfgByProduct.get(norm) || 0;
+          const movSales = salesByProduct.get(norm);
+          prod.mfg_qty = mfg;
+          if (movSales !== undefined && movSales > 0) {
+            prod.sales_qty = movSales;
+          }
+          prod.total_qty = Number(
+            ((prod.sales_qty || 0) + prod.mfg_qty).toFixed(3),
+          );
+        }
+
+        // Add any manufacturing-only items not sold directly in sales invoices
+        for (const [normMfg, mfgQty] of mfgByProduct.entries()) {
+          const exists = reportPayload.products.some(
+            (p: any) => normalizeArabicName(p.product_name) === normMfg,
+          );
+          if (!exists && mfgQty > 0 && !normMfg.includes("شكاير")) {
+            const displayName = displayNameByNorm.get(normMfg) || normMfg;
+            reportPayload.products.push({
+              product_name: displayName,
+              sales_qty: 0,
+              mfg_qty: mfgQty,
+              total_qty: mfgQty,
+              total_amount: 0,
+              category: inferProductCategory(displayName),
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to parse movementsB64:", e);
+    }
+  }
+
   const reportId = await saveLocalReport(reportPayload);
 
   const updatedReports = [
@@ -1226,7 +1333,10 @@ export function applyManufacturingToReportProducts(
     const salesAmount = hasCustomerProducts
       ? (fromCp?.amount ?? 0)
       : (existing?.total_amount ?? 0);
-    const mfgQty = mfgMap.get(name) || 0;
+    const mfgQty =
+      existing?.mfg_qty !== undefined && existing.mfg_qty > 0
+        ? existing.mfg_qty
+        : mfgMap.get(name) || 0;
     const totalQty = Number((salesQty + mfgQty).toFixed(3));
 
     if (totalQty <= 0 && salesAmount <= 0 && !existing) continue;
