@@ -174,9 +174,30 @@ const GENERIC_PREFIXES = new Set([
   "مكتب",
 ]);
 
+export function cleanCustomerMatchingName(s: string): string {
+  if (!s) return "";
+  let res = s
+    .replace(/[\u064B-\u065F\u0670]/g, "")
+    .replace(/[إأآا]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/[يى]/g, "ي")
+    .replace(/ذ/g, "ز") // Egyptian colloquial typing: ابوذيد -> ابوزيد
+    .replace(/ظ/g, "ض")
+    .replace(/[\s\-_]+/g, " ")
+    .replace(/عبد\s+/g, "عبد")
+    .replace(/ابو\s+/g, "ابو")
+    .replace(/بن\s+/g, "بن");
+  const parenIdx = res.indexOf("(");
+  if (parenIdx >= 0) res = res.slice(0, parenIdx);
+  const dashIdx = res.indexOf(" - ");
+  if (dashIdx >= 0) res = res.slice(0, dashIdx);
+  return res.trim();
+}
+
 /**
- * Matches a Treasury description against a customer name using strict Arabic normalizations.
- * Strictly enforces full-name reading ("قراءة للاسم بالكامل") so that distinct entities (e.g. "مزرعة السلام" vs "مزرعة المهندس")
+ * Enhanced matching between Treasury Description and Customer Name.
+ * High-precision algorithm ensures common Egyptian nicknames, colloquial typing (ابوذيد vs ابو زيد),
+ * compound prefixes (عبدالـ vs عبد الـ), and parenthesized notes match accurately, while entities
  * can NEVER be mixed up or falsely matched.
  */
 export function matchTreasuryDescriptionToCustomer(
@@ -192,8 +213,8 @@ export function matchTreasuryDescriptionToCustomer(
   if (nd === nc) return true;
 
   // 2. Generic cash matching
-  const isDescCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|نقدى)$/.test(nd);
-  const isCustCash = /^(نقدي|كاش|نقدي كاش|عميل نقدي|عميل نقدي كاش)$/.test(nc);
+  const isDescCash = /^(نقدي|نقدى|كاش|نقدي كاش|عميل نقدي|عميل نقدى|عميل كاش)$/.test(nd);
+  const isCustCash = /^(نقدي|نقدى|كاش|نقدي كاش|عميل نقدي|عميل نقدى|عميل نقدي كاش|عميل نقدي \(كاش\))$/.test(nc);
   if (isDescCash && isCustCash) return true;
   if (isDescCash || isCustCash) return false;
 
@@ -210,8 +231,12 @@ export function matchTreasuryDescriptionToCustomer(
   const sc = stripPrefixHonorific(nc);
   if (sd && sc && sd === sc) return true;
 
-  // 4. Match full name ignoring parenthesized nickname/branch annotation
-  // e.g. "عيد احمد عبدالفتاح" matches "عيد احمد عبد الفتاح (ابو السعود)"
+  // 4. Clean match (handling colloquial ذ/ز, compound prefixes عبد/ابو, and trailing annotations)
+  const cd = cleanCustomerMatchingName(desc);
+  const cc = cleanCustomerMatchingName(customerName);
+  if (cd && cc && cd === cc) return true;
+
+  // 5. Match full name ignoring parenthesized nickname/branch annotation
   const cleanParens = (s: string) => {
     const idx = s.indexOf("(");
     return idx >= 0 ? s.slice(0, idx).trim() : s;
@@ -220,17 +245,24 @@ export function matchTreasuryDescriptionToCustomer(
   const bc = normalizeArabicName(cleanParens(customerName));
   if (bd && bc && (bd === bc || sd === bc || bd === sc)) return true;
 
-  // 5. STRICT ENTITY GUARD:
-  // If the description or customer name represents an entity (farm, shop, company, station, factory, showroom, etc.),
-  // NO partial, prefix, or token matching is ever permitted! Full name match only!
+  // 6. STRICT ENTITY GUARD:
   const isEntity = Array.from(GENERIC_PREFIXES).some(
     (k) => nd.includes(k) || nc.includes(k)
   );
   if (isEntity) return false;
 
-  // 6. Full personal name prefix (must have at least 2 full words):
-  // e.g. "سيد رشيد" matches "سيد رشيد الحموى", "شحات قرني" matches "شحات قرني البسيونيه"
-  // Must match on a clean word boundary at the start of the full personal name.
+  // 7. Full personal name prefix matching on clean words (must have at least 2 full words):
+  // e.g. "محمود ابوذيد" matches "محمود ابو زيد - الهداهده"
+  // "اسامه علي" matches "اسامه علي عبد الكريم"
+  // "احمد راغب" matches "احمد راغب(الهداهدة)"
+  // "محمد يونس" matches "محمد يونس عبد اللطيف(قلمشاه)"
+  const cdWords = cd.split(" ").filter((w) => w.length >= 2);
+  if (cdWords.length >= 2) {
+    if (cc.startsWith(cd + " ") || cc === cd) {
+      return true;
+    }
+  }
+
   const dWords = nd.split(" ").filter((w) => w.length >= 2);
   if (dWords.length >= 2) {
     if (nc.startsWith(nd + " ") || bc.startsWith(nd + " ")) {
@@ -743,48 +775,85 @@ export async function getLiveCashFlowData(options?: {
 
   let rawData: any = null;
   let rawConfig: any = null;
-
-  try {
-    const res = await fetch(`${basePath}cashflow_data.json?t=${Date.now()}`, {
-      cache: "no-store",
-    });
-    if (res.ok) {
-      rawData = await res.json();
-    }
-  } catch (e) {
-    console.warn("Failed to fetch cashflow_data.json:", e);
-  }
-
-  try {
-    const cfgRes = await fetch(`${basePath}cashflow_config.json?t=${Date.now()}`, {
-      cache: "no-store",
-    });
-    if (cfgRes.ok) {
-      rawConfig = await cfgRes.json();
-    }
-  } catch (e) {
-    console.warn("Failed to fetch cashflow_config.json:", e);
-  }
-
   const allSalesCustomersMap = new Map<string, any>();
-  try {
-    const sRes = await fetch(`${basePath}sales_data.json?t=${Date.now()}`, {
-      cache: "no-store",
-    });
-    if (sRes.ok) {
-      const sData = await sRes.json();
-      if (Array.isArray(sData)) {
-        for (const rep of sData) {
-          for (const sc of rep.customers || []) {
-            if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
-              allSalesCustomersMap.set(sc.customer_name, sc);
+
+  if (typeof window === "undefined") {
+    try {
+      const fs = await import("fs");
+      const path = await import("path");
+      const pubPath = path.resolve(process.cwd(), "public");
+      const distPath = path.resolve(process.cwd(), "dist");
+      const targetDir = fs.existsSync(pubPath) ? pubPath : distPath;
+
+      if (fs.existsSync(path.join(targetDir, "cashflow_data.json"))) {
+        rawData = JSON.parse(
+          fs.readFileSync(path.join(targetDir, "cashflow_data.json"), "utf8")
+        );
+      }
+      if (fs.existsSync(path.join(targetDir, "cashflow_config.json"))) {
+        rawConfig = JSON.parse(
+          fs.readFileSync(path.join(targetDir, "cashflow_config.json"), "utf8")
+        );
+      }
+      if (fs.existsSync(path.join(targetDir, "sales_data.json"))) {
+        const sData = JSON.parse(
+          fs.readFileSync(path.join(targetDir, "sales_data.json"), "utf8")
+        );
+        if (Array.isArray(sData)) {
+          for (const rep of sData) {
+            for (const sc of rep.customers || []) {
+              if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
+                allSalesCustomersMap.set(sc.customer_name, sc);
+              }
             }
           }
         }
       }
+    } catch (e) {
+      // ignore
     }
-  } catch (e) {
-    // ignore
+  } else {
+    try {
+      const res = await fetch(`${basePath}cashflow_data.json?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (res.ok) {
+        rawData = await res.json();
+      }
+    } catch (e) {
+      console.warn("Failed to fetch cashflow_data.json:", e);
+    }
+
+    try {
+      const cfgRes = await fetch(`${basePath}cashflow_config.json?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (cfgRes.ok) {
+        rawConfig = await cfgRes.json();
+      }
+    } catch (e) {
+      console.warn("Failed to fetch cashflow_config.json:", e);
+    }
+
+    try {
+      const sRes = await fetch(`${basePath}sales_data.json?t=${Date.now()}`, {
+        cache: "no-store",
+      });
+      if (sRes.ok) {
+        const sData = await sRes.json();
+        if (Array.isArray(sData)) {
+          for (const rep of sData) {
+            for (const sc of rep.customers || []) {
+              if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
+                allSalesCustomersMap.set(sc.customer_name, sc);
+              }
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // ignore
+    }
   }
 
   try {
@@ -1034,73 +1103,72 @@ export async function getLiveCashFlowData(options?: {
         }
       }
 
-      // If not matched in base customers, check if it's generic cash or a known customer from Sales report
+      // If not matched in base customers, check if it corresponds to an authentic customer from Master Data or Sales Report!
       if (!matched) {
-        const normDesc = normalizeArabicName(tx.description);
-        const isGenericCash = /^(نقدي|كاش|مصاريف|مرتجع|ايداع|سحب)$/.test(normDesc);
+        const normTxDesc = normalizeArabicName(tx.description);
 
-        if (isGenericCash || tx.type === "كاش" || normDesc.includes("نقدي") || normDesc.includes("كاش")) {
-          cashCust.collectedFromTreasury += tx.amount;
-          cashCust.treasuryTransactions = cashCust.treasuryTransactions || [];
-          cashCust.treasuryTransactions.push(tx);
-          tx.matchedCustomer = cashCust.customerName;
-          matched = true;
-        } else {
-          // Find if this transaction description corresponds to an actual customer in Master Data or Sales Report
-          let matchedMasterName = "";
-          const normTxDesc = normalizeArabicName(tx.description);
-
-          if (rawData?.masterCustomerNames) {
-            // Priority 1: Exact normalized match first!
+        let matchedMasterName = "";
+        if (rawData?.masterCustomerNames) {
+          // Priority 1: Exact normalized match first!
+          for (const mName of rawData.masterCustomerNames) {
+            if (normTxDesc === normalizeArabicName(mName)) {
+              matchedMasterName = mName;
+              break;
+            }
+          }
+          // Priority 2: Enhanced matching!
+          if (!matchedMasterName) {
             for (const mName of rawData.masterCustomerNames) {
-              if (normTxDesc === normalizeArabicName(mName)) {
+              if (matchTreasuryDescriptionToCustomer(tx.description, mName)) {
                 matchedMasterName = mName;
                 break;
               }
             }
-            // Priority 2: Strict distinguishing matching
-            if (!matchedMasterName) {
-              for (const mName of rawData.masterCustomerNames) {
-                if (matchTreasuryDescriptionToCustomer(tx.description, mName)) {
-                  matchedMasterName = mName;
-                  break;
-                }
-              }
-            }
           }
+        }
 
-          let matchedSalesName = "";
-          let matchedSalesObj: any = null;
-          if (!matchedMasterName) {
-            const matchedSalesExact = Array.from(allSalesCustomersMap.values()).find(
-              (sc) => normTxDesc === normalizeArabicName(sc.customer_name)
+        let matchedSalesName = "";
+        let matchedSalesObj: any = null;
+        if (!matchedMasterName) {
+          const matchedSalesExact = Array.from(allSalesCustomersMap.values()).find(
+            (sc) => normTxDesc === normalizeArabicName(sc.customer_name)
+          );
+          if (matchedSalesExact) {
+            matchedSalesName = matchedSalesExact.customer_name;
+            matchedSalesObj = matchedSalesExact;
+          } else {
+            const matchedSalesFuzzy = Array.from(allSalesCustomersMap.values()).find(
+              (sc) => matchTreasuryDescriptionToCustomer(tx.description, sc.customer_name)
             );
-            if (matchedSalesExact) {
-              matchedSalesName = matchedSalesExact.customer_name;
-              matchedSalesObj = matchedSalesExact;
-            } else {
-              const matchedSalesFuzzy = Array.from(allSalesCustomersMap.values()).find(
-                (sc) => matchTreasuryDescriptionToCustomer(tx.description, sc.customer_name)
-              );
-              if (matchedSalesFuzzy) {
-                matchedSalesName = matchedSalesFuzzy.customer_name;
-                matchedSalesObj = matchedSalesFuzzy;
-              }
+            if (matchedSalesFuzzy) {
+              matchedSalesName = matchedSalesFuzzy.customer_name;
+              matchedSalesObj = matchedSalesFuzzy;
             }
           }
+        }
 
-          const validCustName = matchedMasterName || matchedSalesName;
-          const normValid = normalizeArabicName(validCustName);
+        const validCustName = matchedMasterName || matchedSalesName;
+        const normValid = normalizeArabicName(validCustName);
 
-          // STRICT REQUIREMENT: Only accept if it is an authentic customer from Master Data!
-          // Never convert accounting entries or non-customer descriptions (like "ريع نقل", "سولار", "مصاريف") into customers!
-          const isMasterCustomer =
-            validCustName &&
-            !normValid.includes("ريع نقل") &&
-            !/^(ريع|ريع نقل|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(normValid) &&
-            (masterNamesSet.size === 0 || masterNamesSet.has(normValid));
+        // STRICT REQUIREMENT: Only accept if it is an authentic customer from Master Data!
+        // Never convert accounting entries or non-customer descriptions (like "ريع نقل", "سولار", "مصاريف") into customers!
+        const isMasterCustomer =
+          validCustName &&
+          !normValid.includes("ريع نقل") &&
+          !/^(ريع|ريع نقل|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(normValid) &&
+          (masterNamesSet.size === 0 || masterNamesSet.has(normValid));
 
-          if (isMasterCustomer) {
+        if (isMasterCustomer) {
+          const existingInBase = baseCustomers.find(
+            (c) => normalizeArabicName(c.customerName) === normValid
+          );
+          if (existingInBase) {
+            existingInBase.collectedFromTreasury += tx.amount;
+            existingInBase.treasuryTransactions = existingInBase.treasuryTransactions || [];
+            existingInBase.treasuryTransactions.push(tx);
+            tx.matchedCustomer = existingInBase.customerName;
+            matched = true;
+          } else {
             const custName = validCustName;
             const matchedMasterCust = rawData?.masterCustomers?.find(
               (m: any) => normalizeArabicName(m.customerName) === normValid
@@ -1114,11 +1182,12 @@ export async function getLiveCashFlowData(options?: {
                     matchedSalesObj.total_balance ||
                     0
                 )
-              : tx.amount;
+              : 0;
             const dueDate = matchedMasterCust?.dueDate || "";
 
             // STRICT USER REQUIREMENT:
-            // "عميل سدد واسمه مكنش ف القايمة اول م اتعملت سعتها ضيفه ولكن خلي المتوقع منه صفر وضيف له السداد بتاعه عادي لان ف الحالة دي انا كنت مش متوقع انه يجي"
+            // "المفروض العميل النقدي ف قايمة الكاش فلو يستقل بذاته زي مهو بنفس طريقة عرضه
+            // لكن لما عملاء تيجي وهي مكنتش ف الكاش فلو تدخل ب اسمها عادي ولكن بمتوقع صفر"
             const expectedAmount =
               overrides.fixedAmounts?.[custName] !== undefined
                 ? overrides.fixedAmounts[custName]
@@ -1129,12 +1198,12 @@ export async function getLiveCashFlowData(options?: {
             const notes =
               overrides.notes?.[custName] !== undefined
                 ? overrides.notes[custName]
-                : rawConfig?.notes?.[custName] || `سداد وارد غير متوقع (${tx.type})`;
+                : rawConfig?.notes?.[custName] || `سداد وارد غير متوقع (${tx.type || "خزينة"})`;
 
             const newCust: CashFlowCustomer = {
               index: baseCustomers.length + 1,
               customerName: custName,
-              normalizedName: normalizeArabicName(custName),
+              normalizedName: normValid,
               currentBalance: currentBal,
               expectedAmount,
               collectedFromSheet: 0,
@@ -1157,9 +1226,18 @@ export async function getLiveCashFlowData(options?: {
             baseCustomers.push(newCust);
             tx.matchedCustomer = custName;
             matched = true;
-          } else {
-            // Non-customer transaction (e.g. "ريع نقل") - keep in unmatchedTreasuryTx only
-            matched = false;
+          }
+        } else {
+          // ONLY if it does not match ANY authentic customer, check if it's purely generic cash:
+          // e.g. "نقدي", "نقدى", "كاش", "عميل نقدي", "عميل نقدى"
+          const isGenericCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى|عميل كاش|مبيعات نقدية|مبيعات نقدي)$/.test(normTxDesc);
+
+          if (isGenericCash) {
+            cashCust.collectedFromTreasury += tx.amount;
+            cashCust.treasuryTransactions = cashCust.treasuryTransactions || [];
+            cashCust.treasuryTransactions.push(tx);
+            tx.matchedCustomer = cashCust.customerName;
+            matched = true;
           }
         }
       }

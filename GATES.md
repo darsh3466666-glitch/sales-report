@@ -1,17 +1,26 @@
-# Gates: Remove Manufacturing Column & Audit Artificial Manufacturing Formula
+# Gates: Independent Cash Customer & Individual Unexpected Inflow Rows in Cashflow
 
-OWNS: src/components/dashboard/CustomerTable.tsx, src/lib/excel-parser.functions.ts, src/components/dashboard/TopProductsSection.tsx
+OWNS: src/lib/cashflow.functions.ts, scripts/extract_cashflow.py
 
-Scope: Remove the redundant 'تشغيل تصنيع' column from the Customer Table as requested, neutralize the artificial reverse-engineered standard recipe in computeManufacturingQuantities, and document the formula mechanics and flaws thoroughly.
+Scope: Ensure 'عميل نقدي (كاش)' in the Cashflow dashboard is strictly independent and only aggregates genuine generic cash receipts (not any transaction merely because tx.type is 'كاش'). Any customers who make payments but were not in the baseline cashflow table must enter under their own individual names with expectedAmount = 0 and their actual collected amounts.
 
-- [ ] G1: Column 'تشغيل تصنيع' is removed from CustomerTable.tsx and the clean 'المبيعات' column is restored
-  CHECK: node -e "const fs = require('fs'); const code = fs.readFileSync('src/components/dashboard/CustomerTable.tsx', 'utf8'); if (!code.includes('تشغيل تصنيع <ArrowUpDown') && code.includes('المبيعات <ArrowUpDown')) { console.log('PASS: customer table column reverted'); } else { process.exit(1); }"
-  EXPECT: PASS: customer table column reverted
+- [x] G1: Generic cash routing in cashflow.functions.ts checks description only, not tx.type
+  CHECK: node -e "const fs = require('fs'); const code = fs.readFileSync('src/lib/cashflow.functions.ts', 'utf8'); if (!code.includes('tx.type === \"كاش\"') && code.includes('isGenericCash')) { console.log('PASS: tx.type cash bug removed'); } else { process.exit(1); }"
+  EXPECT: PASS: tx.type cash bug removed
+  RESULT: PASS: tx.type cash bug removed
 
-- [ ] G2: Artificial reverse-engineering recipe in excel-parser.functions.ts is neutralized so fictional manufacturing is not generated
-  CHECK: node -e "const fs = require('fs'); const code = fs.readFileSync('src/lib/excel-parser.functions.ts', 'utf8'); if (!code.includes('ذره صفراء: 650') || code.includes('// HEURISTIC_DISABLED')) { console.log('PASS: artificial recipe neutralized'); } else { process.exit(1); }"
-  EXPECT: PASS: artificial recipe neutralized
+- [x] G2: Verification engine accurately separates named treasury customers from عميل نقدي
+  CHECK: npx tsx scripts/test_cashflow_fix.ts
+  EXPECT: PASS: cash separated and named customers added
+  RESULT: Total customers: 36
+    - عميل نقدي (كاش): Treasury: 850, Expected: 850
+    - اسامه علي عبد الكريم: Treasury: 44000, Expected: 0
+    - احمد راغب(الهداهدة): Treasury: 30000, Expected: 0
+    - محمود ابو زيد - الهداهده: Treasury: 16000, Expected: 0
+    - محمد يونس عبد اللطيف(قلمشاه): Treasury: 200000, Expected: 0
+    PASS: cash separated and named customers added
 
-- [ ] G3: Production build succeeds with 0 errors
+- [x] G3: Production build succeeds with 0 errors
   CHECK: npm run build
   EXPECT: SUCCESS_BUILD_VERIFIED
+  RESULT: SUCCESS_BUILD_VERIFIED (built in 14.74s)
