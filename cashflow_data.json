@@ -565,7 +565,7 @@
       "customerName": "هليل عبدالحليم(الهداهده)",
       "currentBalance": 311300.0,
       "dueDate": "2026-11-17",
-      "notes": "دورة + دقعات 50% من المسحوب يوصل 500 الف يدفع 250 الف وهكذا",
+      "notes": "دورة + دفعات 50% من المسحوب يوصل 500 الف يدفع 250 الف وهكذا",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -1060,8 +1060,8 @@
     {
       "customerName": "ابراهيم عيد (الخواجات)",
       "currentBalance": 207670.0,
-      "dueDate": "2026-11-14",
-      "notes": "هياخد اخر 2طن وهيبيع",
+      "dueDate": "2026-11-15",
+      "notes": "باع وهيصفي الاحد 15/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -2333,7 +2333,7 @@
       "customerName": "محمد سيد (مصطفي الصعيدي)",
       "currentBalance": 63485.0,
       "dueDate": "2026-11-17",
-      "notes": "جي بعد بكرا وهيسدد",
+      "notes": "",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4688,11 +4688,11 @@
       "currentBalance": 207670.0,
       "expectedAmount": 207670.0,
       "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-14",
+      "dueDate": "2026-11-15",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 207670.0,
-      "notes": "هياخد اخر 2طن وهيبيع",
+      "notes": "باع وهيصفي الاحد 15/11/2026",
       "isPinned": false
     },
     {
@@ -4734,7 +4734,7 @@
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 311300.0,
-      "notes": "دورة + دقعات 50% من المسحوب يوصل 500 الف يدفع 250 الف وهكذا",
+      "notes": "دورة + دفعات 50% من المسحوب يوصل 500 الف يدفع 250 الف وهكذا",
       "isPinned": false
     },
     {
