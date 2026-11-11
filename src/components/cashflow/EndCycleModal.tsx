@@ -1,12 +1,4 @@
-import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CashFlowSummary } from "@/lib/cashflow.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
@@ -14,12 +6,12 @@ import {
   Archive,
   CheckCircle2,
   AlertTriangle,
-  ArrowRight,
   TrendingUp,
   Target,
   Zap,
   RotateCcw,
   ShieldCheck,
+  X,
 } from "lucide-react";
 
 interface EndCycleModalProps {
@@ -36,6 +28,20 @@ export const EndCycleModal: React.FC<EndCycleModalProps> = ({
   onConfirm,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isSubmitting) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, isSubmitting, onClose]);
+
+  if (!isOpen) return null;
 
   const achievementRate =
     summary.weeklyGoal > 0
@@ -55,23 +61,39 @@ export const EndCycleModal: React.FC<EndCycleModalProps> = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !isSubmitting && !open && onClose()}>
-      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto border-2 border-primary/30 shadow-2xl p-6" dir="rtl">
-        <DialogHeader className="space-y-2 text-right">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      dir="rtl"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isSubmitting) onClose();
+      }}
+    >
+      <div className="bg-card text-card-foreground border-2 border-primary/30 shadow-2xl rounded-2xl w-full max-w-xl max-h-[90vh] overflow-y-auto p-6 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+        {/* Header */}
+        <div className="flex items-start justify-between pb-3 border-b border-border/50">
           <div className="flex items-center gap-3">
             <div className="p-3 bg-primary/10 text-primary rounded-xl">
               <Archive className="h-6 w-6 text-primary" />
             </div>
-            <div>
-              <DialogTitle className="text-xl font-black text-foreground">
+            <div className="text-right">
+              <h3 className="text-xl font-black text-foreground">
                 إنهاء الدورة الأسبوعية وبدء أسبوع جديد
-              </DialogTitle>
-              <DialogDescription className="text-xs sm:text-sm text-muted-foreground font-semibold">
+              </h3>
+              <p className="text-xs sm:text-sm text-muted-foreground font-semibold mt-0.5">
                 أرشفة بيانات دورة ({summary.weekLabel}) وتجميد خط الأساس للأسبوع الجديد
-              </DialogDescription>
+              </p>
             </div>
           </div>
-        </DialogHeader>
+          <button
+            type="button"
+            disabled={isSubmitting}
+            onClick={onClose}
+            className="h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors"
+            title="إغلاق"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
         {/* Executive Summary of the Ending Cycle */}
         <div className="space-y-4 my-2">
@@ -170,12 +192,13 @@ export const EndCycleModal: React.FC<EndCycleModalProps> = ({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 sm:gap-3 flex-row-reverse justify-start sm:justify-start mt-2">
+        {/* Footer */}
+        <div className="flex items-center gap-2 sm:gap-3 flex-row-reverse justify-start pt-3 border-t border-border/50">
           <Button
-            variant="default"
+            type="button"
             disabled={isSubmitting}
             onClick={handleConfirm}
-            className="bg-primary hover:bg-primary-dark font-black px-5 py-2.5 rounded-xl shadow-md gap-2"
+            className="bg-primary hover:bg-primary-dark font-black px-5 py-2.5 rounded-xl shadow-md gap-2 cursor-pointer text-primary-foreground"
           >
             {isSubmitting ? (
               <span className="flex items-center gap-2">
@@ -190,15 +213,16 @@ export const EndCycleModal: React.FC<EndCycleModalProps> = ({
             )}
           </Button>
           <Button
+            type="button"
             variant="outline"
             disabled={isSubmitting}
             onClick={onClose}
-            className="rounded-xl font-bold"
+            className="rounded-xl font-bold cursor-pointer"
           >
             إلغاء
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </div>
+    </div>
   );
 };
