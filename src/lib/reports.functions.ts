@@ -487,6 +487,29 @@ export async function deleteReport(args: { data: { reportId: string } }) {
   return { ok: true };
 }
 
+const CUSTOM_OPENING_KEY = "custom_opening_balances_v1";
+
+export function getCustomOpeningBalances(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(CUSTOM_OPENING_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveCustomOpeningBalance(dateOrId: string, amount: number) {
+  if (typeof window === "undefined" || !dateOrId) return;
+  try {
+    const current = getCustomOpeningBalances();
+    current[dateOrId] = amount;
+    localStorage.setItem(CUSTOM_OPENING_KEY, JSON.stringify(current));
+  } catch (e) {
+    console.error("Failed to save custom opening balance:", e);
+  }
+}
+
 export async function updateOpeningBalance(args: {
   data: { reportId: string; openingBalance: number };
 }) {
@@ -503,6 +526,10 @@ export async function updateOpeningBalance(args: {
       (reportData.report.total_receipts_qabd ??
         reportData.report.total_collected ??
         0);
+    if (reportData.report.report_date) {
+      saveCustomOpeningBalance(reportData.report.report_date, args.data.openingBalance);
+    }
+    saveCustomOpeningBalance(args.data.reportId, args.data.openingBalance);
     await saveLocalReport(reportData);
   }
   return { ok: true };

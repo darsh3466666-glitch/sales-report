@@ -9,6 +9,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "./firebase";
+import { getCustomOpeningBalances } from './reports.functions';
 
 const DB_PREFIX = "report_";
 const FIRESTORE_COLLECTION = "reports";
@@ -91,6 +92,21 @@ export async function getLocalReports() {
               ) {
                 del(DB_PREFIX + existingLocal.report.id).catch(() => {});
               }
+
+              // Preserve persistent custom opening balance override if set by user
+              try {
+                const customBalances = getCustomOpeningBalances();
+                const userVal = customBalances[date] ?? customBalances[id];
+                if (userVal !== undefined) {
+                  item.report.opening_balance = userVal;
+                  item.report.total_receivables =
+                    userVal +
+                    (item.report.total_sales || 0) -
+                    (item.report.total_receipts_qabd ??
+                      item.report.total_collected ??
+                      0);
+                }
+              } catch (e) {}
 
               // Overwrite with authoritative server data
               reportsByDate.set(date, item);

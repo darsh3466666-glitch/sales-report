@@ -338,6 +338,7 @@ export async function parseAndImportReport(args: { data: any }) {
     (wb3 ? findSheet(wb3, sabeqKeywords) : null);
   const sabeqBalances = new Map<string, number>();
   const sabeqNames = new Set<string>();
+  let totalSabeqOpeningBalance = 0;
   if (sabeqName) {
     const sabeqWb = wb1.SheetNames.includes(sabeqName)
       ? wb1
@@ -414,6 +415,9 @@ export async function parseAndImportReport(args: { data: any }) {
       ) {
         registerCanonicalName(cname);
         const balVal = r.length > balanceIdx ? num(r[balanceIdx]) : 0;
+        if (balVal) {
+          totalSabeqOpeningBalance += balVal;
+        }
         const normName = normalizeArabicName(cname);
         sabeqNames.add(cname);
         masterNames.add(cname);
@@ -425,6 +429,26 @@ export async function parseAndImportReport(args: { data: any }) {
         if (existing === undefined || (existing === 0 && balVal !== 0)) {
           sabeqBalances.set(normName, balVal);
         }
+      }
+    }
+  }
+
+  // If sabeq was not summed or was 0, check 'تحديث المديونية' Cell B2 (اجمالي مديونية أول الفترة)
+  if (totalSabeqOpeningBalance === 0) {
+    const tahdeethKeywords = ["تحديث المديونية", "تحديث المديونيه"];
+    const tahdeethName =
+      findSheet(wb1, tahdeethKeywords) ||
+      findSheet(wb2, tahdeethKeywords) ||
+      (wb3 ? findSheet(wb3, tahdeethKeywords) : null);
+    if (tahdeethName) {
+      const tahdeethWb = wb1.SheetNames.includes(tahdeethName)
+        ? wb1
+        : wb2.SheetNames.includes(tahdeethName)
+          ? wb2
+          : wb3 || wb1;
+      const tRows = sheetRows(tahdeethWb, tahdeethName);
+      if (tRows.length >= 2 && tRows[1] && num(tRows[1][1])) {
+        totalSabeqOpeningBalance = num(tRows[1][1]);
       }
     }
   }
@@ -1015,9 +1039,13 @@ export async function parseAndImportReport(args: { data: any }) {
         0);
   }
 
-  const finalOpeningBalance = existingSameDate
-    ? existingSameDate.report.opening_balance || 0
-    : defaultOpeningBalance;
+  // Prioritize exact opening debt from sheet 'سابق' (or 'تحديث المديونية') so it always matches Excel
+  const finalOpeningBalance =
+    totalSabeqOpeningBalance > 0
+      ? totalSabeqOpeningBalance
+      : existingSameDate
+        ? existingSameDate.report.opening_balance || 0
+        : defaultOpeningBalance;
 
   const calculatedTotalReceivables =
     finalOpeningBalance + totalSales - totalReceiptsFromQabd;
