@@ -26,8 +26,23 @@ if (fs.existsSync(distDir)) {
     const publicFile = path.join(publicDir, fileName);
     const distFile = path.join(distDir, fileName);
     if (fs.existsSync(publicFile)) {
-      fs.copyFileSync(publicFile, distFile);
-      console.log(`✓ Copied ${fileName} to dist`);
+      let copied = false;
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        try {
+          fs.copyFileSync(publicFile, distFile);
+          console.log(`✓ Copied ${fileName} to dist`);
+          copied = true;
+          break;
+        } catch (err) {
+          if (attempt === 5) {
+            console.warn(`Warning: Could not copy ${fileName} on attempt ${attempt}:`, err.message);
+          } else {
+            // Wait 250ms synchronously
+            const start = Date.now();
+            while (Date.now() - start < 250) {}
+          }
+        }
+      }
     }
   }
 

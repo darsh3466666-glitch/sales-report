@@ -259,18 +259,10 @@ export function CustomerTable({
                   العميل
                 </TableHead>
                 <TableHead
-                  onClick={() => toggleSort("pure_sales_amount")}
+                  onClick={() => toggleSort("sales_amount")}
                   className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
-                  title="مبيعات فواتير البضاعة والأعلاف والخامات الصافية"
                 >
-                  مبيعات فواتير <ArrowUpDown className="inline h-3 w-3" />
-                </TableHead>
-                <TableHead
-                  onClick={() => toggleSort("mfg_amount")}
-                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
-                  title="تشغيل تصنيع للغير ومصنعيات التشغيل"
-                >
-                  تشغيل تصنيع <ArrowUpDown className="inline h-3 w-3" />
+                  المبيعات <ArrowUpDown className="inline h-3 w-3" />
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("collected_amount")}
@@ -372,28 +364,10 @@ export function CustomerTable({
                         )}
                       </div>
                     </TableCell>
-                    {/* عمود مبيعات فواتير */}
                     <TableCell
                       className={`text-right font-bold tabular-nums ${idx === 0 ? "text-xl text-accent-dark" : idx === 1 ? "text-lg" : idx === 2 ? "text-coral" : "text-info"}`}
                     >
-                      {fmtMoney(pureSales)}
-                      {mfg > 0 && (
-                        <div className="text-[10px] text-muted-foreground font-normal tracking-tight">
-                          إجمالي: {fmtMoney(c.sales_amount)}
-                        </div>
-                      )}
-                    </TableCell>
-                    {/* عمود تشغيل تصنيع */}
-                    <TableCell className="text-right font-bold tabular-nums whitespace-nowrap">
-                      {mfg > 0 ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-black bg-amber-100 text-amber-900 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 shadow-2xs">
-                          {fmtMoney(mfg)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground/50 text-xs font-normal">
-                          -
-                        </span>
-                      )}
+                      {fmtMoney(c.sales_amount)}
                     </TableCell>
                     <TableCell className="text-success text-right font-bold tabular-nums">
                       {fmtMoney(c.collected_amount)}
@@ -458,7 +432,7 @@ export function CustomerTable({
               {!paginatedRows.length && (
                 <TableRow>
                   <TableCell
-                    colSpan={11}
+                    colSpan={10}
                     className="text-center text-muted-foreground py-8 font-semibold"
                   >
                     لا توجد بيانات

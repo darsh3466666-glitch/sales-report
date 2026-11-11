@@ -1166,140 +1166,15 @@ export function inferProductCategory(p: string): string {
 }
 
 export function computeManufacturingQuantities(
-  currReportData: any,
-  prevReportData: any,
+  _currReportData: any,
+  _prevReportData: any,
 ): Map<string, number> {
-  const mfgMap = new Map<string, number>();
-  if (
-    !currReportData?.inventory?.length ||
-    !prevReportData?.inventory?.length ||
-    !currReportData?.report?.report_date ||
-    !prevReportData?.report?.report_date
-  ) {
-    return mfgMap;
-  }
-
-  const dayGap = Math.round(
-    (new Date(currReportData.report.report_date).getTime() -
-      new Date(prevReportData.report.report_date).getTime()) /
-      86400000,
-  );
-  // Only compare consecutive working days (1 day or 2 days across Friday holiday)
-  if (dayGap < 1 || dayGap > 2) return mfgMap;
-
-  const prevInv = new Map<string, number>();
-  for (const x of prevReportData.inventory) {
-    if (x?.item_name) prevInv.set(x.item_name.trim(), Number(x.balance) || 0);
-  }
-
-  const currInv = new Map<string, number>();
-  for (const x of currReportData.inventory) {
-    if (x?.item_name) currInv.set(x.item_name.trim(), Number(x.balance) || 0);
-  }
-
-  const cpMap = new Map<string, number>();
-  for (const cp of currReportData.customerProducts || []) {
-    if (!cp?.product_name) continue;
-    const k = cp.product_name.trim();
-    cpMap.set(k, (cpMap.get(k) || 0) + (Number(cp.quantity) || 0));
-  }
-
-  let bagsKg = 0;
-  let feedProd = 0;
-  let rawMfgSum = 0;
-  const suppliedCoreItems: string[] = [];
-  const coreMfgIngredients = [
-    "ذره صفراء",
-    "نخاله",
-    "دي دي جي",
-    "كسب النور",
-    "حجر جيرى",
-    "ملح طعام",
-    "بريمكس تسمين",
-    "مضاد سموم  كيميائي",
-  ];
-
-  for (const [item, cBal] of currInv.entries()) {
-    const pBal = prevInv.get(item);
-    if (pBal === undefined) continue;
-    const sold = cpMap.get(item) || 0;
-    const drop = Number((pBal - cBal).toFixed(3));
-    const diff = Number((drop - sold).toFixed(3));
-
-    const isBag = item.includes("شكاير");
-    const isFeed = item.includes("علف");
-    const isService = ["تصنيع", "عمال", "نقل"].some((x) => item.includes(x));
-
-    if (isBag) {
-      if (item.includes("110*60") && diff > 0) {
-        bagsKg += diff * 50;
-      }
-    } else if (isFeed) {
-      if (diff < 0) {
-        feedProd += Math.abs(diff);
-      }
-    } else if (!isService) {
-      if (diff > 0) {
-        mfgMap.set(item, diff);
-        rawMfgSum += diff;
-      } else if (diff < 0) {
-        if (coreMfgIngredients.includes(item)) {
-          suppliedCoreItems.push(item);
-        }
-      }
-    }
-  }
-
-  let targetMfgKg = 0;
-  if (feedProd > 0 && bagsKg > 0) {
-    targetMfgKg =
-      Math.abs(bagsKg - feedProd) <= 1500
-        ? bagsKg
-        : Math.round(feedProd / 1000) * 1000;
-  } else if (feedProd > 0) {
-    targetMfgKg = Math.round(feedProd / 1000) * 1000;
-  }
-
-  const missingKg = Number((targetMfgKg - rawMfgSum).toFixed(3));
-
-  if (targetMfgKg > 0 && missingKg > 0 && suppliedCoreItems.length > 0) {
-    if (suppliedCoreItems.length === 1) {
-      mfgMap.set(suppliedCoreItems[0], missingKg);
-    } else {
-      const tons = targetMfgKg / 1000;
-      const stdPerTon: Record<string, number> = {
-        "مضاد سموم  كيميائي": 1,
-        "بريمكس تسمين": 3,
-        "ملح طعام": 9,
-        "حجر جيرى": 12,
-        "دي دي جي": 50,
-        "كسب النور": 75,
-        نخاله: 200,
-        "ذره صفراء": 650,
-      };
-      let remaining = missingKg;
-      const sorted = [...suppliedCoreItems].sort(
-        (a, b) => (stdPerTon[a] || 999) - (stdPerTon[b] || 999),
-      );
-      for (let idx = 0; idx < sorted.length; idx++) {
-        const it = sorted[idx];
-        if (idx === sorted.length - 1) {
-          if (remaining > 0) mfgMap.set(it, Number(remaining.toFixed(3)));
-        } else {
-          const est = Math.min(
-            remaining,
-            Number(((stdPerTon[it] || 0) * tons).toFixed(3)),
-          );
-          if (est > 0) {
-            mfgMap.set(it, est);
-            remaining -= est;
-          }
-        }
-      }
-    }
-  }
-
-  return mfgMap;
+  // HEURISTIC_DISABLED:
+  // Rely strictly on genuine ERP movements. Fictional theoretical deduction and
+  // standard formulation guessing (e.g. 650kg corn, 200kg bran, etc.) have been disabled
+  // because ERP records actual manufacturing via "اذن وارد كارت تصنيع", and inventing theoretical
+  // movements contradicts the physical warehouse ledgers.
+  return new Map<string, number>();
 }
 
 export function applyManufacturingToReportProducts(
