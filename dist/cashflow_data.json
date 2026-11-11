@@ -3,7 +3,7 @@
   "weekStart": "2026-11-11",
   "weekEnd": "2026-11-17",
   "weeklyGoal": 4000000,
-  "totalExpected": 8645301.0,
+  "totalExpected": 8370710.0,
   "totalCollected": 0.0,
   "customerCount": 31,
   "remainingToTarget": 4000000.0,
@@ -1524,8 +1524,8 @@
     {
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
       "currentBalance": 374591.0,
-      "dueDate": "2026-10-28",
-      "notes": "مطلوب 100 الف  منه",
+      "dueDate": "2026-11-14",
+      "notes": "السبت 14/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4543,20 +4543,6 @@
     },
     {
       "index": 12,
-      "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
-      "normalizedName": "عيد احمد عبدالفتاح ابو السعود",
-      "currentBalance": 374591.0,
-      "expectedAmount": 374591.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-10-28",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 374591.0,
-      "notes": "مطلوب 100 الف  منه",
-      "isPinned": false
-    },
-    {
-      "index": 13,
       "customerName": "جمعه محمود رضوان (ادريس)",
       "normalizedName": "جمعه محمود رضوان ادريس",
       "currentBalance": 5100.0,
@@ -4570,7 +4556,7 @@
       "isPinned": false
     },
     {
-      "index": 14,
+      "index": 13,
       "customerName": "محمد حمدين الغنام",
       "normalizedName": "محمد حمدين الغنام",
       "currentBalance": 233045.0,
@@ -4584,7 +4570,7 @@
       "isPinned": false
     },
     {
-      "index": 15,
+      "index": 14,
       "customerName": "نصر لملوم",
       "normalizedName": "نصر لملوم",
       "currentBalance": 38620.0,
@@ -4598,7 +4584,7 @@
       "isPinned": false
     },
     {
-      "index": 16,
+      "index": 15,
       "customerName": "محمد سيد (مصطفي الصعيدي)",
       "normalizedName": "محمد سيد مصطفي الصعيدي",
       "currentBalance": 63485.0,
@@ -4612,7 +4598,7 @@
       "isPinned": false
     },
     {
-      "index": 17,
+      "index": 16,
       "customerName": "جمعه محمد حسن (الحطي)",
       "normalizedName": "جمعه محمد حسن الحطي",
       "currentBalance": 76325.0,
@@ -4626,7 +4612,7 @@
       "isPinned": false
     },
     {
-      "index": 18,
+      "index": 17,
       "customerName": "مجدي محمد عبد العال",
       "normalizedName": "مجدي محمد عبدالعال",
       "currentBalance": 4110300.0,
@@ -4640,7 +4626,7 @@
       "isPinned": false
     },
     {
-      "index": 19,
+      "index": 18,
       "customerName": "عيد ادريس (ابو بساط)",
       "normalizedName": "عيد ادريس ابو بساط",
       "currentBalance": 50070.0,
@@ -4654,7 +4640,7 @@
       "isPinned": false
     },
     {
-      "index": 20,
+      "index": 19,
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
       "normalizedName": "كرم مسعود ابو بكر الهداهده",
       "currentBalance": 182765.0,
@@ -4665,6 +4651,20 @@
       "status": "لم يسدد",
       "remaining": 182765.0,
       "notes": "مكالمة من م علي منير  لسة مبعش",
+      "isPinned": false
+    },
+    {
+      "index": 20,
+      "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
+      "normalizedName": "عيد احمد عبدالفتاح ابو السعود",
+      "currentBalance": 374591.0,
+      "expectedAmount": 100000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-14",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 100000.0,
+      "notes": "السبت 14/11/2026",
       "isPinned": false
     },
     {
