@@ -3173,7 +3173,7 @@
       "customerName": "عمرو حسن عابد",
       "currentBalance": 8750.0,
       "dueDate": "2026-11-12",
-      "notes": "",
+      "notes": "الخميس 12/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4482,7 +4482,7 @@
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 8750.0,
-      "notes": "",
+      "notes": "الخميس 12/11/2026",
       "isPinned": false
     },
     {
