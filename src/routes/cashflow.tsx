@@ -14,7 +14,7 @@ import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
 import { CashFlowTable } from "@/components/cashflow/CashFlowTable";
 import { EndCycleModal } from "@/components/cashflow/EndCycleModal";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, BarChart3, Wallet, Printer, Archive } from "lucide-react";
+import { Moon, Sun, BarChart3, Wallet, Printer } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cashflow")({
@@ -167,16 +167,6 @@ function CashFlowPage() {
                 <Wallet className="h-3.5 w-3.5" />
                 <span>الكاش فلو الأسبوعي</span>
               </Button>
-              <Link to="/cashflow/history">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-7 px-3 text-muted-foreground hover:text-foreground gap-1.5"
-                >
-                  <Archive className="h-3.5 w-3.5 text-primary" />
-                  <span>سجل الأسابيع</span>
-                </Button>
-              </Link>
             </div>
           </div>
 
