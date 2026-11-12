@@ -280,12 +280,16 @@
     display: grid !important;
     gap: 6pt !important;
   }
-  /* KPI and grid cards: 4 columns */
+  /* KPI and grid cards: 4 columns, or 5 columns for cashflow KPI strip */
   .print-layout-pc .grid.grid-cols-2,
   .print-layout-pc .grid[class*="md:grid-cols-3"],
   .print-layout-pc .grid[class*="lg:grid-cols-4"],
   .print-layout-pc .grid[class*="xl:grid-cols-6"] {
     grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  }
+  .print-layout-pc .grid.grid-kpis,
+  .print-layout-pc .grid[class*="lg:grid-cols-5"] {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
   }
   /* Charts/Comparisons side-by-side */
   .print-layout-pc .grid-charts,
@@ -317,6 +321,7 @@
   .print-layout-pc td {
     padding: 2pt 3pt !important;
     white-space: normal !important;
+    min-width: 0 !important;
   }
   .print-layout-pc .recharts-responsive-container {
     width: 100% !important;
@@ -327,28 +332,28 @@
   .print-layout-mobile {
     font-size: 11pt !important;
   }
-  /* Force everything to stack single-column except pricing matrix components */
-  .print-layout-mobile .grid:not(.pricing-kpi-strip):not(.pricing-bottom-grid),
+  /* Force everything to stack single-column except pricing matrix components and KPI strips */
+  .print-layout-mobile .grid:not(.pricing-kpi-strip):not(.pricing-bottom-grid):not(.grid-kpis),
   .print-layout-mobile
-    .grid.grid-cols-2:not(.pricing-kpi-strip):not(.pricing-bottom-grid),
+    .grid.grid-cols-2:not(.pricing-kpi-strip):not(.pricing-bottom-grid):not(.grid-kpis),
   .print-layout-mobile
     .grid[class*="md:grid-cols-"]:not(.pricing-kpi-strip):not(
       .pricing-bottom-grid
-    ),
+    ):not(.grid-kpis),
   .print-layout-mobile
     .grid[class*="lg:grid-cols-"]:not(.pricing-kpi-strip):not(
       .pricing-bottom-grid
-    ),
+    ):not(.grid-kpis),
   .print-layout-mobile
     .grid[class*="xl:grid-cols-"]:not(.pricing-kpi-strip):not(
       .pricing-bottom-grid
-    ) {
+    ):not(.grid-kpis) {
     display: flex !important;
     flex-direction: column !important;
     gap: 10pt !important;
   }
 
-  /* KPI cards can be 2 per row for neat stacked spacing on A4 portrait, or single column */
+  /* KPI cards can be 2 per row for neat stacked spacing on A4 portrait */
   .print-layout-mobile .grid-kpis {
     display: grid !important;
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -369,12 +374,13 @@
   }
   .print-layout-mobile table {
     width: 100% !important;
-    font-size: 9.5pt !important;
+    font-size: 8pt !important;
     table-layout: auto !important;
   }
   .print-layout-mobile th,
   .print-layout-mobile td {
-    padding: 4pt 5pt !important;
+    padding: 3pt 3.5pt !important;
+    min-width: 0 !important;
   }
   .print-layout-mobile .recharts-responsive-container {
     width: 100% !important;

@@ -88,7 +88,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
         </div>
 
         {/* Live sync status, History link, End cycle trigger & refresh button */}
-        <div className="flex items-center gap-2 mr-auto flex-wrap">
+        <div className="flex items-center gap-2 mr-auto flex-wrap no-print">
           <div className="text-left text-xs text-muted-foreground hidden lg:block">
             <div className="font-semibold">آخر تحديث: {lastUpdatedTime}</div>
           </div>
@@ -196,7 +196,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
       </div>
 
       {/* KPI Cards Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 print:gap-2">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 print:gap-2 grid-kpis">
         {/* Card 1: Total Expected */}
         <Card className="rounded-lg border-0 border-l-[6px] border-l-secondary shadow-card bg-cream/30 hover:shadow-teal-glow transition-all duration-200 cursor-pointer overflow-hidden relative">
           <CardContent className="p-3.5 sm:p-4 relative z-10 flex flex-col justify-between h-full space-y-2">

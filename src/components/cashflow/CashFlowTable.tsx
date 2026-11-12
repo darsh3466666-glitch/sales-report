@@ -451,7 +451,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   return (
     <div className="space-y-4">
       {/* Search and Action Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-4 rounded-2xl border-2 border-primary/20 shadow-sm">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-4 rounded-2xl border-2 border-primary/20 shadow-sm no-print">
         {/* Search input */}
         <div className="relative flex-1 min-w-[260px] max-w-md">
           <Search className="absolute right-3.5 top-3 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -518,7 +518,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       </div>
 
       {/* Filter Chips & Active Summary Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 no-print">
         <div className="flex flex-wrap items-center gap-2">
           <Button
             variant={statusFilter === "all" ? "default" : "outline"}
@@ -620,7 +620,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                 {renderSortHeader("status", "حالة السداد", "center", "min-w-[105px]")}
                 {renderSortHeader("remaining", "المتبقي", "right", "min-w-[130px]")}
                 <TableHead className={`${FONT.headerCell} min-w-[150px] text-right py-3.5`}>ملاحظات</TableHead>
-                <TableHead className={`w-24 text-center ${FONT.headerCell} py-3.5`}>إجراءات</TableHead>
+                <TableHead className={`w-24 text-center ${FONT.headerCell} py-3.5 no-print`}>إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -878,7 +878,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="text-center py-3">
+                      <TableCell className="text-center py-3 no-print">
                         {isEditingThisRow ? (
                           <div className="flex items-center justify-center gap-1.5">
                             <button

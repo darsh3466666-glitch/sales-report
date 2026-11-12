@@ -13,8 +13,9 @@ import {
 import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
 import { CashFlowTable } from "@/components/cashflow/CashFlowTable";
 import { EndCycleModal } from "@/components/cashflow/EndCycleModal";
+import { PrintDialog } from "@/components/dashboard/PrintDialog";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, BarChart3, Wallet, Printer } from "lucide-react";
+import { Moon, Sun, BarChart3, Wallet } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cashflow")({
@@ -126,12 +127,30 @@ function CashFlowPage() {
     localStorage.setItem("theme", next ? "dark" : "light");
   }
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const [printLayout, setPrintLayout] = useState<"pc" | "mobile">("mobile");
 
   return (
-    <div className="min-h-screen bg-background" dir="rtl">
+    <div
+      className={`min-h-screen bg-background print-layout-container print-layout-${printLayout}`}
+      dir="rtl"
+    >
+      {/* Dynamic Print Orientation Tag */}
+      {printLayout === "pc" ? (
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              "@media print { @page { size: A4 landscape !important; margin: 6mm 10mm !important; } }",
+          }}
+        />
+      ) : (
+        <style
+          dangerouslySetInnerHTML={{
+            __html:
+              "@media print { @page { size: A4 portrait !important; margin: 10mm 10mm !important; } }",
+          }}
+        />
+      )}
+
       {/* Top Header */}
       <header className="sticky top-0 z-20 border-b-4 border-primary/20 bg-card/90 backdrop-blur no-print overflow-hidden relative">
         <div className="container mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-3">
@@ -172,16 +191,10 @@ function CashFlowPage() {
 
           {/* Action Toolbar */}
           <div className="flex items-center gap-1.5 sm:gap-2 mr-auto">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handlePrint}
-              className="px-3 sm:px-4 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
-              title="طباعة التقرير"
-            >
-              <Printer className="h-4 w-4 sm:ml-2 text-primary" />
-              <span className="hidden sm:inline">طباعة</span>
-            </Button>
+            <PrintDialog
+              printLayout={printLayout}
+              setPrintLayout={setPrintLayout}
+            />
             <Button
               variant="ghost"
               size="icon"
@@ -197,6 +210,29 @@ function CashFlowPage() {
           </div>
         </div>
       </header>
+
+      {/* Print-Only Professional Clean Header */}
+      <div className="print-only px-4 py-3 border-b mb-4" dir="rtl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-bold text-foreground">
+              تقرير التدفقات النقدية الأسبوعية (Cash Flow)
+            </h1>
+            {activeSummary && (
+              <p className="text-xs text-muted-foreground mt-0.5 font-semibold">
+                {activeSummary.weekLabel}
+              </p>
+            )}
+          </div>
+          <div className="text-xs text-muted-foreground font-semibold">
+            تاريخ الطباعة:{" "}
+            {new Date().toLocaleString("ar-EG-u-nu-latn", {
+              dateStyle: "full",
+              timeStyle: "short",
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* Main Content Area */}
       <main className="container mx-auto px-3 sm:px-4 py-6 space-y-6">
