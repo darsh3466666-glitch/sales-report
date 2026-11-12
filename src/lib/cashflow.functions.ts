@@ -500,15 +500,11 @@ export function isBankPayment(typeOrDesc?: string, description?: string): boolea
   const normType = String(typeOrDesc || "").trim().toLowerCase();
   const normDesc = String(description || "").trim().toLowerCase();
 
-  // If customer is known to pay via Bank, prioritize Bank classification 100%
-  if (isBankCustomer(normDesc) || isBankCustomer(normType)) {
-    return true;
-  }
-
-  // 1. Explicit cash keywords - only these represent pure physical cash in the treasury
+  // 1. Explicit cash keywords on transaction type take highest precedence:
+  // If the transaction is recorded as pure cash (كاش, نقدي, خزينة), and does not mention a bank account/transfer, it IS cash!
   const isPureCash =
     /^(كاش|نقدي|نقدى|نقدية|نقديه|خزينة|خزينه|cash)$/i.test(normType) &&
-    !/بنك|تحويل|ايداع|إيداع|شيك|سويفت|swift|انستاباي|instapay|مصر|تنمي|زراع|اهل|قاهر|cib|qnb/i.test(normDesc);
+    !/بنك|bank|تحويل|ايداع|إيداع|شيك|سويفت|swift|انستاباي|instapay|ب[\s_.]?مصر|تنمي[ةه]|زراع[يى]|[أا]هل[يى]|قاهر[ةه]|cib|qnb/i.test(normDesc);
   if (isPureCash) return false;
 
   // 2. Known bank names, abbreviations, or banking instruments
