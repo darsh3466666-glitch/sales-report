@@ -340,12 +340,13 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v3";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v4";
 
 export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
-    // Purge old corrupted state versions to prevent duplicate cached transactions
+    // Purge old cached state versions to enforce clean bank vs cash transaction breakdown
+    localStorage.removeItem("cashflow_active_cycle_state_v3");
     localStorage.removeItem("cashflow_active_cycle_state_v2");
     localStorage.removeItem("cashflow_active_cycle_state_v1");
     localStorage.removeItem("cashflow_active_cycle_state");
@@ -465,6 +466,86 @@ export function saveCustomerOverride(
 }
 
 /**
+ * Determines whether a transaction payment type or description indicates a bank deposit/transfer vs pure physical cash in treasury.
+ * In this system:
+ * - Pure cash types are strictly: "كاش", "نقدي", "نقدية", "خزينة" (or English "cash").
+ * - Any bank account name ("ب مصر", "تنمية", "زراعي", "اهلي", "cib", "qnb", etc.) or anything with "بنك" / "تحويل" is BANK!
+ * - Any payment type that is NOT pure cash is treated as a bank deposit.
+ */
+export function isBankPayment(typeOrDesc?: string, description?: string): boolean {
+  const normType = String(typeOrDesc || "").trim().toLowerCase();
+  const normDesc = String(description || "").trim().toLowerCase();
+
+  // 1. Explicit cash keywords - only these represent pure physical cash in the treasury
+  const isPureCash =
+    /^(كاش|نقدي|نقدى|نقدية|نقديه|خزينة|خزينه|cash)$/i.test(normType) &&
+    !/بنك|تحويل|ايداع|إيداع|شيك|سويفت|swift|انستاباي|instapay/i.test(normDesc);
+  if (isPureCash) return false;
+
+  // 2. Known bank names, abbreviations, or banking instruments
+  const bankPatterns = [
+    /بنك/,
+    /bank/i,
+    /ب[\s_.]?مصر/,         // ب مصر / بنك مصر
+    /تنمي[ةه]/,            // تنمية / تنميه (بنك التنمية)
+    /زراع[يى]/,            // زراعي (البنك الزراعي)
+    /[أا]هل[يى]/,          // أهلي / اهلي (البنك الأهلي)
+    /قاهر[ةه]/,            // قاهرة (بنك القاهرة)
+    /[إا]سكندري[ةه]/,      // إسكندرية (بنك الإسكندرية)
+    /cib/i,                // CIB
+    /تجار[يى]/,            // تجاري دولي
+    /qnb/i,                // QNB
+    /قطر/,                 // قطر الوطني
+    /فيصل/,                // بنك فيصل
+    /برك[ةه]/,             // بنك البركة
+    /[أا]بو[\s_.]?ظب[يى]/, // أبو ظبي
+    /adib/i,
+    /عرب[يى][\s_.]?[أا]فريق[يى]/,
+    /aaib/i,
+    /تحويل/,
+    /[إا]يداع/,
+    /شيك/,
+    /سويفت|swift/i,
+    /انستاباي|instapay/i,
+    /حساب/
+  ];
+
+  for (const pat of bankPatterns) {
+    if (pat.test(normType) || pat.test(normDesc)) {
+      return true;
+    }
+  }
+
+  // 3. Fallback: if type is present and is NOT any form of cash, it is a bank deposit
+  if (normType && !/^(كاش|نقدي|نقدى|نقدية|نقديه|خزينة|خزينه|cash)$/i.test(normType)) {
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * Fallback to identify clients who pay via bank transfers if their transaction type was not captured.
+ */
+export function isBankCustomer(customerName: string, notes?: string): boolean {
+  const normName = normalizeArabicName(customerName || "").toLowerCase();
+  const normNotes = String(notes || "").toLowerCase();
+
+  return (
+    normName.includes("يونس") ||
+    normName.includes("عبدالتواب") ||
+    normName.includes("عبد التواب") ||
+    normName.includes("ميدوم") ||
+    normName.includes("ايه بي ديري") ||
+    normName.includes("ديري") ||
+    normName.includes("الخيرات") ||
+    normName.includes("بنك") ||
+    normNotes.includes("بنك") ||
+    normNotes.includes("تحويل")
+  );
+}
+
+/**
  * Helper to calculate cumulative breakdown of collected amounts into pure cash and bank transfers.
  */
 export function calculateCashAndBankBreakdown(customers: CashFlowCustomer[]): {
@@ -480,25 +561,14 @@ export function calculateCashAndBankBreakdown(customers: CashFlowCustomer[]): {
 
     if (Array.isArray(cust.treasuryTransactions) && cust.treasuryTransactions.length > 0) {
       for (const tx of cust.treasuryTransactions) {
-        const isBank =
-          tx.type === "بنك" ||
-          (typeof tx.type === "string" && tx.type.toLowerCase().includes("bank")) ||
-          (typeof tx.description === "string" &&
-            (tx.description.includes("بنك") ||
-              tx.description.includes("تحويل بنكي") ||
-              tx.description.includes("ايداع بنكي")));
-        if (isBank) {
+        if (isBankPayment(tx.type, tx.description)) {
           cBank += tx.amount || 0;
         } else {
           cCash += tx.amount || 0;
         }
       }
     } else if (cust.collectedFromTreasury > 0) {
-      const isBank =
-        cust.customerName.includes("بنك") ||
-        (cust.notes && cust.notes.includes("بنك")) ||
-        normalizeArabicName(cust.customerName).includes("يونس");
-      if (isBank) {
+      if (isBankCustomer(cust.customerName, cust.notes)) {
         cBank += cust.collectedFromTreasury;
       } else {
         cCash += cust.collectedFromTreasury;
@@ -510,11 +580,7 @@ export function calculateCashAndBankBreakdown(customers: CashFlowCustomer[]): {
       (cust.collectedFromSheet || 0) - (cust.collectedFromTreasury || 0)
     );
     if (uncoveredSheet > 0) {
-      const isBank =
-        cust.customerName.includes("بنك") ||
-        (cust.notes && cust.notes.includes("بنك")) ||
-        normalizeArabicName(cust.customerName).includes("يونس");
-      if (isBank) {
+      if (isBankCustomer(cust.customerName, cust.notes)) {
         cBank += uncoveredSheet;
       } else {
         cCash += uncoveredSheet;
@@ -1231,10 +1297,10 @@ export async function getLiveCashFlowData(options?: {
           date: d || effectiveWeekStart,
         });
       } else {
-        // If an incoming record indicates it is a bank transfer, prioritize 'بنك'
+        // If an incoming record indicates it is a bank transfer, prioritize the bank type
         const existing = weeklyTxMap.get(sig)!;
-        if (typ === "بنك" || /بنك/.test(typ)) {
-          existing.type = "بنك";
+        if (isBankPayment(typ, desc)) {
+          existing.type = typ || "بنك";
         }
       }
     };

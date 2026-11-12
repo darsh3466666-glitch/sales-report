@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
-import { CashFlowCustomer, CashFlowSummary } from "@/lib/cashflow.functions";
+import { CashFlowCustomer, CashFlowSummary, isBankPayment, isBankCustomer } from "@/lib/cashflow.functions";
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
@@ -765,23 +765,18 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                           let custBank = 0;
                           if (Array.isArray(cust.treasuryTransactions) && cust.treasuryTransactions.length > 0) {
                             for (const tx of cust.treasuryTransactions) {
-                              const isBank =
-                                tx.type === "بنك" ||
-                                (typeof tx.type === "string" && tx.type.toLowerCase().includes("bank")) ||
-                                (typeof tx.description === "string" &&
-                                  (tx.description.includes("بنك") ||
-                                    tx.description.includes("تحويل بنكي") ||
-                                    tx.description.includes("ايداع بنكي")));
-                              if (isBank) custBank += tx.amount || 0;
-                              else custCash += tx.amount || 0;
+                              if (isBankPayment(tx.type, tx.description)) {
+                                custBank += tx.amount || 0;
+                              } else {
+                                custCash += tx.amount || 0;
+                              }
                             }
                           } else {
-                            const isBank =
-                              cust.customerName.includes("بنك") ||
-                              (cust.notes && cust.notes.includes("بنك")) ||
-                              normalizeArabicName(cust.customerName).includes("يونس");
-                            if (isBank) custBank = cust.collectedFromTreasury;
-                            else custCash = cust.collectedFromTreasury;
+                            if (isBankCustomer(cust.customerName, cust.notes)) {
+                              custBank = cust.collectedFromTreasury;
+                            } else {
+                              custCash = cust.collectedFromTreasury;
+                            }
                           }
 
                           return (
