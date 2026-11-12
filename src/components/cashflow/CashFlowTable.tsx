@@ -104,7 +104,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
-  const [showUnmatchedTreasury, setShowUnmatchedTreasury] = useState(false);
 
   // Add Customer Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -604,50 +603,6 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           )}
         </div>
       </div>
-
-      {/* Unmatched Treasury Inflows Banner */}
-      {summary.unmatchedTreasuryTx && summary.unmatchedTreasuryTx.length > 0 && (
-        <div className="bg-primary/10 border-2 border-primary/30 rounded-2xl p-4 text-xs shadow-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-black text-foreground">
-              <Zap className="h-5 w-5 text-emerald-500 fill-emerald-500" />
-              <span>
-                تحصيلات خزينة واردة اليوم ({summary.unmatchedTreasuryTx.length} عمليات بقيمة{" "}
-                <span className="font-extrabold text-emerald-700 dark:text-emerald-400">
-                  {fmtMoney(
-                    summary.unmatchedTreasuryTx.reduce((s, t) => s + t.amount, 0)
-                  )}
-                </span>
-                )
-              </span>
-            </div>
-            <button
-              onClick={() => setShowUnmatchedTreasury(!showUnmatchedTreasury)}
-              className="text-xs h-7 px-3 text-primary font-bold hover:bg-primary/20 rounded-md cursor-pointer"
-            >
-              {showUnmatchedTreasury ? "إخفاء التفاصيل" : "عرض التفاصيل"}
-            </button>
-          </div>
-          {showUnmatchedTreasury && (
-            <div className="mt-3 pt-3 border-t border-primary/20 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {summary.unmatchedTreasuryTx.map((tx, idx) => (
-                <div
-                  key={idx}
-                  className="bg-card p-2.5 rounded-xl border border-border flex items-center justify-between shadow-2xs"
-                >
-                  <div>
-                    <div className="font-black text-sm text-foreground">{tx.description}</div>
-                    <div className="text-xs text-muted-foreground font-medium">{tx.type}</div>
-                  </div>
-                  <div className="font-mono font-black text-sm text-emerald-600">
-                    +{fmtMoney(tx.amount)}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Cash Flow Main Data Table */}
       <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden">

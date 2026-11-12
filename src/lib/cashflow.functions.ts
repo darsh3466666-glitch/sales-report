@@ -238,11 +238,11 @@ export function matchTreasuryDescriptionToCustomer(
   if (isDescCash && isCustCash) return true;
   if (isDescCash || isCustCash) return false;
 
-  // 3. Honorific prefixes at start only: "المعلم عبدالفتاح ربيع" === "عبدالفتاح ربيع"
+  // 3. Honorific & entity prefixes at start only: "المعلم عبدالفتاح ربيع" === "عبدالفتاح ربيع", "مزرعه الخيرات" === "الخيرات"
   const stripPrefixHonorific = (s: string) =>
     s
       .replace(
-        /^(المعلم|حاج|الحاج|مهندس|المهندس|استاذ|الاستاذ|شيخ|الشيخ|دكتور|د)\s+/g,
+        /^(المعلم|حاج|الحاج|مهندس|المهندس|استاذ|الاستاذ|شيخ|الشيخ|دكتور|د|مزرعة|مزرعه|شركة|شركه|محطة|محطه|مصنع|معمل|معرض)\s+/g,
         ""
       )
       .trim();
