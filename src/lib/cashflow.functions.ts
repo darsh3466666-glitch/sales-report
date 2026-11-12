@@ -953,7 +953,8 @@ export async function getLiveCashFlowData(options?: {
 
     const isSavedCycleValid = Boolean(
       savedCycle &&
-      savedCycle.cycleId === currentCycleId &&
+      (savedCycle.cycleId === currentCycleId ||
+        (!savedCycle.weekEnd || savedCycle.weekEnd >= weekInfo.weekStart)) &&
       Array.isArray(savedCycle.customers) &&
       savedCycle.customers.length > 0
     );
@@ -1152,15 +1153,17 @@ export async function getLiveCashFlowData(options?: {
     const effectiveWeekStart = (isSavedCycleValid && savedCycle?.weekStart) ? savedCycle.weekStart : weekInfo.weekStart;
     const effectiveWeekEnd = (isSavedCycleValid && savedCycle?.weekEnd) ? savedCycle.weekEnd : weekInfo.weekEnd;
 
-    // Track signatures of treasury transactions from previous/archived cycles
-    const archivedTxSet = new Set<string>(savedCycle?.archivedTxSignatures || []);
-    if (savedCycle && savedCycle.cycleId !== currentCycleId) {
-      // Transitioning across cycles (e.g. 7:00 PM Tuesday auto-transition):
-      // Seal all transactions of the old cycle so they never leak into the new one!
+    // Track signatures of treasury transactions from genuinely previous/archived cycles
+    const archivedTxSet = new Set<string>();
+    if (savedCycle && savedCycle.weekEnd && savedCycle.weekEnd < weekInfo.weekStart) {
+      // ONLY seal transactions that genuinely belong to an old, archived past week!
       for (const c of savedCycle.customers || []) {
         for (const tx of c.treasuryTransactions || []) {
-          const sig = `${tx.date || savedCycle.weekEnd || ""}_${tx.description}_${tx.amount}_${tx.type}`;
-          archivedTxSet.add(sig);
+          const txDate = tx.date || savedCycle.weekEnd;
+          if (txDate < weekInfo.weekStart) {
+            const sig = `${txDate}_${tx.description}_${tx.amount}_${tx.type}`;
+            archivedTxSet.add(sig);
+          }
         }
       }
     }
@@ -1188,7 +1191,10 @@ export async function getLiveCashFlowData(options?: {
 
       const normDesc = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc) ? "نقدي" : desc;
       const sig = `${d || effectiveWeekStart}_${normDesc}_${amt}_${typ}`;
-      if (archivedTxSet.has(sig)) return;
+
+      // A transaction belonging to the current active week can NEVER be dropped by archivedTxSet!
+      const isCurrentWeek = (!d || (d >= effectiveWeekStart && d <= effectiveWeekEnd));
+      if (!isCurrentWeek && archivedTxSet.has(sig)) return;
 
       if (!weeklyTxMap.has(sig)) {
         weeklyTxMap.set(sig, {
