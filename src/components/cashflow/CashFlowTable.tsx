@@ -31,6 +31,7 @@ import {
   UserPlus,
   Trash2,
   Landmark,
+  Calendar,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
@@ -59,6 +60,7 @@ type FilterStatus =
   | "partial"
   | "unpaid"
   | "overdue"
+  | "due_today"
   | "pinned"
   | "has_treasury";
 
@@ -147,7 +149,16 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   // Single editing state — 100% controlled, NO useEffect, NO focus thrashing, ZERO freeze!
   const [editing, setEditing] = useState<EditingState | null>(null);
 
-  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const todayStr = useMemo(() => {
+    if (summary.reportDate && summary.reportDate.length === 10) {
+      return summary.reportDate;
+    }
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }, [summary.reportDate]);
 
   // Total incoming from live Treasury on the current day
   const { treasuryTodayTotal, treasuryTodayCount } = useMemo(() => {
@@ -246,6 +257,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     let partial = 0;
     let unpaid = 0;
     let overdue = 0;
+    let dueToday = 0;
     let pinned = 0;
     let hasTreasury = 0;
 
@@ -254,6 +266,9 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       else if (c.status === "جزئي") partial++;
       else if (c.status === "لم يسدد") unpaid++;
 
+      if (c.dueDate === todayStr) {
+        dueToday++;
+      }
       if (c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9) {
         overdue++;
       }
@@ -270,6 +285,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       partial,
       unpaid,
       overdue,
+      dueToday,
       pinned,
       hasTreasury,
     };
@@ -293,6 +309,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       if (statusFilter === "overdue") {
         return Boolean(c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9);
       }
+      if (statusFilter === "due_today") return c.dueDate === todayStr;
       if (statusFilter === "pinned") return Boolean(c.isPinned);
       if (statusFilter === "has_treasury") return c.collectedFromTreasury > 0;
 
@@ -548,7 +565,11 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             variant={statusFilter === "unpaid" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("unpaid")}
-            className="rounded-full text-xs font-black h-9 px-4 text-rose-700 dark:text-rose-300 border-2 border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer shadow-2xs"
+            className={`rounded-full text-xs font-black h-9 px-4 cursor-pointer shadow-2xs ${
+              statusFilter === "unpaid"
+                ? "bg-rose-600 text-white border-2 border-rose-600 hover:bg-rose-700"
+                : "text-rose-700 dark:text-rose-300 border-2 border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+            }`}
           >
             لم يسدد ({counts.unpaid})
           </Button>
@@ -556,11 +577,30 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             variant={statusFilter === "overdue" ? "default" : "outline"}
             size="sm"
             onClick={() => setStatusFilter("overdue")}
-            className="rounded-full text-xs font-black h-9 px-4 text-destructive border-2 border-destructive hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer shadow-2xs"
+            className={`rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs ${
+              statusFilter === "overdue"
+                ? "bg-destructive text-destructive-foreground border-2 border-destructive hover:bg-destructive/90"
+                : "text-destructive border-2 border-destructive hover:bg-rose-50 dark:hover:bg-rose-950/40"
+            }`}
           >
             <AlertTriangle className="h-4 w-4" />
             <span>متأخرون ({counts.overdue})</span>
           </Button>
+          {counts.dueToday > 0 && (
+            <Button
+              variant={statusFilter === "due_today" ? "default" : "outline"}
+              size="sm"
+              onClick={() => setStatusFilter("due_today")}
+              className={`rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs ${
+                statusFilter === "due_today"
+                  ? "bg-blue-600 text-white border-2 border-blue-600 hover:bg-blue-700"
+                  : "text-blue-700 dark:text-blue-300 border-2 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+              }`}
+            >
+              <Calendar className="h-3.5 w-3.5 text-blue-600 dark:text-blue-300" />
+              <span>مستحق اليوم ({counts.dueToday})</span>
+            </Button>
+          )}
           {counts.pinned > 0 && (
             <Button
               variant={statusFilter === "pinned" ? "default" : "outline"}
@@ -638,15 +678,28 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                   const isEditingThisRow = editing?.customerName === cust.customerName;
                   const isOverdue =
                     Boolean(cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0 && (cust.rate || 0) < 0.9);
+                  const isDueToday = cust.dueDate === todayStr;
                   const hasTreasuryPayment = cust.collectedFromTreasury > 0;
 
+                  // High-fidelity UI/UX Pro Max Row Styling:
+                  // 1. Editing: Primary highlighted outline
+                  // 2. Due Today & Unpaid: Soft rose background with a bold blue right-border callout
+                  // 3. Completed (مكتمل / فائض): Subtle emerald background (0.04 opacity)
+                  // 4. Partial (جزئي): Subtle amber background (0.04 opacity)
+                  // 5. Unpaid (لم يسدد): Subtle rose background (0.04 opacity - exact match with completed)
                   const rowClass = isEditingThisRow
                     ? "bg-primary/10 border-2 border-primary"
+                    : isDueToday && cust.remaining > 0 && cust.status === "لم يسدد"
+                    ? "bg-rose-500/[0.04] dark:bg-rose-950/20 border-b border-border/80 border-r-4 border-r-blue-500 dark:border-r-blue-400 hover:bg-rose-500/[0.08] dark:hover:bg-rose-950/30 transition-colors"
+                    : isDueToday && (cust.status === "مكتمل" || (cust as any).status === "فائض")
+                    ? "bg-emerald-500/[0.04] dark:bg-emerald-950/20 border-b border-border/80 border-r-4 border-r-blue-500 dark:border-r-blue-400 hover:bg-emerald-500/[0.08] dark:hover:bg-emerald-950/30 transition-colors"
                     : cust.status === "مكتمل" || (cust as any).status === "فائض"
-                    ? "bg-emerald-500/[0.04] border-b border-border/80 hover:bg-muted/40"
+                    ? "bg-emerald-500/[0.04] dark:bg-emerald-950/20 border-b border-border/80 hover:bg-emerald-500/[0.08] dark:hover:bg-emerald-950/30 transition-colors"
                     : cust.status === "جزئي"
-                    ? "bg-amber-500/[0.04] border-b border-border/80 hover:bg-muted/40"
-                    : "border-b border-border/80 hover:bg-muted/40";
+                    ? "bg-amber-500/[0.04] dark:bg-amber-950/20 border-b border-border/80 hover:bg-amber-500/[0.08] dark:hover:bg-amber-950/30 transition-colors"
+                    : cust.status === "لم يسدد"
+                    ? "bg-rose-500/[0.04] dark:bg-rose-950/20 border-b border-border/80 hover:bg-rose-500/[0.08] dark:hover:bg-rose-950/30 transition-colors"
+                    : "border-b border-border/80 hover:bg-muted/40 transition-colors";
 
                   return (
                     <TableRow key={cust.customerName} className={rowClass}>
@@ -802,16 +855,29 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       <TableCell className="text-right py-3 whitespace-nowrap col-due">
                         {cust.dueDate ? (
                           <div className="flex items-center gap-1.5">
-                            <span
-                              className={`${FONT.date} ${
-                                isOverdue
-                                  ? "text-rose-600 dark:text-rose-400 font-black bg-rose-100 dark:bg-rose-950 px-2 py-0.5 rounded border border-rose-300"
-                                  : "text-foreground"
-                              }`}
-                            >
-                              {cust.dueDate}
-                            </span>
-                            {isOverdue && (
+                            {isDueToday ? (
+                              <span
+                                className={`${FONT.date} text-blue-800 dark:text-blue-200 font-extrabold bg-blue-100 dark:bg-blue-950/80 px-2.5 py-1 rounded-lg border-2 border-blue-400 dark:border-blue-500 inline-flex items-center gap-1.5 shadow-2xs`}
+                                title="موعد التحصيل مستحق اليوم!"
+                              >
+                                <Calendar className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400" />
+                                <span>{cust.dueDate}</span>
+                                <span className="text-[10px] font-black bg-blue-600 text-white dark:bg-blue-500 dark:text-slate-950 px-1.5 py-0.5 rounded-sm">
+                                  اليوم
+                                </span>
+                              </span>
+                            ) : (
+                              <span
+                                className={`${FONT.date} ${
+                                  isOverdue
+                                    ? "text-rose-600 dark:text-rose-400 font-black bg-rose-100 dark:bg-rose-950 px-2 py-0.5 rounded border border-rose-300"
+                                    : "text-foreground"
+                                }`}
+                              >
+                                {cust.dueDate}
+                              </span>
+                            )}
+                            {isOverdue && !isDueToday && (
                               <span title="تجاوز موعد السداد">
                                 <AlertTriangle className="h-4 w-4 text-rose-600 animate-pulse" />
                               </span>
