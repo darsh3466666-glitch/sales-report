@@ -740,7 +740,7 @@
     {
       "customerName": "نصر لملوم",
       "currentBalance": 38620.0,
-      "dueDate": "2026-11-13",
+      "dueDate": "2026-11-12",
       "notes": "تصفية الحساب بعد  3 شهور",
       "isActive2026": true,
       "isKhalis": false
@@ -2901,7 +2901,7 @@
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
       "currentBalance": 182765.0,
       "dueDate": "2026-11-13",
-      "notes": "مكالمة من م علي منير  لسة مبعش",
+      "notes": "السبت هيصفي حسابه 14/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4636,6 +4636,20 @@
       "index": 9
     },
     {
+      "customerName": "نصر لملوم",
+      "normalizedName": "نصر لملوم",
+      "currentBalance": 38620.0,
+      "expectedAmount": 38620.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-12",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 38620.0,
+      "notes": "تصفية الحساب بعد  3 شهور",
+      "isPinned": false,
+      "index": 10
+    },
+    {
       "customerName": "جمال مختار - قمن العروس",
       "normalizedName": "جمال مختار قمن العروس",
       "currentBalance": 32800.0,
@@ -4647,7 +4661,7 @@
       "remaining": 32800.0,
       "notes": "جمال مختار باقي حسابه يوم الخميس أو الجمعة",
       "isPinned": false,
-      "index": 10
+      "index": 11
     },
     {
       "customerName": "عمرو حسن عابد",
@@ -4661,7 +4675,7 @@
       "remaining": 8750.0,
       "notes": "الخميس 12/11/2026",
       "isPinned": false,
-      "index": 11
+      "index": 12
     },
     {
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
@@ -4673,9 +4687,9 @@
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 182765.0,
-      "notes": "مكالمة من م علي منير  لسة مبعش",
+      "notes": "السبت هيصفي حسابه 14/11/2026",
       "isPinned": false,
-      "index": 12
+      "index": 13
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -4688,20 +4702,6 @@
       "status": "لم يسدد",
       "remaining": 50070.0,
       "notes": "فاتورة 8325 خلال 25 يوم 13/11/2026  فاتورة ابن عمه",
-      "isPinned": false,
-      "index": 13
-    },
-    {
-      "customerName": "نصر لملوم",
-      "normalizedName": "نصر لملوم",
-      "currentBalance": 38620.0,
-      "expectedAmount": 38620.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-13",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 38620.0,
-      "notes": "تصفية الحساب بعد  3 شهور",
       "isPinned": false,
       "index": 14
     },
