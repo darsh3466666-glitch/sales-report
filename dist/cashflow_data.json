@@ -4904,14 +4904,8 @@
       "date": "2026-11-11"
     },
     {
-      "amount": 800,
-      "description": "عميل نقدى",
-      "type": "كاش",
-      "date": "2026-11-11"
-    },
-    {
-      "amount": 50,
-      "description": "عميل نقدى",
+      "amount": 850,
+      "description": "نقدي",
       "type": "كاش",
       "date": "2026-11-11"
     },
