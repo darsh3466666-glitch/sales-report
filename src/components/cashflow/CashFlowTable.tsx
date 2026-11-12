@@ -30,6 +30,7 @@ import {
   RotateCcw,
   UserPlus,
   Trash2,
+  Landmark,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
@@ -804,12 +805,47 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                         <div className={`${FONT.money} text-emerald-700 dark:text-emerald-400`}>
                           {fmtMoney(cust.totalCollected)}
                         </div>
-                        {hasTreasuryPayment && !isEditingThisRow && (
-                          <div className="inline-flex items-center gap-1 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-300 mt-1">
-                            <Zap className="h-3 w-3 fill-emerald-500" />
-                            <span>+{fmtMoney(cust.collectedFromTreasury)} خزينة</span>
-                          </div>
-                        )}
+                        {hasTreasuryPayment && !isEditingThisRow && (() => {
+                          let custCash = 0;
+                          let custBank = 0;
+                          if (Array.isArray(cust.treasuryTransactions) && cust.treasuryTransactions.length > 0) {
+                            for (const tx of cust.treasuryTransactions) {
+                              const isBank =
+                                tx.type === "بنك" ||
+                                (typeof tx.type === "string" && tx.type.toLowerCase().includes("bank")) ||
+                                (typeof tx.description === "string" &&
+                                  (tx.description.includes("بنك") ||
+                                    tx.description.includes("تحويل بنكي") ||
+                                    tx.description.includes("ايداع بنكي")));
+                              if (isBank) custBank += tx.amount || 0;
+                              else custCash += tx.amount || 0;
+                            }
+                          } else {
+                            const isBank =
+                              cust.customerName.includes("بنك") ||
+                              (cust.notes && cust.notes.includes("بنك")) ||
+                              normalizeArabicName(cust.customerName).includes("يونس");
+                            if (isBank) custBank = cust.collectedFromTreasury;
+                            else custCash = cust.collectedFromTreasury;
+                          }
+
+                          return (
+                            <div className="flex flex-col gap-1 mt-1">
+                              {custCash > 0 && (
+                                <div className="inline-flex items-center gap-1 text-xs font-black text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 rounded-md border border-emerald-300">
+                                  <Zap className="h-3 w-3 fill-emerald-500" />
+                                  <span>+{fmtMoney(custCash)} خزينة</span>
+                                </div>
+                              )}
+                              {custBank > 0 && (
+                                <div className="inline-flex items-center gap-1 text-xs font-black text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-950 px-2 py-0.5 rounded-md border border-blue-300">
+                                  <Landmark className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                  <span>+{fmtMoney(custBank)} بنك</span>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </TableCell>
 
                       {/* Due Date */}

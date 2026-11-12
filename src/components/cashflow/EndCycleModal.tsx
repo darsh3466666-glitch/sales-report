@@ -12,6 +12,7 @@ import {
   RotateCcw,
   ShieldCheck,
   X,
+  Landmark,
 } from "lucide-react";
 
 interface EndCycleModalProps {
@@ -145,12 +146,17 @@ export const EndCycleModal: React.FC<EndCycleModalProps> = ({
           <div className="flex items-center gap-3 p-3 bg-muted/40 rounded-xl text-xs font-semibold text-foreground/80 flex-wrap">
             <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
               <Zap className="h-3.5 w-3.5" />
-              من الخزينة مباشر: <strong className="font-sans tabular-nums">{fmtMoney(summary.collectedFromTreasury)}</strong>
+              نقدي كاش: <strong className="font-sans tabular-nums">{fmtMoney(summary.collectedCash ?? summary.collectedFromTreasury)}</strong>
             </span>
-            <span className="text-muted-foreground">•</span>
-            <span>
-              من شيت التحصيل: <strong className="font-sans tabular-nums">{fmtMoney(summary.collectedFromSheet)}</strong>
-            </span>
+            {(summary.collectedBank ?? 0) > 0 && (
+              <>
+                <span className="text-muted-foreground">•</span>
+                <span className="flex items-center gap-1 text-blue-700 dark:text-blue-400">
+                  <Landmark className="h-3.5 w-3.5" />
+                  بنك: <strong className="font-sans tabular-nums">{fmtMoney(summary.collectedBank || 0)}</strong>
+                </span>
+              </>
+            )}
             <span className="text-muted-foreground">•</span>
             <span>
               إجمالي العملاء: <strong className="font-sans tabular-nums">{summary.customerCount}</strong>

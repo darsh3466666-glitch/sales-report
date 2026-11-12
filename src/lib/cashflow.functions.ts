@@ -14,6 +14,8 @@ export interface ArchivedCashFlowWeek {
   totalCollected: number;
   collectedFromSheet: number;
   collectedFromTreasury: number;
+  collectedCash?: number;
+  collectedBank?: number;
   collectionRate: number;
   remainingToTarget: number;
   customerCount: number;
@@ -85,6 +87,8 @@ export interface CashFlowSummary {
   totalCollected: number;
   collectedFromSheet: number;
   collectedFromTreasury: number;
+  collectedCash: number;
+  collectedBank: number;
   collectionRate: number;
   remainingToTarget: number;
   customerCount: number;
@@ -446,6 +450,56 @@ export function saveCustomerOverride(
 }
 
 /**
+ * Helper to calculate cumulative breakdown of collected amounts into pure cash and bank transfers.
+ */
+export function calculateCashAndBankBreakdown(customers: CashFlowCustomer[]): {
+  collectedCash: number;
+  collectedBank: number;
+} {
+  let collectedCash = 0;
+  let collectedBank = 0;
+
+  for (const cust of customers) {
+    let cCash = 0;
+    let cBank = 0;
+
+    if (Array.isArray(cust.treasuryTransactions) && cust.treasuryTransactions.length > 0) {
+      for (const tx of cust.treasuryTransactions) {
+        const isBank =
+          tx.type === "بنك" ||
+          (typeof tx.type === "string" && tx.type.toLowerCase().includes("bank")) ||
+          (typeof tx.description === "string" &&
+            (tx.description.includes("بنك") ||
+              tx.description.includes("تحويل بنكي") ||
+              tx.description.includes("ايداع بنكي")));
+        if (isBank) {
+          cBank += tx.amount || 0;
+        } else {
+          cCash += tx.amount || 0;
+        }
+      }
+    } else if (cust.collectedFromTreasury > 0) {
+      const isBank =
+        cust.customerName.includes("بنك") ||
+        (cust.notes && cust.notes.includes("بنك")) ||
+        normalizeArabicName(cust.customerName).includes("يونس");
+      if (isBank) {
+        cBank += cust.collectedFromTreasury;
+      } else {
+        cCash += cust.collectedFromTreasury;
+      }
+    }
+
+    cCash += cust.collectedFromSheet || 0;
+
+    collectedCash += cCash;
+    collectedBank += cBank;
+  }
+
+  return { collectedCash, collectedBank };
+}
+
+/**
  * Delete customer from summary and update state instantly in-memory.
  */
 export function deleteCustomerFromSummary(
@@ -473,6 +527,8 @@ export function deleteCustomerFromSummary(
       overdueCount++;
     }
   }
+
+  const { collectedCash, collectedBank } = calculateCashAndBankBreakdown(remainingCusts);
 
   const weeklyGoal = summary.weeklyGoal || 4000000;
   const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
@@ -517,6 +573,8 @@ export function deleteCustomerFromSummary(
     totalCollected,
     collectedFromSheet,
     collectedFromTreasury,
+    collectedCash,
+    collectedBank,
     collectionRate,
     remainingToTarget,
     customerCount: remainingCusts.length,
@@ -597,6 +655,8 @@ export function addCustomerToSummary(
     }
   }
 
+  const { collectedCash, collectedBank } = calculateCashAndBankBreakdown(updatedCusts);
+
   const weeklyGoal = summary.weeklyGoal || 4000000;
   const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
   const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
@@ -640,6 +700,8 @@ export function addCustomerToSummary(
     totalCollected,
     collectedFromSheet,
     collectedFromTreasury,
+    collectedCash,
+    collectedBank,
     collectionRate,
     remainingToTarget,
     customerCount: updatedCusts.length,
@@ -720,6 +782,8 @@ export function recalculateCashFlowSummary(
     }
   }
 
+  const { collectedCash, collectedBank } = calculateCashAndBankBreakdown(updatedCustomers);
+
   const weeklyGoal = currentSummary.weeklyGoal || 4000000;
   const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
   const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
@@ -760,6 +824,8 @@ export function recalculateCashFlowSummary(
     totalCollected,
     collectedFromSheet,
     collectedFromTreasury,
+    collectedCash,
+    collectedBank,
     collectionRate,
     remainingToTarget,
     overdueCount,
@@ -1431,6 +1497,7 @@ export async function getLiveCashFlowData(options?: {
     const weeklyGoal = rawConfig?.weeklyGoal || rawData?.weeklyGoal || 4000000;
     const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
     const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
+    const { collectedCash, collectedBank } = calculateCashAndBankBreakdown(baseCustomers);
 
     // Persist active cycle state so baseline customers and expected amounts stay frozen across all 30s background queries
     saveActiveCycleState({
@@ -1553,6 +1620,8 @@ export async function getLiveCashFlowData(options?: {
       totalCollected,
       collectedFromSheet,
       collectedFromTreasury,
+      collectedCash,
+      collectedBank,
       collectionRate,
       remainingToTarget,
       customerCount: baseCustomers.length,
@@ -1594,6 +1663,8 @@ export async function getLiveCashFlowData(options?: {
       totalCollected: rawData?.totalCollected || 0,
       collectedFromSheet: rawData?.totalCollected || 0,
       collectedFromTreasury: 0,
+      collectedCash: rawData?.totalCollected || 0,
+      collectedBank: 0,
       collectionRate: rawData?.collectionRate || 0,
       remainingToTarget: rawData?.remainingToTarget || 4000000,
       customerCount: fallbackCustomers.length,
@@ -1698,6 +1769,8 @@ export async function archiveCurrentWeekAndStartNew(
     totalCollected: currentSummary.totalCollected,
     collectedFromSheet: currentSummary.collectedFromSheet,
     collectedFromTreasury: currentSummary.collectedFromTreasury,
+    collectedCash: currentSummary.collectedCash ?? currentSummary.collectedFromTreasury,
+    collectedBank: currentSummary.collectedBank ?? 0,
     collectionRate: currentSummary.collectionRate,
     remainingToTarget: currentSummary.remainingToTarget,
     customerCount: currentSummary.customerCount,
@@ -1928,6 +2001,8 @@ export async function archiveCurrentWeekAndStartNew(
     totalCollected: 0,
     collectedFromSheet: 0,
     collectedFromTreasury: 0,
+    collectedCash: 0,
+    collectedBank: 0,
     collectionRate: 0,
     remainingToTarget: weeklyGoal,
     customerCount: newCustomers.length,

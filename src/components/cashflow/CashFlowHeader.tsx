@@ -249,9 +249,16 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
               <p className="text-xl sm:text-2xl font-black tracking-tight text-primary-dark mt-1.5 font-sans tabular-nums">
                 {fmtMoney(summary.totalCollected)}
               </p>
-              <p className="text-xs text-success font-bold mt-1 truncate">
-                نقدي كاش: {fmtMoney(summary.collectedFromTreasury)}
-              </p>
+              <div className="flex items-center justify-between text-xs font-bold mt-1 gap-1.5 flex-wrap">
+                <span className="text-success truncate">
+                  نقدي كاش: {fmtMoney(summary.collectedCash ?? summary.collectedFromTreasury)}
+                </span>
+                {(summary.collectedBank ?? 0) > 0 && (
+                  <span className="text-blue-700 dark:text-blue-400 font-bold truncate">
+                    • بنك: {fmtMoney(summary.collectedBank || 0)}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex items-center justify-between text-xs font-bold pt-2 mt-auto border-t border-primary-dark/15 text-primary-dark/70">
               <span>الماضي:</span>
