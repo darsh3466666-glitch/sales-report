@@ -118,6 +118,7 @@ function CashFlowPage() {
 
   useEffect(() => {
     setDark(document.documentElement.classList.contains("dark"));
+    document.title = "تقرير التدفقات النقدية (Cash Flow)";
   }, []);
 
   function toggleTheme() {

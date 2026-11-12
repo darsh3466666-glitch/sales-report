@@ -605,22 +605,22 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       </div>
 
       {/* Cash Flow Main Data Table */}
-      <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden">
+      <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden cashflow-table-container">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
-                {renderSortHeader("index", "م", "center", "w-14")}
-                {renderSortHeader("currentBalance", "الرصيد الحالي", "right", "min-w-[130px]")}
-                {renderSortHeader("customerName", "العميل", "right", "min-w-[220px]")}
-                {renderSortHeader("expectedAmount", "المتوقع", "right", "min-w-[140px]")}
-                {renderSortHeader("totalCollected", "المحصل", "right", "min-w-[130px]")}
-                {renderSortHeader("dueDate", "موعد السداد", "right", "min-w-[120px]")}
-                {renderSortHeader("rate", "نسبة السداد", "center", "min-w-[95px]")}
-                {renderSortHeader("status", "حالة السداد", "center", "min-w-[105px]")}
-                {renderSortHeader("remaining", "المتبقي", "right", "min-w-[130px]")}
-                <TableHead className={`${FONT.headerCell} min-w-[150px] text-right py-3.5`}>ملاحظات</TableHead>
-                <TableHead className={`w-24 text-center ${FONT.headerCell} py-3.5 no-print`}>إجراءات</TableHead>
+                {renderSortHeader("index", "م", "center", "w-14 col-index")}
+                {renderSortHeader("currentBalance", "الرصيد الحالي", "right", "min-w-[130px] col-balance")}
+                {renderSortHeader("customerName", "العميل", "right", "min-w-[220px] col-customer")}
+                {renderSortHeader("expectedAmount", "المتوقع", "right", "min-w-[140px] col-expected")}
+                {renderSortHeader("totalCollected", "المحصل", "right", "min-w-[130px] col-collected")}
+                {renderSortHeader("dueDate", "موعد السداد", "right", "min-w-[120px] col-due")}
+                {renderSortHeader("rate", "نسبة السداد", "center", "min-w-[95px] col-rate")}
+                {renderSortHeader("status", "حالة السداد", "center", "min-w-[105px] col-status")}
+                {renderSortHeader("remaining", "المتبقي", "right", "min-w-[130px] col-remaining")}
+                <TableHead className={`${FONT.headerCell} min-w-[150px] text-right py-3.5 col-notes`}>ملاحظات</TableHead>
+                <TableHead className={`w-24 text-center ${FONT.headerCell} py-3.5 no-print col-actions`}>إجراءات</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -652,7 +652,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                     <TableRow key={cust.customerName} className={rowClass}>
                       {/* Index */}
                       <TableCell
-                        className={`text-center py-3 ${FONT.index} ${
+                        className={`text-center py-3 col-index ${FONT.index} ${
                           isEditingThisRow ? "text-primary" : "text-muted-foreground"
                         }`}
                       >
@@ -660,14 +660,14 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Current Balance */}
-                      <TableCell className="text-right py-3 whitespace-nowrap">
+                      <TableCell className="text-right py-3 whitespace-nowrap col-balance">
                         <span className={`${FONT.money} text-foreground`}>
                           {fmtMoney(cust.currentBalance)}
                         </span>
                       </TableCell>
 
                       {/* Customer Name */}
-                      <TableCell className="py-3">
+                      <TableCell className="py-3 col-customer">
                         {isEditingThisRow ? (
                           <div className="flex flex-col">
                             <span className={FONT.name}>{cust.customerName}</span>
@@ -706,7 +706,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Expected */}
-                      <TableCell className="text-right py-3 whitespace-nowrap">
+                      <TableCell className="text-right py-3 whitespace-nowrap col-expected">
                         {isEditingThisRow ? (
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-1.5">
@@ -756,7 +756,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Collected */}
-                      <TableCell className="text-right py-3 whitespace-nowrap">
+                      <TableCell className="text-right py-3 whitespace-nowrap col-collected">
                         <div className={`${FONT.money} text-emerald-700 dark:text-emerald-400`}>
                           {fmtMoney(cust.totalCollected)}
                         </div>
@@ -804,7 +804,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Due Date */}
-                      <TableCell className="text-right py-3 whitespace-nowrap">
+                      <TableCell className="text-right py-3 whitespace-nowrap col-due">
                         {cust.dueDate ? (
                           <div className="flex items-center gap-1.5">
                             <span
@@ -828,19 +828,19 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Collection Rate */}
-                      <TableCell className="text-center py-3 whitespace-nowrap">
+                      <TableCell className="text-center py-3 whitespace-nowrap col-rate">
                         <span className={`${FONT.pct} text-foreground`}>
                           {fmtPct(cust.rate)}
                         </span>
                       </TableCell>
 
                       {/* Status Badge */}
-                      <TableCell className="text-center py-3">
+                      <TableCell className="text-center py-3 col-status">
                         {renderStatusBadge(cust.status)}
                       </TableCell>
 
                       {/* Remaining */}
-                      <TableCell className="text-right py-3 whitespace-nowrap">
+                      <TableCell className="text-right py-3 whitespace-nowrap col-remaining">
                         <span
                           className={`${FONT.money} ${
                             cust.remaining > 0
@@ -853,7 +853,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Notes */}
-                      <TableCell className="text-right py-3 max-w-[190px]">
+                      <TableCell className="text-right py-3 max-w-[190px] col-notes">
                         {isEditingThisRow ? (
                           <input
                             type="text"
@@ -878,7 +878,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                       </TableCell>
 
                       {/* Actions */}
-                      <TableCell className="text-center py-3 no-print">
+                      <TableCell className="text-center py-3 no-print col-actions">
                         {isEditingThisRow ? (
                           <div className="flex items-center justify-center gap-1.5">
                             <button

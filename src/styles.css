@@ -253,9 +253,17 @@
   }
 
   .card,
-  [class*="rounded-"],
-  table,
   .recharts-wrapper {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  table {
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  tr {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
@@ -400,6 +408,121 @@
   }
   .print-layout-mobile .font-semibold {
     font-weight: 600 !important;
+  }
+
+  /* ----------------------------------------------------
+     Cash Flow Table Print Architecture (100% Fit & Visibility)
+     ---------------------------------------------------- */
+  .cashflow-table-container,
+  .cashflow-table-container > div,
+  .cashflow-table-container [class*="overflow-"] {
+    overflow: visible !important;
+    overflow-x: visible !important;
+    overflow-y: visible !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    border-radius: 4px !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+
+  .cashflow-table-container table {
+    width: 100% !important;
+    max-width: 100% !important;
+    table-layout: fixed !important;
+    border-collapse: collapse !important;
+    font-size: 7.2pt !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
+  }
+
+  .cashflow-table-container thead {
+    display: table-header-group !important;
+    break-inside: avoid !important;
+    background-color: #f1f5f9 !important;
+  }
+
+  .cashflow-table-container tbody {
+    display: table-row-group !important;
+  }
+
+  .cashflow-table-container tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .cashflow-table-container th,
+  .cashflow-table-container td {
+    min-width: 0 !important;
+    max-width: none !important;
+    padding: 2.5pt 1.5pt !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    white-space: normal !important;
+    vertical-align: middle !important;
+    box-sizing: border-box !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+  }
+
+  /* Hide sort arrows and icons in print to maximize readable area */
+  .cashflow-table-container th svg,
+  .cashflow-table-container td svg {
+    display: none !important;
+  }
+
+  /* Reset font sizes inside table during print so everything scales harmoniously */
+  .cashflow-table-container [class*="text-"],
+  .cashflow-table-container th span,
+  .cashflow-table-container td span,
+  .cashflow-table-container th div,
+  .cashflow-table-container td div {
+    font-size: 7.2pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .cashflow-table-container th span {
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    font-size: 7.5pt !important;
+  }
+
+  /* Strict proportional column widths: exactly 100% total */
+  .cashflow-table-container .col-index { width: 4% !important; text-align: center !important; }
+  .cashflow-table-container .col-balance { width: 11% !important; text-align: right !important; }
+  .cashflow-table-container .col-customer { width: 20% !important; text-align: right !important; font-weight: 700 !important; }
+  .cashflow-table-container .col-expected { width: 10% !important; text-align: right !important; }
+  .cashflow-table-container .col-collected { width: 11% !important; text-align: right !important; }
+  .cashflow-table-container .col-due { width: 10% !important; text-align: right !important; }
+  .cashflow-table-container .col-rate { width: 7% !important; text-align: center !important; }
+  .cashflow-table-container .col-status { width: 9% !important; text-align: center !important; }
+  .cashflow-table-container .col-remaining { width: 9% !important; text-align: right !important; }
+  .cashflow-table-container .col-notes { width: 9% !important; text-align: right !important; }
+  .cashflow-table-container .col-actions { display: none !important; }
+
+  /* Compact status badge inside table */
+  .cashflow-table-container .col-status [class*="badge"],
+  .cashflow-table-container .col-status [class*="Badge"] {
+    padding: 1px 2px !important;
+    border-width: 1px !important;
+    font-size: 6.8pt !important;
+    white-space: nowrap !important;
+    display: inline-block !important;
+    border-radius: 4px !important;
+  }
+
+  /* Compact pill in expected column */
+  .cashflow-table-container .col-expected span[class*="rounded-xl"] {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  /* Compact treasury badges */
+  .cashflow-table-container .col-collected [class*="rounded-md"] {
+    padding: 0.5px 2px !important;
+    font-size: 6.2pt !important;
+    border-width: 1px !important;
+    margin-top: 1px !important;
   }
 }
 
