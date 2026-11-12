@@ -11,3 +11,4 @@ coverage/
 .last_mtimes.json
 __pycache__/
 *.pyc
+graphify-out/
