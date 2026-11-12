@@ -2708,8 +2708,8 @@
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
       "currentBalance": 255400.0,
-      "dueDate": "2026-11-15",
-      "notes": "الاحد 15/11/2026",
+      "dueDate": "2026-11-17",
+      "notes": "الاثنين او الثلاثاء 17/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4782,11 +4782,11 @@
       "currentBalance": 255400.0,
       "expectedAmount": 150000.0,
       "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-15",
+      "dueDate": "2026-11-17",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 150000.0,
-      "notes": "الاحد 15/11/2026",
+      "notes": "الاثنين او الثلاثاء 17/11/2026",
       "isPinned": false
     },
     {
