@@ -65,16 +65,19 @@ def get_current_week_window(ref_date=None):
 
 def extract_cashflow():
     """
-    Smart extraction without relying on the legacy 'cash flow' sheet.
-    Sources due dates, targets, and balances from:
-    1. 'خط_سير' (Weekly Route targets and new due dates)
-    2. 'عملاء الدورة ' (Cycle customers whose due date falls in the period)
-    3. 'Master_Data' (Current balances and payment agreements)
-    Enforces strict business rules:
-    - Minimum balance >= 1000 EGP (excluding cash customer)
-    - Active customer in 2026 (last payment or invoice in 2026)
-    - Excludes settled/cleared accounts (خالص / تم التصفية)
-    - Only authentic Master_Data customer accounts
+    Direct extraction solely from 'Master_Data' in 'شيت تحصيل.xlsm'.
+    Eliminates all secondary sheets ('خط_سير', 'متابعة المحصل', 'عملاء الدورة', 'cash flow')
+    to prevent customer drops or unintended filters.
+    
+    Master_Data columns:
+    - Col B (index 1): Customer Name (اسم العميل)
+    - Col C (index 2): Current Balance (الرصيد الحالي)
+    - Col D (index 3): Last Payment Year (سنة آخر سداد)
+    - Col E (index 4): Last Invoice Year (سنة آخر فاتورة)
+    - Col H (index 7): Due Date (تاريخ التحصيل - محدث يدوياً من المستخدم)
+    - Col I (index 8): Status (حالة العميل)
+    - Col K (index 10): Today Status (حالة اليوم)
+    - Col M (index 12): Notes (ملاحظات - محدثة يدوياً من المستخدم)
     """
     if not os.path.exists(EXCEL_FILE):
         print(f"Error: {EXCEL_FILE} does not exist")
@@ -101,11 +104,57 @@ def extract_cashflow():
     fixed_amounts = existing_config.get("fixedAmounts", {})
     notes = existing_config.get("notes", {})
 
-    # 1. Index Master_Data for latest actual balances and valid customer registry
+    # 1. Load active week treasury transactions
+    data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
+    default_seed_tx = [
+        {"amount": 200000, "description": "محمد يونس عبد اللطيف(قلمشاه)", "type": "بنك", "date": "2026-11-11"},
+        {"amount": 44000, "description": "اسامه علي عبد الكريم", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 30000, "description": "احمد راغب(الهداهدة)", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 29000, "description": "حمزة عبدالحميد خليفة - حلوان", "type": "خزينة", "date": "2026-11-11"},
+        {"amount": 16000, "description": "محمود ابو زيد - الهداهده", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 10700, "description": "محمد حنفي(شعبان) طريق اسيوط", "type": "خزينة", "date": "2026-11-11"},
+        {"amount": 1570, "description": "مرسي (مدشه)", "type": "خزينة", "date": "2026-11-11"},
+        {"amount": 800, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 50, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 850, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 140000, "description": "ابو حمزه", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 39200, "description": "محمد ابو فهد", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 5700, "description": "علي محمد", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 1700, "description": "نقدي", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 850, "description": "نقدي", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 100000, "description": "ايه بي ديري", "type": "تنمية", "date": "2026-11-12"},
+        {"amount": 40000, "description": "عبدالتواب احمد", "type": "ب مصر", "date": "2026-11-12"},
+        {"amount": 200000, "description": "الخيرات", "type": "زراعي", "date": "2026-11-12"},
+        {"amount": 5000, "description": "حماده عبدالخالق", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 1190, "description": "نقدي", "type": "كاش", "date": "2026-11-12"}
+    ]
+    existing_weekly_tx = list(default_seed_tx)
+    if os.path.exists(data_path):
+        try:
+            with open(data_path, 'r', encoding='utf-8') as f:
+                prev_d = json.load(f)
+                if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
+                    seen_sigs = set(f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}" for t in existing_weekly_tx)
+                    for t in prev_d['weeklyTreasuryTransactions']:
+                        sig = f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}"
+                        if sig not in seen_sigs:
+                            existing_weekly_tx.append(t)
+                            seen_sigs.add(sig)
+        except Exception:
+            pass
+
+    paid_names_set = set()
+    for t in existing_weekly_tx:
+        p_desc = normalize_arabic(t.get('description', ''))
+        if p_desc:
+            paid_names_set.add(p_desc)
+
+    # 2. Index Master_Data - The ONLY authoritative sheet
     master_dict = {}
     master_names_list = []
     master_names_set = set()
     master_customers_list = []
+
     if 'Master_Data' in wb.sheetnames:
         ws_m = wb['Master_Data']
         m_rows = list(ws_m.iter_rows(values_only=True))
@@ -137,7 +186,7 @@ def extract_cashflow():
                     'lastInvoiceYear': inv_yr,
                 }
 
-                # Include all legitimate master customers in the searchable master registry for autocomplete/adding
+                # Include legitimate master customers in searchable list
                 is_expense = any(k in norm for k in ['ريع نقل', 'سولار', 'مصاريف', 'مرتبات', 'كهرباء', 'مياه', 'صيانة', 'بوفيه', 'ادوات', 'ايجار', 'ايراد'])
                 if not is_expense and m_name:
                     master_names_list.append(m_name)
@@ -151,235 +200,70 @@ def extract_cashflow():
                         'isKhalis': is_khalis,
                     })
 
-    extracted_customers = {}
-
-    # 2. Extract from 'خط_سير' (Primary Route sheet for weekly targets)
-    if 'خط_سير' in wb.sheetnames:
-        ws_route = wb['خط_سير']
-        r_rows = list(ws_route.iter_rows(values_only=True))
-        for r in r_rows[1:]:
-            if r and len(r) > 4 and r[4]:
-                c_name = str(r[4]).strip()
-                norm = normalize_arabic(c_name)
-                if not norm:
-                    continue
-                # Expected amount from column F (index 5)
-                exp = float(r[5]) if len(r) > 5 and r[5] is not None and isinstance(r[5], (int, float)) else 0.0
-                # Due date from column C (index 2)
-                due = format_date(r[2]) if len(r) > 2 else ''
-                # Note from column J (index 9)
-                note = str(r[9]).strip() if len(r) > 9 and r[9] else ''
-                
-                bal = master_dict.get(norm, {}).get('balance', exp)
-                if due == '' and norm in master_dict:
-                    due = master_dict[norm].get('dueDate', '')
-
-                extracted_customers[norm] = {
-                    'customerName': c_name,
-                    'normalizedName': norm,
-                    'currentBalance': bal,
-                    'expectedAmount': exp,
-                    'collectedFromSheet': 0.0,
-                    'dueDate': due,
-                    'notes': note,
-                    'source': 'خط_سير'
-                }
-
-    # 3. Extract from 'عملاء الدورة ' (Cycle customers)
-    cycle_sheet_name = 'عملاء الدورة ' if 'عملاء الدورة ' in wb.sheetnames else ('عملاء الدورة' if 'عملاء الدورة' in wb.sheetnames else None)
-    if cycle_sheet_name:
-        ws_cycle = wb[cycle_sheet_name]
-        c_rows = list(ws_cycle.iter_rows(values_only=True))
-        for r in c_rows[2:]:
-            if r and len(r) > 2 and r[1]:
-                c_name = str(r[1]).strip()
-                norm = normalize_arabic(c_name)
-                if not norm:
-                    continue
-                bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
-                due = format_date(r[3]) if len(r) > 3 else ''
-
-                if norm in extracted_customers:
-                    if not extracted_customers[norm]['dueDate'] and due:
-                        extracted_customers[norm]['dueDate'] = due
-                    if extracted_customers[norm]['currentBalance'] == 0.0 and bal > 0:
-                        extracted_customers[norm]['currentBalance'] = bal
-                else:
-                    if bal > 0:
-                        extracted_customers[norm] = {
-                            'customerName': c_name,
-                            'normalizedName': norm,
-                            'currentBalance': bal,
-                            'expectedAmount': bal,
-                            'collectedFromSheet': 0.0,
-                            'dueDate': due,
-                            'notes': notes.get(c_name, ''),
-                            'source': 'عملاء الدورة'
-                        }
-
-    # 4. Fallback merge from legacy 'cash flow' sheet if present (for backward compatibility and sheet collection matching)
-    if 'cash flow' in wb.sheetnames:
-        ws_cf = wb['cash flow']
-        cf_rows = list(ws_cf.iter_rows(values_only=True))
-        for r in cf_rows[4:]:
-            if r and len(r) > 2 and r[2]:
-                c_name = str(r[2]).strip()
-                norm = normalize_arabic(c_name)
-                if not norm:
-                    continue
-                bal = float(r[1]) if r[1] is not None and isinstance(r[1], (int, float)) else 0.0
-                exp = float(r[3]) if len(r) > 3 and r[3] is not None and isinstance(r[3], (int, float)) else 0.0
-                coll = float(r[4]) if len(r) > 4 and r[4] is not None and isinstance(r[4], (int, float)) else 0.0
-                due = format_date(r[5]) if len(r) > 5 else ''
-                note = str(r[9]).strip() if len(r) > 9 and r[9] else ''
-
-                if norm in extracted_customers:
-                    extracted_customers[norm]['collectedFromSheet'] = coll
-                    if exp > 0 and extracted_customers[norm]['expectedAmount'] == 0:
-                        extracted_customers[norm]['expectedAmount'] = exp
-                    if due and not extracted_customers[norm]['dueDate']:
-                        extracted_customers[norm]['dueDate'] = due
-                    if note and not extracted_customers[norm]['notes']:
-                        extracted_customers[norm]['notes'] = note
-                else:
-                    extracted_customers[norm] = {
-                        'customerName': c_name,
-                        'normalizedName': norm,
-                        'currentBalance': bal,
-                        'expectedAmount': exp if exp > 0 else bal,
-                        'collectedFromSheet': coll,
-                        'dueDate': due,
-                        'notes': note or notes.get(c_name, ''),
-                        'source': 'cash flow'
-                    }
-
-    # 4.5 Extract from 'متابعة المحصل ' (Collector Follow-up sheet)
-    # Essential for customers assigned to collector Abdul Rahman (e.g. جمعه محمود رضوان, سرسنا, السحابه)
-    col_sheet_name = next((s for s in wb.sheetnames if 'متابعة المحصل' in s), None)
-    if col_sheet_name:
-        ws_col = wb[col_sheet_name]
-        col_rows = list(ws_col.iter_rows(values_only=True))
-        for r in col_rows[2:]:
-            if r and len(r) > 1 and r[1]:
-                c_name = str(r[1]).strip()
-                norm = normalize_arabic(c_name)
-                if not norm:
-                    continue
-                bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
-                note = str(r[6]).strip() if len(r) > 6 and r[6] else ''
-                due = ''
-                if norm in master_dict:
-                    due = master_dict[norm].get('dueDate', '')
-
-                if norm in extracted_customers:
-                    if not extracted_customers[norm]['notes'] and note:
-                        extracted_customers[norm]['notes'] = note
-                    if not extracted_customers[norm]['dueDate'] and due:
-                        extracted_customers[norm]['dueDate'] = due
-                else:
-                    if bal >= 5000:
-                        extracted_customers[norm] = {
-                            'customerName': c_name,
-                            'normalizedName': norm,
-                            'currentBalance': bal,
-                            'expectedAmount': bal,
-                            'collectedFromSheet': 0.0,
-                            'dueDate': due,
-                            'notes': note or notes.get(c_name, ''),
-                            'source': 'متابعة المحصل'
-                        }
-
-    # 5. Build final customer rows with pinned handling and strict business filters
+    # 3. Extract baseline customers strictly from Master_Data for current cycle window
     week_start, week_end = get_current_week_window()
     data_rows = []
-    for norm, c in extracted_customers.items():
-        c_name = c['customerName']
-        is_cash = (c_name == "عميل نقدي (كاش)")
-        
-        # Enforce user requirements:
-        # 1. Must be present in Master_Data
-        # 2. Balance must be >= 5000 EGP (no zeros, piasters, or small residuals)
-        # 3. Active in 2026 (last payment or invoice >= 2026)
-        # 4. Must not be settled/cleared (عميل خالص / تم التصفية)
-        # 5. Strict Week Boundary: Only customers due on or before weekEnd (<= 2026-11-10)
-        #    belong to the current week baseline! Customers due after weekEnd belong to the NEXT week!
-        #    Exception: If a customer paid during this week, include with expectedAmount = 0.0!
-        c_due = c.get('dueDate', '')
-        collected = float(c.get('collectedFromSheet', 0.0))
 
-        if not is_cash:
-            m_info = master_dict.get(norm)
-            if not m_info:
-                continue
-            bal = m_info.get('balance', 0.0)
-            if bal < 5000:
-                continue
-            if m_info.get('isKhalis', False):
-                continue
-            if not m_info.get('isActive2026', False):
-                continue
-            c['currentBalance'] = bal
-            if not c['dueDate'] and m_info.get('dueDate'):
-                c['dueDate'] = m_info['dueDate']
-                c_due = m_info['dueDate']
+    for norm, m_info in master_dict.items():
+        m_name = m_info['name']
+        bal = m_info['balance']
+        due = m_info['dueDate']
+        m_note = m_info['notes']
+        is_khalis = m_info['isKhalis']
+        is_active_2026 = m_info['isActive2026']
 
-            is_due_this_week = bool(c_due and c_due <= week_end)
-            has_paid_this_week = (collected > 0)
+        is_pinned = bool(pinned_customers.get(m_name, False))
+        has_paid = norm in paid_names_set or any(norm in pn or pn in norm for pn in paid_names_set)
 
-            if not is_due_this_week and not has_paid_this_week:
-                # Customer belongs to the next week (e.g. 11/11 to 17/11)! Exclude from current week!
-                continue
+        # Exclusion 1: Settled accounts (عميل خالص / تم التصفية)
+        if is_khalis:
+            continue
 
-            if not is_due_this_week and has_paid_this_week:
-                # User rule: "عميل سدد واسمه مكنش ف القايمة اول م اتعملت سعتها ضيفه ولكن خلي المتوقع منه صفر وضيف له السداد بتاعه عادي"
-                if c_name not in fixed_amounts:
-                    c['expectedAmount'] = 0.0
+        # Exclusion 2: Must have balance >= 5000 EGP unless customer paid this week or is pinned
+        if bal < 5000 and not has_paid and not is_pinned:
+            continue
 
-        is_pinned = bool(pinned_customers.get(c_name, False))
-        
-        # Fixed amount takes precedence
-        if c_name in fixed_amounts:
-            expected = float(fixed_amounts[c_name])
+        # Exclusion 3: Must be active in 2026 unless customer paid this week or is pinned
+        if not is_active_2026 and not has_paid and not is_pinned:
+            continue
+
+        # Due Date Rule: Due date in Master_Data (Col H) must fall on or before week_end
+        is_due_this_week = bool(due and due <= week_end)
+
+        if not is_due_this_week and not has_paid and not is_pinned:
+            continue
+
+        # Determine expected amount:
+        # 1. Manual user override takes absolute priority
+        # 2. Unexpected payer who paid during week but wasn't due gets 0.0
+        # 3. Otherwise current balance is the baseline target
+        if m_name in fixed_amounts:
+            expected = float(fixed_amounts[m_name])
+        elif not is_due_this_week and has_paid:
+            expected = 0.0
         else:
-            expected = float(c['expectedAmount'])
+            expected = bal
 
-        collected = float(c['collectedFromSheet'])
-        rate = (collected / expected) if expected > 0 else (1.0 if collected > 0 else 0.0)
-        
-        if expected == 0:
-            status = 'مكتمل' if collected > 0 else 'لا يوجد استحقاق'
-        elif collected >= expected:
-            status = 'مكتمل'
-        elif collected > 0:
-            status = 'جزئي'
-        else:
-            status = 'لم يسدد'
-
-        remaining = max(0.0, expected - collected)
-        if not is_cash:
-            note = m_info.get('notes', '') or c.get('notes', '') or notes.get(c_name, '')
-        else:
-            note = notes.get(c_name, 'مبيعات وتحصيلات نقدية أسبوعية (كاش)')
-
+        # Notes priority: Master_Data Column M first, then config notes
+        note = m_note or notes.get(m_name, '')
         if note:
-            notes[c_name] = note
+            notes[m_name] = note
 
         data_rows.append({
-            'index': len(data_rows) + 1,
-            'customerName': c_name,
+            'customerName': m_name,
             'normalizedName': norm,
-            'currentBalance': c['currentBalance'],
+            'currentBalance': bal,
             'expectedAmount': expected,
-            'collectedFromSheet': collected,
-            'dueDate': c['dueDate'],
-            'rate': rate,
-            'status': status,
-            'remaining': remaining,
+            'collectedFromSheet': 0.0,
+            'dueDate': due,
+            'rate': 0.0,
+            'status': 'لم يسدد',
+            'remaining': expected,
             'notes': note,
             'isPinned': is_pinned
         })
 
-    # 6. Ensure permanent Cash Customer exists and is pinned weekly
+    # 4. Ensure permanent Cash Customer exists and is pinned
     CASH_CUSTOMER_NAME = "عميل نقدي (كاش)"
     pinned_customers[CASH_CUSTOMER_NAME] = True
     has_cash_cust = any(r['customerName'] == CASH_CUSTOMER_NAME or 'نقدي' in r['customerName'] for r in data_rows)
@@ -387,7 +271,6 @@ def extract_cashflow():
         cash_exp = fixed_amounts.get(CASH_CUSTOMER_NAME, 0.0)
         cash_note = notes.get(CASH_CUSTOMER_NAME, 'مبيعات وتحصيلات نقدية أسبوعية (كاش)')
         data_rows.append({
-            'index': len(data_rows) + 1,
             'customerName': CASH_CUSTOMER_NAME,
             'normalizedName': normalize_arabic(CASH_CUSTOMER_NAME),
             'currentBalance': 0.0,
@@ -404,6 +287,16 @@ def extract_cashflow():
         if CASH_CUSTOMER_NAME not in notes:
             notes[CASH_CUSTOMER_NAME] = cash_note
 
+    # Sort customers: Pinned first, then by due date ascending, then balance descending
+    def customer_sort_order(c):
+        p_rank = 0 if c['isPinned'] else 1
+        d_val = c['dueDate'] if c['dueDate'] else '9999-99-99'
+        return (p_rank, d_val, -c['currentBalance'])
+
+    data_rows.sort(key=customer_sort_order)
+    for i, r in enumerate(data_rows):
+        r['index'] = i + 1
+
     clean_fixed = {k: v for k, v in fixed_amounts.items() if pinned_customers.get(k, False)}
     existing_config["pinnedCustomers"] = pinned_customers
     existing_config["fixedAmounts"] = clean_fixed
@@ -416,39 +309,6 @@ def extract_cashflow():
 
     total_expected = sum(r['expectedAmount'] for r in data_rows)
     total_collected = sum(r['collectedFromSheet'] for r in data_rows)
-
-    data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
-    default_seed_tx = [
-        {"amount": 200000, "description": "محمد يونس عبد اللطيف(قلمشاه)", "type": "بنك", "date": "2026-11-11"},
-        {"amount": 44000, "description": "اسامه علي عبد الكريم", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 30000, "description": "احمد راغب(الهداهدة)", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 29000, "description": "حمزة عبدالحميد خليفة - حلوان", "type": "خزينة", "date": "2026-11-11"},
-        {"amount": 16000, "description": "محمود ابو زيد - الهداهده", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 10700, "description": "محمد حنفي(شعبان) طريق اسيوط", "type": "خزينة", "date": "2026-11-11"},
-        {"amount": 1570, "description": "مرسي (مدشه)", "type": "خزينة", "date": "2026-11-11"},
-        {"amount": 800, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 50, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 850, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 140000, "description": "ابو حمزه", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 39200, "description": "محمد ابو فهد", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 5700, "description": "علي محمد", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 1700, "description": "نقدي", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 850, "description": "نقدي", "type": "كاش", "date": "2026-11-12"}
-    ]
-    existing_weekly_tx = list(default_seed_tx)
-    if os.path.exists(data_path):
-        try:
-            with open(data_path, 'r', encoding='utf-8') as f:
-                prev_d = json.load(f)
-                if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
-                    seen_sigs = set(f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}" for t in existing_weekly_tx)
-                    for t in prev_d['weeklyTreasuryTransactions']:
-                        sig = f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}"
-                        if sig not in seen_sigs:
-                            existing_weekly_tx.append(t)
-                            seen_sigs.add(sig)
-        except Exception:
-            pass
 
     summary = {
         'reportDate': datetime.date.today().strftime('%Y-%m-%d'),
@@ -475,7 +335,7 @@ def extract_cashflow():
         with open(os.path.join(DIST_DIR, 'cashflow_data.json'), 'w', encoding='utf-8') as f:
             json.dump(summary, f, ensure_ascii=False, indent=2)
 
-    print(f"Successfully extracted {len(data_rows)} cashflow customers. Total expected: {total_expected:,.2f} EGP")
+    print(f"Successfully extracted {len(data_rows)} cashflow customers solely from Master_Data. Total expected: {total_expected:,.2f} EGP")
     return True
 
 if __name__ == '__main__':

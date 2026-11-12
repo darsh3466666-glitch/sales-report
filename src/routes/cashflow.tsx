@@ -140,14 +140,14 @@ function CashFlowPage() {
         <style
           dangerouslySetInnerHTML={{
             __html:
-              "@media print { @page { size: A4 landscape !important; margin: 6mm 10mm !important; } }",
+              "@media print { @page { size: A4 landscape !important; margin: 5mm 6mm !important; } }",
           }}
         />
       ) : (
         <style
           dangerouslySetInnerHTML={{
             __html:
-              "@media print { @page { size: A4 portrait !important; margin: 10mm 10mm !important; } }",
+              "@media print { @page { size: A4 portrait !important; margin: 4mm 5mm !important; } }",
           }}
         />
       )}

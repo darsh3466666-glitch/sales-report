@@ -503,18 +503,18 @@
 
   .print-layout-mobile .cashflow-table-container th,
   .print-layout-mobile .cashflow-table-container td {
-    padding: 2.5pt 2pt !important;
+    padding: 2pt 1.5pt !important;
   }
 
   /* 8 columns total = 100% exactly (No gaps, no overflow, perfectly centered) */
-  .print-layout-mobile .cashflow-table-container .col-index { width: 5% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-index { width: 4% !important; text-align: center !important; }
   .print-layout-mobile .cashflow-table-container .col-balance { width: 14% !important; text-align: right !important; }
-  .print-layout-mobile .cashflow-table-container .col-customer { width: 27% !important; text-align: right !important; font-weight: 700 !important; }
+  .print-layout-mobile .cashflow-table-container .col-customer { width: 26% !important; text-align: right !important; font-weight: 700 !important; }
   .print-layout-mobile .cashflow-table-container .col-expected { width: 13% !important; text-align: center !important; }
   .print-layout-mobile .cashflow-table-container .col-collected { width: 13% !important; text-align: center !important; }
   .print-layout-mobile .cashflow-table-container .col-due { width: 13% !important; text-align: center !important; }
   .print-layout-mobile .cashflow-table-container .col-rate { width: 7% !important; text-align: center !important; }
-  .print-layout-mobile .cashflow-table-container .col-status { width: 8% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-status { width: 10% !important; text-align: center !important; }
 
   /* ----------------------------------------------------
      💻 PC WIDESCREEN LANDSCAPE PRINT:

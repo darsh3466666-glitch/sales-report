@@ -340,12 +340,13 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v5";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v6";
 
 export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
     // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v5");
     localStorage.removeItem("cashflow_active_cycle_state_v4");
     localStorage.removeItem("cashflow_active_cycle_state_v3");
     localStorage.removeItem("cashflow_active_cycle_state_v2");
@@ -467,20 +468,47 @@ export function saveCustomerOverride(
 }
 
 /**
+ * Fallback to identify clients who pay via bank transfers if their transaction type was not captured.
+ */
+export function isBankCustomer(customerName: string, notes?: string): boolean {
+  const normName = normalizeArabicName(customerName || "").toLowerCase();
+  const normNotes = String(notes || "").toLowerCase();
+
+  return (
+    normName.includes("يونس") ||
+    normName.includes("عبدالتواب") ||
+    normName.includes("عبد التواب") ||
+    normName.includes("ميدوم") ||
+    normName.includes("ايه بي ديري") ||
+    normName.includes("ديري") ||
+    normName.includes("الخيرات") ||
+    normName.includes("بنك") ||
+    normNotes.includes("بنك") ||
+    normNotes.includes("تحويل")
+  );
+}
+
+/**
  * Determines whether a transaction payment type or description indicates a bank deposit/transfer vs pure physical cash in treasury.
  * In this system:
  * - Pure cash types are strictly: "كاش", "نقدي", "نقدية", "خزينة" (or English "cash").
  * - Any bank account name ("ب مصر", "تنمية", "زراعي", "اهلي", "cib", "qnb", etc.) or anything with "بنك" / "تحويل" is BANK!
+ * - If customer is a known bank payer (e.g. عبدالتواب احمد, ايه بي ديري, الخيرات, يونس), payment is ALWAYS BANK!
  * - Any payment type that is NOT pure cash is treated as a bank deposit.
  */
 export function isBankPayment(typeOrDesc?: string, description?: string): boolean {
   const normType = String(typeOrDesc || "").trim().toLowerCase();
   const normDesc = String(description || "").trim().toLowerCase();
 
+  // If customer is known to pay via Bank, prioritize Bank classification 100%
+  if (isBankCustomer(normDesc) || isBankCustomer(normType)) {
+    return true;
+  }
+
   // 1. Explicit cash keywords - only these represent pure physical cash in the treasury
   const isPureCash =
     /^(كاش|نقدي|نقدى|نقدية|نقديه|خزينة|خزينه|cash)$/i.test(normType) &&
-    !/بنك|تحويل|ايداع|إيداع|شيك|سويفت|swift|انستاباي|instapay/i.test(normDesc);
+    !/بنك|تحويل|ايداع|إيداع|شيك|سويفت|swift|انستاباي|instapay|مصر|تنمي|زراع|اهل|قاهر|cib|qnb/i.test(normDesc);
   if (isPureCash) return false;
 
   // 2. Known bank names, abbreviations, or banking instruments
@@ -523,27 +551,6 @@ export function isBankPayment(typeOrDesc?: string, description?: string): boolea
   }
 
   return false;
-}
-
-/**
- * Fallback to identify clients who pay via bank transfers if their transaction type was not captured.
- */
-export function isBankCustomer(customerName: string, notes?: string): boolean {
-  const normName = normalizeArabicName(customerName || "").toLowerCase();
-  const normNotes = String(notes || "").toLowerCase();
-
-  return (
-    normName.includes("يونس") ||
-    normName.includes("عبدالتواب") ||
-    normName.includes("عبد التواب") ||
-    normName.includes("ميدوم") ||
-    normName.includes("ايه بي ديري") ||
-    normName.includes("ديري") ||
-    normName.includes("الخيرات") ||
-    normName.includes("بنك") ||
-    normNotes.includes("بنك") ||
-    normNotes.includes("تحويل")
-  );
 }
 
 /**
@@ -1385,10 +1392,11 @@ export async function getLiveCashFlowData(options?: {
           }
 
           if (!alreadyCaptured) {
+            const isBank = isBankCustomer(cName);
             addTxToWeeklyPool({
               amount: amt,
               description: cName,
-              type: "خزينة",
+              type: isBank ? "بنك" : "خزينة",
               date: repDate || effectiveWeekStart,
             });
           }

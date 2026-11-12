@@ -763,16 +763,17 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                         {hasTreasuryPayment && !isEditingThisRow && (() => {
                           let custCash = 0;
                           let custBank = 0;
+                          const isBankCust = isBankCustomer(cust.customerName, cust.notes);
                           if (Array.isArray(cust.treasuryTransactions) && cust.treasuryTransactions.length > 0) {
                             for (const tx of cust.treasuryTransactions) {
-                              if (isBankPayment(tx.type, tx.description)) {
+                              if (isBankCust || isBankPayment(tx.type, tx.description)) {
                                 custBank += tx.amount || 0;
                               } else {
                                 custCash += tx.amount || 0;
                               }
                             }
                           } else {
-                            if (isBankCustomer(cust.customerName, cust.notes)) {
+                            if (isBankCust) {
                               custBank = cust.collectedFromTreasury;
                             } else {
                               custCash = cust.collectedFromTreasury;
