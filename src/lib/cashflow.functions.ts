@@ -340,11 +340,16 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v2";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v3";
 
 export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
+    // Purge old corrupted state versions to prevent duplicate cached transactions
+    localStorage.removeItem("cashflow_active_cycle_state_v2");
+    localStorage.removeItem("cashflow_active_cycle_state_v1");
+    localStorage.removeItem("cashflow_active_cycle_state");
+
     const raw = localStorage.getItem(ACTIVE_CYCLE_STORAGE_KEY);
     if (!raw) return null;
     return JSON.parse(raw);
@@ -1211,7 +1216,8 @@ export async function getLiveCashFlowData(options?: {
       }
 
       const normDesc = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc) ? "نقدي" : desc;
-      const sig = `${d || effectiveWeekStart}_${normDesc}_${amt}_${typ}`;
+      // Signature MUST NOT include typ so the same payment cannot be added twice (once as خزينة and once as بنك)
+      const sig = `${d || effectiveWeekStart}_${normDesc}_${amt}`;
 
       // A transaction belonging to the current active week can NEVER be dropped by archivedTxSet!
       const isCurrentWeek = (!d || (d >= effectiveWeekStart && d <= effectiveWeekEnd));
@@ -1224,6 +1230,12 @@ export async function getLiveCashFlowData(options?: {
           type: typ,
           date: d || effectiveWeekStart,
         });
+      } else {
+        // If an incoming record indicates it is a bank transfer, prioritize 'بنك'
+        const existing = weeklyTxMap.get(sig)!;
+        if (typ === "بنك" || /بنك/.test(typ)) {
+          existing.type = "بنك";
+        }
       }
     };
 
@@ -1326,6 +1338,14 @@ export async function getLiveCashFlowData(options?: {
       let matched = false;
       for (const cust of baseCustomers) {
         if (matchTreasuryDescriptionToCustomer(tx.description, cust.customerName)) {
+          // Prevent attaching duplicate transaction with same amount and date to the same customer
+          const alreadyHasTx = (cust.treasuryTransactions || []).some(
+            (t) => (t.date === tx.date || !t.date || !tx.date) && Math.abs(t.amount - tx.amount) < 1
+          );
+          if (alreadyHasTx) {
+            matched = true;
+            break;
+          }
           cust.collectedFromTreasury += tx.amount;
           cust.treasuryTransactions = cust.treasuryTransactions || [];
           cust.treasuryTransactions.push(tx);
@@ -1395,9 +1415,14 @@ export async function getLiveCashFlowData(options?: {
             (c) => normalizeArabicName(c.customerName) === normValid
           );
           if (existingInBase) {
-            existingInBase.collectedFromTreasury += tx.amount;
-            existingInBase.treasuryTransactions = existingInBase.treasuryTransactions || [];
-            existingInBase.treasuryTransactions.push(tx);
+            const alreadyHasTx = (existingInBase.treasuryTransactions || []).some(
+              (t) => (t.date === tx.date || !t.date || !tx.date) && Math.abs(t.amount - tx.amount) < 1
+            );
+            if (!alreadyHasTx) {
+              existingInBase.collectedFromTreasury += tx.amount;
+              existingInBase.treasuryTransactions = existingInBase.treasuryTransactions || [];
+              existingInBase.treasuryTransactions.push(tx);
+            }
             tx.matchedCustomer = existingInBase.customerName;
             matched = true;
           } else {
