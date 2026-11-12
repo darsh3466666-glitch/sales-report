@@ -253,6 +253,42 @@ def extract_cashflow():
                         'source': 'cash flow'
                     }
 
+    # 4.5 Extract from 'متابعة المحصل ' (Collector Follow-up sheet)
+    # Essential for customers assigned to collector Abdul Rahman (e.g. جمعه محمود رضوان, سرسنا, السحابه)
+    col_sheet_name = next((s for s in wb.sheetnames if 'متابعة المحصل' in s), None)
+    if col_sheet_name:
+        ws_col = wb[col_sheet_name]
+        col_rows = list(ws_col.iter_rows(values_only=True))
+        for r in col_rows[2:]:
+            if r and len(r) > 1 and r[1]:
+                c_name = str(r[1]).strip()
+                norm = normalize_arabic(c_name)
+                if not norm:
+                    continue
+                bal = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
+                note = str(r[6]).strip() if len(r) > 6 and r[6] else ''
+                due = ''
+                if norm in master_dict:
+                    due = master_dict[norm].get('dueDate', '')
+
+                if norm in extracted_customers:
+                    if not extracted_customers[norm]['notes'] and note:
+                        extracted_customers[norm]['notes'] = note
+                    if not extracted_customers[norm]['dueDate'] and due:
+                        extracted_customers[norm]['dueDate'] = due
+                else:
+                    if bal >= 5000:
+                        extracted_customers[norm] = {
+                            'customerName': c_name,
+                            'normalizedName': norm,
+                            'currentBalance': bal,
+                            'expectedAmount': bal,
+                            'collectedFromSheet': 0.0,
+                            'dueDate': due,
+                            'notes': note or notes.get(c_name, ''),
+                            'source': 'متابعة المحصل'
+                        }
+
     # 5. Build final customer rows with pinned handling and strict business filters
     week_start, week_end = get_current_week_window()
     data_rows = []

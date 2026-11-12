@@ -340,12 +340,13 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v4";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v5";
 
 export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
-    // Purge old cached state versions to enforce clean bank vs cash transaction breakdown
+    // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v4");
     localStorage.removeItem("cashflow_active_cycle_state_v3");
     localStorage.removeItem("cashflow_active_cycle_state_v2");
     localStorage.removeItem("cashflow_active_cycle_state_v1");
