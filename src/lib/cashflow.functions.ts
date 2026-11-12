@@ -141,7 +141,12 @@ export function getCurrentCashFlowWeekWindow(refDate: Date | string = new Date()
   endDate.setDate(startDate.getDate() + 6); // ends following Tuesday
   endDate.setHours(23, 59, 59, 999);
 
-  const fmt = (date: Date) => date.toISOString().split("T")[0];
+  const fmt = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    const dayNum = String(date.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dayNum}`;
+  };
   
   const arabicMonthNames = [
     "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
@@ -777,6 +782,7 @@ export async function getLiveCashFlowData(options?: {
 
   let rawData: any = null;
   let rawConfig: any = null;
+  let salesReportsList: any[] = [];
   const allSalesCustomersMap = new Map<string, any>();
 
   if (typeof window === "undefined") {
@@ -802,6 +808,7 @@ export async function getLiveCashFlowData(options?: {
           fs.readFileSync(path.join(targetDir, "sales_data.json"), "utf8")
         );
         if (Array.isArray(sData)) {
+          salesReportsList = sData;
           for (const rep of sData) {
             for (const sc of rep.customers || []) {
               if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
@@ -844,6 +851,7 @@ export async function getLiveCashFlowData(options?: {
       if (sRes.ok) {
         const sData = await sRes.json();
         if (Array.isArray(sData)) {
+          salesReportsList = sData;
           for (const rep of sData) {
             for (const sc of rep.customers || []) {
               if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
@@ -895,10 +903,15 @@ export async function getLiveCashFlowData(options?: {
             ? overrides.fixedAmounts[c.customerName]
             : c.expectedAmount;
 
-        const notes =
+        let notes =
           overrides.notes?.[c.customerName] !== undefined
             ? overrides.notes[c.customerName]
-            : c.notes;
+            : c.notes || "";
+
+        // Strictly remove synthetic "سداد وارد غير متوقع" note as instructed by user!
+        if (notes && notes.includes("سداد وارد غير متوقع")) {
+          notes = "";
+        }
 
         const isPinned =
           overrides.pinnedStatus?.[c.customerName] !== undefined
@@ -1153,6 +1166,48 @@ export async function getLiveCashFlowData(options?: {
       }
     }
 
+    // 1e. From daily sales and collection reports in sales_data.json
+    // Any customer with collected_amount > 0 in a report within this active week is an authentic verified collection!
+    for (const rep of salesReportsList) {
+      const repDate = String(rep.report?.report_date || rep.date || rep.report_date || "").trim();
+      if (repDate && repDate >= effectiveWeekStart && repDate <= effectiveWeekEnd) {
+        for (const sc of rep.customers || []) {
+          const amt = Number(sc.collected_amount) || 0;
+          if (amt <= 0) continue;
+          const cName = String(sc.customer_name || "").trim();
+          if (!cName) continue;
+
+          // Check if this collection was already captured in weeklyTxMap (e.g. from Treasury or seed)
+          let alreadyCaptured = false;
+          const normCName = normalizeArabicName(cName);
+          for (const existingTx of weeklyTxMap.values()) {
+            const existingDate = (existingTx.date || "").trim();
+            const sameDate = !existingDate || !repDate || existingDate === repDate;
+            if (sameDate && Math.abs(existingTx.amount - amt) < 1) {
+              const normDesc = normalizeArabicName(existingTx.description);
+              if (
+                normDesc === normCName ||
+                matchTreasuryDescriptionToCustomer(existingTx.description, cName) ||
+                matchTreasuryDescriptionToCustomer(cName, existingTx.description)
+              ) {
+                alreadyCaptured = true;
+                break;
+              }
+            }
+          }
+
+          if (!alreadyCaptured) {
+            addTxToWeeklyPool({
+              amount: amt,
+              description: cName,
+              type: "خزينة",
+              date: repDate || effectiveWeekStart,
+            });
+          }
+        }
+      }
+    }
+
     const cycleTreasuryTx = Array.from(weeklyTxMap.values());
 
     // Match live Treasury incoming transactions with customers
@@ -1263,10 +1318,13 @@ export async function getLiveCashFlowData(options?: {
                 ? rawConfig.fixedAmounts[custName]
                 : 0; // Strictly 0 for unexpected inflow!
 
-            const notes =
+            let notes =
               overrides.notes?.[custName] !== undefined
                 ? overrides.notes[custName]
-                : rawConfig?.notes?.[custName] || `سداد وارد غير متوقع (${tx.type || "خزينة"})`;
+                : rawConfig?.notes?.[custName] || matchedMasterCust?.notes || "";
+            if (notes.includes("سداد وارد غير متوقع")) {
+              notes = "";
+            }
 
             const newCust: CashFlowCustomer = {
               index: baseCustomers.length + 1,
