@@ -381,6 +381,17 @@ def extract_cashflow():
     total_expected = sum(r['expectedAmount'] for r in data_rows)
     total_collected = sum(r['collectedFromSheet'] for r in data_rows)
 
+    data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
+    existing_weekly_tx = []
+    if os.path.exists(data_path):
+        try:
+            with open(data_path, 'r', encoding='utf-8') as f:
+                prev_d = json.load(f)
+                if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
+                    existing_weekly_tx = prev_d['weeklyTreasuryTransactions']
+        except Exception:
+            pass
+
     summary = {
         'reportDate': datetime.date.today().strftime('%Y-%m-%d'),
         'weekStart': week_start,
@@ -393,10 +404,10 @@ def extract_cashflow():
         'collectionRate': (total_collected / total_expected) if total_expected > 0 else 0.0,
         'masterCustomerNames': master_names_list,
         'masterCustomers': master_customers_list,
+        'weeklyTreasuryTransactions': existing_weekly_tx,
         'customers': data_rows
     }
 
-    data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
     with open(data_path, 'w', encoding='utf-8') as f:
         json.dump(summary, f, ensure_ascii=False, indent=2)
 

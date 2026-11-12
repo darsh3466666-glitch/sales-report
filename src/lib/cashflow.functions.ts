@@ -91,6 +91,7 @@ export interface CashFlowSummary {
   overdueCount: number;
   customers: CashFlowCustomer[];
   unmatchedTreasuryTx: TreasuryIncomingTx[];
+  weeklyTreasuryTransactions?: TreasuryIncomingTx[];
   comparison?: CashFlowWeeklyComparison;
   masterCustomerNames?: string[];
   masterCustomers?: MasterCustomerItem[];
@@ -316,6 +317,7 @@ export interface ActiveCashFlowCycleState {
   weeklyGoal: number;
   customers: CashFlowCustomer[];
   archivedTxSignatures?: string[];
+  weeklyTreasuryTransactions?: TreasuryIncomingTx[];
   updatedAt: string;
 }
 
@@ -903,9 +905,20 @@ export async function getLiveCashFlowData(options?: {
             ? overrides.pinnedStatus[c.customerName]
             : Boolean(c.isPinned);
 
+        const rawCust = (rawData?.customers || []).find(
+          (rc: any) =>
+            rc.customerName === c.customerName ||
+            rc.normalizedName === c.normalizedName
+        );
+        const collectedFromSheet = Math.max(
+          Number(c.collectedFromSheet) || 0,
+          Number(rawCust?.collectedFromSheet) || 0
+        );
+
         return {
           ...c,
           expectedAmount,
+          collectedFromSheet,
           notes,
           isPinned,
           collectedFromTreasury: 0,
@@ -1073,19 +1086,70 @@ export async function getLiveCashFlowData(options?: {
       }
     }
 
-    // Filter live Treasury incoming transactions:
-    // 1) Must NOT have been counted in the previous cycle
-    // 2) Must belong strictly to this active week window (tx.date >= effectiveWeekStart && tx.date <= effectiveWeekEnd)
-    const cycleTreasuryTx = liveTreasuryTx.filter((tx) => {
-      const sig = `${tx.date || ""}_${tx.description}_${tx.amount}_${tx.type}`;
-      if (archivedTxSet.has(sig)) return false;
+    // Build multi-day cumulative weekly treasury transactions pool for this active cycle
+    // (Accumulates transactions across Wednesday through Tuesday so daily rollover never wipes previous days!)
+    const weeklyTxMap = new Map<string, TreasuryIncomingTx>();
 
-      if (tx.date) {
-        if (tx.date < effectiveWeekStart) return false;
-        if (tx.date > effectiveWeekEnd) return false;
+    const addTxToWeeklyPool = (tx: TreasuryIncomingTx) => {
+      if (!tx) return;
+      const amt = Number(tx.amount) || 0;
+      if (amt <= 0) return;
+      const desc = String(tx.description || "").trim();
+      if (!desc) return;
+      const typ = String(tx.type || "").trim();
+      const d = String(tx.date || "").trim();
+
+      // Ensure transaction belongs strictly to this active week window if date is present
+      if (d) {
+        if (d < effectiveWeekStart || d > effectiveWeekEnd) return;
       }
-      return true;
-    });
+
+      const sig = `${d}_${desc}_${amt}_${typ}`;
+      if (archivedTxSet.has(sig)) return;
+
+      if (!weeklyTxMap.has(sig)) {
+        weeklyTxMap.set(sig, {
+          amount: amt,
+          description: desc,
+          type: typ,
+          date: d || effectiveWeekStart,
+        });
+      }
+    };
+
+    // 1a. From static verified seed in cashflow_data.json
+    if (Array.isArray(rawData?.weeklyTreasuryTransactions)) {
+      for (const tx of rawData.weeklyTreasuryTransactions) {
+        addTxToWeeklyPool(tx);
+      }
+    }
+
+    // 1b. From previously saved active cycle state in localStorage
+    if (isSavedCycleValid && Array.isArray(savedCycle?.weeklyTreasuryTransactions)) {
+      for (const tx of savedCycle.weeklyTreasuryTransactions) {
+        addTxToWeeklyPool(tx);
+      }
+    }
+
+    // 1c. Safeguard: restore transactions previously attached to customers in savedCycle
+    if (isSavedCycleValid && Array.isArray(savedCycle?.customers)) {
+      for (const c of savedCycle.customers) {
+        if (Array.isArray(c.treasuryTransactions)) {
+          for (const tx of c.treasuryTransactions) {
+            addTxToWeeklyPool(tx);
+          }
+        }
+      }
+    }
+
+    // 1d. From live incoming transactions fetched right now from Treasury dashboard
+    if (Array.isArray(liveTreasuryTx)) {
+      for (const tx of liveTreasuryTx) {
+        addTxToWeeklyPool(tx);
+      }
+    }
+
+    const cycleTreasuryTx = Array.from(weeklyTxMap.values());
 
     // Match live Treasury incoming transactions with customers
     const unmatchedTreasuryTx: TreasuryIncomingTx[] = [];
@@ -1315,6 +1379,7 @@ export async function getLiveCashFlowData(options?: {
       weeklyGoal,
       customers: baseCustomers,
       archivedTxSignatures: Array.from(archivedTxSet),
+      weeklyTreasuryTransactions: cycleTreasuryTx,
       updatedAt: new Date().toISOString(),
     });
 
@@ -1432,6 +1497,7 @@ export async function getLiveCashFlowData(options?: {
       overdueCount,
       customers: baseCustomers,
       unmatchedTreasuryTx,
+      weeklyTreasuryTransactions: cycleTreasuryTx,
       comparison,
       masterCustomerNames: rawData?.masterCustomerNames || [],
       masterCustomers: rawData?.masterCustomers || [],

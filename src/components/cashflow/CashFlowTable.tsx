@@ -472,12 +472,12 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           )}
         </div>
 
-        {/* Treasury Today Total Badge (الوارد في الخزينة اليوم) - in the center position */}
+        {/* Treasury Weekly Total Badge (الوارد في الخزينة للأسبوع) - in the center position */}
         {treasuryTodayTotal > 0 && (
           <div className="inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border-2 border-emerald-500/40 text-emerald-900 dark:text-emerald-200 shadow-2xs">
             <Zap className="h-4 w-4 text-emerald-600 dark:text-emerald-400 fill-emerald-500 animate-pulse" />
             <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 whitespace-nowrap">
-              وارد الخزينة اليوم:
+              وارد الخزينة الأسبوعي:
             </span>
             <span className="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-300 font-mono whitespace-nowrap">
               {fmtMoney(treasuryTodayTotal)}

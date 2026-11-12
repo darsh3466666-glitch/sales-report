@@ -1,26 +1,25 @@
-# Gates: Independent Cash Customer & Individual Unexpected Inflow Rows in Cashflow
+# Gates: Multi-Day Weekly Treasury Accumulation & Collection Persistence in Cashflow
 
-OWNS: src/lib/cashflow.functions.ts, scripts/extract_cashflow.py
+OWNS: src/lib/cashflow.functions.ts, public/cashflow_data.json, dist/cashflow_data.json, scripts/extract_cashflow.py
 
-Scope: Ensure 'عميل نقدي (كاش)' in the Cashflow dashboard is strictly independent and only aggregates genuine generic cash receipts (not any transaction merely because tx.type is 'كاش'). Any customers who make payments but were not in the baseline cashflow table must enter under their own individual names with expectedAmount = 0 and their actual collected amounts.
+Scope: Fix the critical flaw where daily rollover in the external treasury dashboard wipes previous days' collections within the active week. Ensure all incoming treasury and bank transactions accumulate across all days of the weekly cycle (Wednesday through Tuesday) so that payments from earlier in the week (e.g. Mohammed Younes 200k, Ahmed Ragheb 30k, Osama Ali 44k, Mahmoud Abuzeid 16k) remain permanently credited and accumulated alongside new daily payments (Abu Hamza 140k, Abu Fahd 39.2k, Ali Mohamed 5.7k, Cash).
 
-- [x] G1: Generic cash routing in cashflow.functions.ts checks description only, not tx.type
-  CHECK: node -e "const fs = require('fs'); const code = fs.readFileSync('src/lib/cashflow.functions.ts', 'utf8'); if (!code.includes('tx.type === \"كاش\"') && code.includes('isGenericCash')) { console.log('PASS: tx.type cash bug removed'); } else { process.exit(1); }"
-  EXPECT: PASS: tx.type cash bug removed
-  RESULT: PASS: tx.type cash bug removed
+- [x] G1: Multi-day weekly treasury transactions pool merges and preserves past days of active cycle
+  CHECK: npx tsx scripts/test_weekly_accumulation.ts --check-pool
+  EXPECT: PASS: multi-day transactions accumulated
+  RESULT: PASS: multi-day transactions accumulated (10 transactions across multiple days)
 
-- [x] G2: Verification engine accurately separates named treasury customers from عميل نقدي
-  CHECK: npx tsx scripts/test_cashflow_fix.ts
-  EXPECT: PASS: cash separated and named customers added
-  RESULT: Total customers: 36
-    - عميل نقدي (كاش): Treasury: 850, Expected: 850
-    - اسامه علي عبد الكريم: Treasury: 44000, Expected: 0
-    - احمد راغب(الهداهدة): Treasury: 30000, Expected: 0
-    - محمود ابو زيد - الهداهده: Treasury: 16000, Expected: 0
-    - محمد يونس عبد اللطيف(قلمشاه): Treasury: 200000, Expected: 0
-    PASS: cash separated and named customers added
+- [x] G2: Individual customer amounts and statuses accurately reflect cumulative weekly collections
+  CHECK: npx tsx scripts/test_weekly_accumulation.ts --check-customers
+  EXPECT: PASS: all weekly customers accumulated
+  RESULT: PASS: all weekly customers accumulated (All 8 key customer groups verified)
 
-- [x] G3: Production build succeeds with 0 errors
+- [x] G3: Total weekly treasury inflow equals sum of active cycle days (477,450 EGP)
+  CHECK: npx tsx scripts/test_weekly_accumulation.ts --check-totals
+  EXPECT: PASS: total treasury weekly inflow verified
+  RESULT: PASS: total treasury weekly inflow verified (477,450 EGP)
+
+- [x] G4: Production build succeeds with 0 errors
   CHECK: npm run build
   EXPECT: SUCCESS_BUILD_VERIFIED
-  RESULT: SUCCESS_BUILD_VERIFIED (built in 14.74s)
+  RESULT: SUCCESS_BUILD_VERIFIED (built in 14.55s)
