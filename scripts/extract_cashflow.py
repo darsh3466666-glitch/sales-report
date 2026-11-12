@@ -382,13 +382,35 @@ def extract_cashflow():
     total_collected = sum(r['collectedFromSheet'] for r in data_rows)
 
     data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
-    existing_weekly_tx = []
+    default_seed_tx = [
+        {"amount": 200000, "description": "محمد يونس عبد اللطيف(قلمشاه)", "type": "بنك", "date": "2026-11-11"},
+        {"amount": 44000, "description": "اسامه علي عبد الكريم", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 30000, "description": "احمد راغب(الهداهدة)", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 29000, "description": "حمزة عبدالحميد خليفة - حلوان", "type": "خزينة", "date": "2026-11-11"},
+        {"amount": 16000, "description": "محمود ابو زيد - الهداهده", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 10700, "description": "محمد حنفي(شعبان) طريق اسيوط", "type": "خزينة", "date": "2026-11-11"},
+        {"amount": 1570, "description": "مرسي (مدشه)", "type": "خزينة", "date": "2026-11-11"},
+        {"amount": 800, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 50, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 850, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
+        {"amount": 140000, "description": "ابو حمزه", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 39200, "description": "محمد ابو فهد", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 5700, "description": "علي محمد", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 1700, "description": "نقدي", "type": "كاش", "date": "2026-11-12"},
+        {"amount": 850, "description": "نقدي", "type": "كاش", "date": "2026-11-12"}
+    ]
+    existing_weekly_tx = list(default_seed_tx)
     if os.path.exists(data_path):
         try:
             with open(data_path, 'r', encoding='utf-8') as f:
                 prev_d = json.load(f)
                 if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
-                    existing_weekly_tx = prev_d['weeklyTreasuryTransactions']
+                    seen_sigs = set(f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}" for t in existing_weekly_tx)
+                    for t in prev_d['weeklyTreasuryTransactions']:
+                        sig = f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}"
+                        if sig not in seen_sigs:
+                            existing_weekly_tx.append(t)
+                            seen_sigs.add(sig)
         except Exception:
             pass
 

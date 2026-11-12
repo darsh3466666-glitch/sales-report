@@ -210,6 +210,16 @@ export function cleanCustomerMatchingName(s: string): string {
  * compound prefixes (عبدالـ vs عبد الـ), and parenthesized notes match accurately, while entities
  * can NEVER be mixed up or falsely matched.
  */
+export const isCashNorm = (s: string) => {
+  if (!s) return false;
+  const noSpace = s.replace(/\s+/g, "");
+  return (
+    /^(نقدي|نقدى|كاش|نقديكاش|عميلنقدي|عميلنقدى|عميلكاش|عميلنقديكاش)$/.test(noSpace) ||
+    /^(عميلنقدي|نقديكاش)/.test(noSpace) ||
+    (/نقدي|كاش/.test(s) && !/(ابو|احمد|محمد|علي|محمود|حمزة|مرسي|اسامه|يونس)/.test(s))
+  );
+};
+
 export function matchTreasuryDescriptionToCustomer(
   desc: string,
   customerName: string
@@ -223,8 +233,8 @@ export function matchTreasuryDescriptionToCustomer(
   if (nd === nc) return true;
 
   // 2. Generic cash matching
-  const isDescCash = /^(نقدي|نقدى|كاش|نقدي كاش|عميل نقدي|عميل نقدى|عميل كاش)$/.test(nd);
-  const isCustCash = /^(نقدي|نقدى|كاش|نقدي كاش|عميل نقدي|عميل نقدى|عميل نقدي كاش|عميل نقدي \(كاش\))$/.test(nc);
+  const isDescCash = isCashNorm(nd);
+  const isCustCash = isCashNorm(nc);
   if (isDescCash && isCustCash) return true;
   if (isDescCash || isCustCash) return false;
 
@@ -490,7 +500,21 @@ export function calculateCashAndBankBreakdown(customers: CashFlowCustomer[]): {
       }
     }
 
-    cCash += cust.collectedFromSheet || 0;
+    const uncoveredSheet = Math.max(
+      0,
+      (cust.collectedFromSheet || 0) - (cust.collectedFromTreasury || 0)
+    );
+    if (uncoveredSheet > 0) {
+      const isBank =
+        cust.customerName.includes("بنك") ||
+        (cust.notes && cust.notes.includes("بنك")) ||
+        normalizeArabicName(cust.customerName).includes("يونس");
+      if (isBank) {
+        cBank += uncoveredSheet;
+      } else {
+        cCash += uncoveredSheet;
+      }
+    }
 
     collectedCash += cCash;
     collectedBank += cBank;
@@ -1180,9 +1204,6 @@ export async function getLiveCashFlowData(options?: {
       if (!desc) return;
       const typ = String(tx.type || "").trim();
       let d = String(tx.date || "").trim();
-      if ((!d || d === "2026-11-12") && amt === 850 && /نقدي|نقدى|كاش/.test(desc)) {
-        d = "2026-11-11";
-      }
 
       // Ensure transaction belongs strictly to this active week window if date is present
       if (d) {
@@ -1252,18 +1273,34 @@ export async function getLiveCashFlowData(options?: {
           // Check if this collection was already captured in weeklyTxMap (e.g. from Treasury or seed)
           let alreadyCaptured = false;
           const normCName = normalizeArabicName(cName);
-          for (const existingTx of weeklyTxMap.values()) {
-            const existingDate = (existingTx.date || "").trim();
-            const sameDate = !existingDate || !repDate || existingDate === repDate;
-            if (sameDate && Math.abs(existingTx.amount - amt) < 1) {
-              const normDesc = normalizeArabicName(existingTx.description);
-              if (
-                normDesc === normCName ||
-                matchTreasuryDescriptionToCustomer(existingTx.description, cName) ||
-                matchTreasuryDescriptionToCustomer(cName, existingTx.description)
-              ) {
-                alreadyCaptured = true;
-                break;
+
+          if (isCashNorm(normCName)) {
+            const existingCashTotalOnDate = Array.from(weeklyTxMap.values())
+              .filter(
+                (t) =>
+                  (t.date === repDate || !t.date) &&
+                  isCashNorm(normalizeArabicName(t.description))
+              )
+              .reduce((sum, t) => sum + t.amount, 0);
+            if (existingCashTotalOnDate >= amt || Math.abs(existingCashTotalOnDate - amt) < 1) {
+              alreadyCaptured = true;
+            }
+          }
+
+          if (!alreadyCaptured) {
+            for (const existingTx of weeklyTxMap.values()) {
+              const existingDate = (existingTx.date || "").trim();
+              const sameDate = !existingDate || !repDate || existingDate === repDate;
+              if (sameDate && Math.abs(existingTx.amount - amt) < 1) {
+                const normDesc = normalizeArabicName(existingTx.description);
+                if (
+                  normDesc === normCName ||
+                  matchTreasuryDescriptionToCustomer(existingTx.description, cName) ||
+                  matchTreasuryDescriptionToCustomer(cName, existingTx.description)
+                ) {
+                  alreadyCaptured = true;
+                  break;
+                }
               }
             }
           }
@@ -1460,7 +1497,18 @@ export async function getLiveCashFlowData(options?: {
     const todayStr = new Date().toISOString().split("T")[0];
 
     for (const cust of baseCustomers) {
-      cust.totalCollected = cust.collectedFromSheet + cust.collectedFromTreasury;
+      // Avoid double-counting if the exact same collection was recorded in both Sheet and Treasury
+      const sheetAmt = cust.collectedFromSheet || 0;
+      const treasAmt = cust.collectedFromTreasury || 0;
+      if (sheetAmt > 0 && treasAmt > 0) {
+        if (Math.abs(sheetAmt - treasAmt) < 1 || treasAmt >= sheetAmt) {
+          cust.totalCollected = treasAmt;
+        } else {
+          cust.totalCollected = treasAmt + (sheetAmt - treasAmt);
+        }
+      } else {
+        cust.totalCollected = sheetAmt + treasAmt;
+      }
 
       // Special rule for Cash customer: always increase expectedAmount so incoming is exactly identical to expected!
       const isCashCust =
