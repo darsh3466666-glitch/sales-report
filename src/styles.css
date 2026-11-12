@@ -486,23 +486,56 @@
     font-size: 7.5pt !important;
   }
 
-  /* Strict proportional column widths: exactly 100% total */
-  .cashflow-table-container .col-index { width: 4% !important; text-align: center !important; }
-  .cashflow-table-container .col-balance { width: 11% !important; text-align: right !important; }
-  .cashflow-table-container .col-customer { width: 20% !important; text-align: right !important; font-weight: 700 !important; }
-  .cashflow-table-container .col-expected { width: 10% !important; text-align: right !important; }
-  .cashflow-table-container .col-collected { width: 11% !important; text-align: right !important; }
-  .cashflow-table-container .col-due { width: 10% !important; text-align: right !important; }
-  .cashflow-table-container .col-rate { width: 7% !important; text-align: center !important; }
-  .cashflow-table-container .col-status { width: 9% !important; text-align: center !important; }
-  .cashflow-table-container .col-remaining { width: 9% !important; text-align: right !important; }
-  .cashflow-table-container .col-notes { width: 9% !important; text-align: right !important; }
-  .cashflow-table-container .col-actions { display: none !important; }
+  /* ----------------------------------------------------
+     📱 MOBILE & PORTRAIT A4 PRINT:
+     Show exactly from 'م' up to 'حالة السداد' with narrow spacing,
+     and hide 'المتبقي' & 'ملاحظات' to completely prevent overflow
+     ---------------------------------------------------- */
+  .print-layout-mobile .cashflow-table-container .col-remaining {
+    display: none !important;
+  }
+  .print-layout-mobile .cashflow-table-container .col-notes {
+    display: none !important;
+  }
+  .print-layout-mobile .cashflow-table-container .col-actions {
+    display: none !important;
+  }
+
+  .print-layout-mobile .cashflow-table-container th,
+  .print-layout-mobile .cashflow-table-container td {
+    padding: 2.5pt 2pt !important;
+  }
+
+  /* 8 columns total = 100% exactly (No gaps, no overflow, perfectly centered) */
+  .print-layout-mobile .cashflow-table-container .col-index { width: 5% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-balance { width: 14% !important; text-align: right !important; }
+  .print-layout-mobile .cashflow-table-container .col-customer { width: 27% !important; text-align: right !important; font-weight: 700 !important; }
+  .print-layout-mobile .cashflow-table-container .col-expected { width: 13% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-collected { width: 13% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-due { width: 13% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-rate { width: 7% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-status { width: 8% !important; text-align: center !important; }
+
+  /* ----------------------------------------------------
+     💻 PC WIDESCREEN LANDSCAPE PRINT:
+     Full widescreen landscape display of all 10 columns
+     ---------------------------------------------------- */
+  .print-layout-pc .cashflow-table-container .col-index { width: 4% !important; text-align: center !important; }
+  .print-layout-pc .cashflow-table-container .col-balance { width: 11% !important; text-align: right !important; }
+  .print-layout-pc .cashflow-table-container .col-customer { width: 20% !important; text-align: right !important; font-weight: 700 !important; }
+  .print-layout-pc .cashflow-table-container .col-expected { width: 10% !important; text-align: right !important; }
+  .print-layout-pc .cashflow-table-container .col-collected { width: 11% !important; text-align: right !important; }
+  .print-layout-pc .cashflow-table-container .col-due { width: 10% !important; text-align: right !important; }
+  .print-layout-pc .cashflow-table-container .col-rate { width: 7% !important; text-align: center !important; }
+  .print-layout-pc .cashflow-table-container .col-status { width: 9% !important; text-align: center !important; }
+  .print-layout-pc .cashflow-table-container .col-remaining { width: 9% !important; text-align: right !important; }
+  .print-layout-pc .cashflow-table-container .col-notes { width: 9% !important; text-align: right !important; }
+  .print-layout-pc .cashflow-table-container .col-actions { display: none !important; }
 
   /* Compact status badge inside table */
   .cashflow-table-container .col-status [class*="badge"],
   .cashflow-table-container .col-status [class*="Badge"] {
-    padding: 1px 2px !important;
+    padding: 1px 3px !important;
     border-width: 1px !important;
     font-size: 6.8pt !important;
     white-space: nowrap !important;
@@ -523,6 +556,24 @@
     font-size: 6.2pt !important;
     border-width: 1px !important;
     margin-top: 1px !important;
+  }
+
+  /* Compact header cards in Mobile Print so table starts on page 1 without awkward page gap */
+  .print-layout-mobile .cashflow-header-container > div {
+    padding: 6pt !important;
+    margin-bottom: 6pt !important;
+  }
+  .print-layout-mobile .cashflow-header-container .grid-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 4pt !important;
+  }
+  .print-layout-mobile .cashflow-header-container .grid-kpis .card {
+    padding: 4pt 6pt !important;
+    margin-bottom: 0 !important;
+  }
+  .print-layout-mobile .cashflow-header-container [class*="CardContent"] {
+    padding: 2pt 4pt !important;
   }
 }
 

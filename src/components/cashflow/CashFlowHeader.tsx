@@ -67,7 +67,7 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
     remLast > 0 ? ((remCurrent - remLast) / remLast) * 100 : 0;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 cashflow-header-container">
       {/* Top Banner: Title & Live Treasury Indicator */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-4 rounded-2xl border-2 border-primary/20 shadow-sm">
         <div className="flex items-center gap-3">
