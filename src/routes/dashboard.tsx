@@ -57,7 +57,7 @@ function Dashboard() {
     setDark(document.documentElement.classList.contains("dark"));
   }, []);
 
-  const [printLayout, setPrintLayout] = useState<"pc" | "mobile">("pc");
+  const [printLayout, setPrintLayout] = useState<"pc" | "mobile">("mobile");
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
 
   function toggleTheme() {
@@ -110,7 +110,7 @@ function Dashboard() {
 
   return (
     <div
-      className={`min-h-screen bg-background print-layout-${printLayout}`}
+      className={`min-h-screen bg-background print-layout-container print-layout-${printLayout}`}
       dir="rtl"
     >
       {/* Dynamic Print Orientation Tag */}

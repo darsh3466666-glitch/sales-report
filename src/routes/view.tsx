@@ -110,7 +110,7 @@ function ManagementView() {
 
   return (
     <div
-      className={`min-h-screen bg-background print-layout-${printLayout} selection:bg-primary/20 pb-12`}
+      className={`min-h-screen bg-background print-layout-container print-layout-${printLayout} selection:bg-primary/20 pb-12`}
       dir="rtl"
     >
       {/* Dynamic Print Orientation Tag */}
