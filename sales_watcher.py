@@ -175,6 +175,18 @@ def run_once(force=False):
                     creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0,
                     timeout=60
                 )
+            
+            seed_script = os.path.join(REPO_DIR, 'scripts', 'seed_remote_cashflow.ts')
+            if os.path.exists(seed_script):
+                log("Syncing live cash flow to Firestore...")
+                subprocess.run(
+                    [npx_cmd, 'tsx', seed_script],
+                    cwd=REPO_DIR,
+                    capture_output=True,
+                    shell=(os.name == 'nt'),
+                    creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0,
+                    timeout=60
+                )
         except Exception as cfe:
             log(f"Cash flow extraction warning: {cfe}")
 

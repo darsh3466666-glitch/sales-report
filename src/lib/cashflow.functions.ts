@@ -1229,18 +1229,32 @@ export async function getLiveCashFlowData(options?: {
             ? overrides.pinnedStatus[c.customerName]
             : Boolean(c.isPinned);
 
-        const rawCust = (rawData?.customers || []).find(
+        const norm = c.normalizedName || normalizeArabicName(c.customerName);
+        const masterCust = (rawData?.masterCustomers || []).find(
+          (mc: any) =>
+            mc.customerName === c.customerName ||
+            normalizeArabicName(mc.customerName) === norm
+        ) || (rawData?.customers || []).find(
           (rc: any) =>
             rc.customerName === c.customerName ||
-            rc.normalizedName === c.normalizedName
+            rc.normalizedName === norm
         );
+
+        const liveDueDate = masterCust?.dueDate !== undefined ? masterCust.dueDate : (c.dueDate || "");
+        const liveBalance = masterCust?.currentBalance !== undefined ? masterCust.currentBalance : c.currentBalance;
+        if (!overrides.notes?.[c.customerName] && masterCust?.notes) {
+          notes = masterCust.notes;
+        }
+
         const collectedFromSheet = Math.max(
           Number(c.collectedFromSheet) || 0,
-          Number(rawCust?.collectedFromSheet) || 0
+          Number(masterCust?.collectedFromSheet) || 0
         );
 
         return {
           ...c,
+          currentBalance: liveBalance,
+          dueDate: liveDueDate,
           expectedAmount,
           collectedFromSheet,
           notes,
@@ -1318,7 +1332,7 @@ export async function getLiveCashFlowData(options?: {
         const isDueThisWeekOrPast = !c.dueDate || c.dueDate <= weekInfo.weekEnd;
         const hasPaid = (c.collectedFromSheet > 0 || c.collectedFromTreasury > 0);
 
-        if (!isDueThisWeekOrPast && !hasPaid) {
+        if (!isSavedCycleValid && !isDueThisWeekOrPast && !hasPaid) {
           return false;
         }
 
