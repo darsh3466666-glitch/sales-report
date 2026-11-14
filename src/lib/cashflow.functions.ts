@@ -1,6 +1,6 @@
 import { normalizeArabicName } from "./excel-parser.functions";
 import { get, set, keys } from "idb-keyval";
-import { collection, doc, getDocs, setDoc } from "firebase/firestore";
+import { collection, doc, getDocs, setDoc, getDoc } from "firebase/firestore";
 import { db } from "./firebase";
 
 export interface ArchivedCashFlowWeek {
@@ -194,6 +194,7 @@ export function cleanCustomerMatchingName(s: string): string {
     .replace(/ذ/g, "ز") // Egyptian colloquial typing: ابوذيد -> ابوزيد
     .replace(/ظ/g, "ض")
     .replace(/[\s\-_]+/g, " ")
+    .replace(/عيد\s*التواب/g, "عبدالتواب")
     .replace(/عبد\s+/g, "عبد")
     .replace(/ابو\s+/g, "ابو")
     .replace(/بن\s+/g, "بن");
@@ -340,12 +341,92 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v6";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v7";
+export const FIRESTORE_CF_COLLECTION = "cashflow_settings";
+export const FIRESTORE_CF_CYCLE_DOC = "active_cycle";
+export const FIRESTORE_CF_OVERRIDES_DOC = "user_overrides";
+
+/**
+ * Fetch remote active cycle state from Firestore cloud database.
+ * Enables 100% real-time synchronization across Mobile, PC, and Incognito browsers.
+ */
+export async function fetchRemoteCycleState(): Promise<ActiveCashFlowCycleState | null> {
+  try {
+    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
+    const snap = await Promise.race([
+      getDoc(docRef),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 2500)),
+    ]);
+    if (snap && snap.exists()) {
+      const data = snap.data() as ActiveCashFlowCycleState;
+      if (data && data.cycleId && Array.isArray(data.customers) && data.customers.length > 0) {
+        return data;
+      }
+    }
+    return null;
+  } catch (e) {
+    console.warn("Could not fetch remote cycle state from Firestore:", e);
+    return null;
+  }
+}
+
+/**
+ * Save active cycle state to Firestore cloud database so all devices stay identical.
+ */
+export async function saveRemoteCycleState(state: ActiveCashFlowCycleState): Promise<void> {
+  if (!state) return;
+  try {
+    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
+    await Promise.race([
+      setDoc(docRef, state, { merge: true }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 3000)),
+    ]);
+  } catch (e) {
+    console.warn("Could not save remote cycle state to Firestore:", e);
+  }
+}
+
+/**
+ * Fetch remote user overrides (notes, custom amounts, pins, additions, deletions) from Firestore.
+ */
+export async function fetchRemoteUserOverrides(): Promise<UserOverrides | null> {
+  try {
+    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
+    const snap = await Promise.race([
+      getDoc(docRef),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 2500)),
+    ]);
+    if (snap && snap.exists()) {
+      return snap.data() as UserOverrides;
+    }
+    return null;
+  } catch (e) {
+    console.warn("Could not fetch remote overrides from Firestore:", e);
+    return null;
+  }
+}
+
+/**
+ * Save user overrides to Firestore cloud database so notes and expected amounts are never lost.
+ */
+export async function saveRemoteUserOverrides(overrides: UserOverrides): Promise<void> {
+  if (!overrides) return;
+  try {
+    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
+    await Promise.race([
+      setDoc(docRef, overrides, { merge: true }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 3000)),
+    ]);
+  } catch (e) {
+    console.warn("Could not save remote overrides to Firestore:", e);
+  }
+}
 
 export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
     // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v6");
     localStorage.removeItem("cashflow_active_cycle_state_v5");
     localStorage.removeItem("cashflow_active_cycle_state_v4");
     localStorage.removeItem("cashflow_active_cycle_state_v3");
@@ -366,6 +447,8 @@ export function saveActiveCycleState(state: ActiveCashFlowCycleState) {
   if (typeof window === "undefined") return;
   try {
     localStorage.setItem(ACTIVE_CYCLE_STORAGE_KEY, JSON.stringify(state));
+    // Asynchronously push to cloud Firestore so Mobile and Incognito browsers mirror this state instantly!
+    saveRemoteCycleState(state).catch(() => {});
   } catch (e) {
     console.error("Failed to save active cycle state:", e);
   }
@@ -404,6 +487,26 @@ export function getUserOverrides(): UserOverrides {
 }
 
 /**
+ * Synchronize remote Firestore overrides into LocalStorage cache.
+ */
+export function syncRemoteOverridesToLocal(remote: UserOverrides) {
+  if (typeof window === "undefined" || !remote) return;
+  try {
+    const local = getUserOverrides();
+    const merged: UserOverrides = {
+      fixedAmounts: { ...local.fixedAmounts, ...(remote.fixedAmounts || {}) },
+      notes: { ...local.notes, ...(remote.notes || {}) },
+      pinnedStatus: { ...local.pinnedStatus, ...(remote.pinnedStatus || {}) },
+      deletedCustomers: Array.from(new Set([...(local.deletedCustomers || []), ...(remote.deletedCustomers || [])])),
+      addedCustomers: remote.addedCustomers && remote.addedCustomers.length > 0 ? remote.addedCustomers : (local.addedCustomers || []),
+    };
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
+  } catch (e) {
+    console.warn("Failed to sync remote overrides to local:", e);
+  }
+}
+
+/**
  * Mark a customer as deleted by user for this cycle.
  */
 export function markCustomerAsDeleted(customerName: string) {
@@ -417,6 +520,7 @@ export function markCustomerAsDeleted(customerName: string) {
       current.addedCustomers = current.addedCustomers.filter((c) => c.customerName !== customerName);
     }
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+    saveRemoteUserOverrides(current).catch(() => {});
   } catch (err) {
     console.error("Failed to mark customer as deleted:", err);
   }
@@ -437,13 +541,14 @@ export function saveManuallyAddedCustomer(customer: CashFlowCustomer) {
     filtered.push(customer);
     current.addedCustomers = filtered;
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+    saveRemoteUserOverrides(current).catch(() => {});
   } catch (err) {
     console.error("Failed to save manually added customer:", err);
   }
 }
 
 /**
- * Save customer override to LocalStorage safely without event side-effects.
+ * Save customer override to LocalStorage and cloud Firestore safely.
  */
 export function saveCustomerOverride(
   customerName: string,
@@ -462,6 +567,20 @@ export function saveCustomerOverride(
       current.pinnedStatus[customerName] = updates.isPinned;
     }
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+    saveRemoteUserOverrides(current).catch(() => {});
+
+    // Also update customer in active cycle state if present
+    const cycle = getActiveCycleState();
+    if (cycle && Array.isArray(cycle.customers)) {
+      const target = cycle.customers.find((c) => c.customerName === customerName);
+      if (target) {
+        if (updates.expectedAmount !== undefined) target.expectedAmount = updates.expectedAmount;
+        if (updates.notes !== undefined) target.notes = updates.notes;
+        if (updates.isPinned !== undefined) target.isPinned = updates.isPinned;
+        cycle.updatedAt = new Date().toISOString();
+        saveActiveCycleState(cycle);
+      }
+    }
   } catch (err) {
     console.error("Failed to save cashflow override:", err);
   }
@@ -478,6 +597,7 @@ export function isBankCustomer(customerName: string, notes?: string): boolean {
     normName.includes("يونس") ||
     normName.includes("عبدالتواب") ||
     normName.includes("عبد التواب") ||
+    normName.includes("عيد التواب") ||
     normName.includes("ميدوم") ||
     normName.includes("ايه بي ديري") ||
     normName.includes("ديري") ||
@@ -1032,12 +1152,35 @@ export async function getLiveCashFlowData(options?: {
   }
 
   try {
-    const liveTreasuryTx = await fetchLiveTreasuryIncoming();
+    const [liveTreasuryTx, remoteCycle, remoteOverrides] = await Promise.all([
+      fetchLiveTreasuryIncoming(),
+      fetchRemoteCycleState(),
+      fetchRemoteUserOverrides(),
+    ]);
+
+    if (remoteOverrides) {
+      syncRemoteOverridesToLocal(remoteOverrides);
+    }
     const overrides = getUserOverrides();
 
     const weekInfo = getCurrentCashFlowWeekWindow(options?.referenceDate || rawData?.reportDate || new Date());
     const currentCycleId = `week_${weekInfo.weekStart}_to_${weekInfo.weekEnd}`;
-    const savedCycle = getActiveCycleState();
+
+    const localSavedCycle = getActiveCycleState();
+    const isRemoteValid = Boolean(
+      remoteCycle &&
+      (remoteCycle.cycleId === currentCycleId ||
+        (!remoteCycle.weekEnd || remoteCycle.weekEnd >= weekInfo.weekStart)) &&
+      Array.isArray(remoteCycle.customers) &&
+      remoteCycle.customers.length > 0
+    );
+
+    const savedCycle = isRemoteValid ? remoteCycle : localSavedCycle;
+    if (isRemoteValid && remoteCycle && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(ACTIVE_CYCLE_STORAGE_KEY, JSON.stringify(remoteCycle));
+      } catch (e) {}
+    }
 
     const CASH_NAME = "عميل نقدي (كاش)";
     let baseCustomers: CashFlowCustomer[] = [];
@@ -2128,6 +2271,7 @@ export async function archiveCurrentWeekAndStartNew(
     freshOverrides.deletedCustomers = [];
     freshOverrides.addedCustomers = [];
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(freshOverrides));
+    saveRemoteUserOverrides(freshOverrides).catch(() => {});
   } catch (e) {}
 
   let totalExpected = 0;
