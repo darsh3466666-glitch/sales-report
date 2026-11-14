@@ -67,6 +67,7 @@ async function main() {
   } else {
     console.error("FAIL: Could not verify Firestore cycle document!");
   }
+  process.exit(0);
 }
 
 main().catch((err) => {

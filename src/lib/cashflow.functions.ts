@@ -28,6 +28,7 @@ export interface TreasuryIncomingTx {
   description: string;
   type: string;
   date?: string;
+  receipt?: string;
   matchedCustomer?: string;
 }
 
@@ -1428,28 +1429,51 @@ export async function getLiveCashFlowData(options?: {
         if (d < effectiveWeekStart || d > effectiveWeekEnd) return;
       }
 
-      const normDesc = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc) ? "نقدي" : desc;
-      // Signature MUST NOT include typ so the same payment cannot be added twice (once as خزينة and once as بنك)
-      const sig = `${d || effectiveWeekStart}_${normDesc}_${amt}`;
+      const receiptNo = String(tx.receipt || "").trim();
+      const isNormCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc);
+      const normDesc = isNormCash ? "نقدي" : normalizeArabicName(desc);
+
+      // Check if an existing transaction in the pool already represents this payment
+      for (const existing of weeklyTxMap.values()) {
+        const existDate = (existing.date || effectiveWeekStart).trim();
+        const curDate = (d || effectiveWeekStart).trim();
+        if (existDate !== curDate) continue;
+
+        const existIsCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(existing.description);
+        const existNormDesc = existIsCash ? "نقدي" : normalizeArabicName(existing.description);
+        const isSameCustomer = (isNormCash && existIsCash) || (existNormDesc === normDesc);
+
+        if (isSameCustomer && Math.abs(existing.amount - amt) < 1) {
+          // If both have receipts and they are distinct receipts (e.g. K3801 vs K3807), keep both!
+          if (existing.receipt && receiptNo && existing.receipt !== receiptNo) {
+            continue;
+          }
+          // Otherwise, it's the exact same transaction being synced across seeds/localStorage
+          if (receiptNo && !existing.receipt) {
+            existing.receipt = receiptNo;
+          }
+          if (isBankPayment(typ, desc)) {
+            existing.type = typ || "بنك";
+          }
+          return;
+        }
+      }
+
+      const sig = receiptNo
+        ? `rcpt_${receiptNo}`
+        : `${d || effectiveWeekStart}_${normDesc}_${amt}_${weeklyTxMap.size}`;
 
       // A transaction belonging to the current active week can NEVER be dropped by archivedTxSet!
       const isCurrentWeek = (!d || (d >= effectiveWeekStart && d <= effectiveWeekEnd));
       if (!isCurrentWeek && archivedTxSet.has(sig)) return;
 
-      if (!weeklyTxMap.has(sig)) {
-        weeklyTxMap.set(sig, {
-          amount: amt,
-          description: desc,
-          type: typ,
-          date: d || effectiveWeekStart,
-        });
-      } else {
-        // If an incoming record indicates it is a bank transfer, prioritize the bank type
-        const existing = weeklyTxMap.get(sig)!;
-        if (isBankPayment(typ, desc)) {
-          existing.type = typ || "بنك";
-        }
-      }
+      weeklyTxMap.set(sig, {
+        amount: amt,
+        description: desc,
+        type: typ,
+        date: d || effectiveWeekStart,
+        receipt: receiptNo || undefined,
+      });
     };
 
     // 1a. From static verified seed in cashflow_data.json
@@ -1509,6 +1533,16 @@ export async function getLiveCashFlowData(options?: {
               .reduce((sum, t) => sum + t.amount, 0);
             if (existingCashTotalOnDate >= amt || Math.abs(existingCashTotalOnDate - amt) < 1) {
               alreadyCaptured = true;
+            } else if (existingCashTotalOnDate > 0 && amt > existingCashTotalOnDate) {
+              // Deduplication delta: capture only the unrecorded portion so individual receipts are never duplicated
+              const delta = amt - existingCashTotalOnDate;
+              alreadyCaptured = true;
+              addTxToWeeklyPool({
+                amount: delta,
+                description: cName,
+                type: "خزينة",
+                date: repDate || effectiveWeekStart,
+              });
             }
           }
 
@@ -1553,9 +1587,19 @@ export async function getLiveCashFlowData(options?: {
       for (const cust of baseCustomers) {
         if (matchTreasuryDescriptionToCustomer(tx.description, cust.customerName)) {
           // Prevent attaching duplicate transaction with same amount and date to the same customer
-          const alreadyHasTx = (cust.treasuryTransactions || []).some(
-            (t) => (t.date === tx.date || !t.date || !tx.date) && Math.abs(t.amount - tx.amount) < 1
-          );
+          const isCash = isCashNorm(normalizeArabicName(cust.customerName));
+          const alreadyHasTx = (cust.treasuryTransactions || []).some((t) => {
+            if (t.receipt && tx.receipt) {
+              return t.receipt === tx.receipt;
+            }
+            if (isCash) {
+              return false;
+            }
+            return (
+              (t.date === tx.date || !t.date || !tx.date) &&
+              Math.abs(t.amount - tx.amount) < 1
+            );
+          });
           if (alreadyHasTx) {
             matched = true;
             break;

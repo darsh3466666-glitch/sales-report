@@ -107,26 +107,37 @@ def extract_cashflow():
     # 1. Load active week treasury transactions
     data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
     default_seed_tx = [
-        {"amount": 200000, "description": "محمد يونس عبد اللطيف(قلمشاه)", "type": "بنك", "date": "2026-11-11"},
-        {"amount": 44000, "description": "اسامه علي عبد الكريم", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 30000, "description": "احمد راغب(الهداهدة)", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 29000, "description": "حمزة عبدالحميد خليفة - حلوان", "type": "خزينة", "date": "2026-11-11"},
-        {"amount": 16000, "description": "محمود ابو زيد - الهداهده", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 10700, "description": "محمد حنفي(شعبان) طريق اسيوط", "type": "خزينة", "date": "2026-11-11"},
-        {"amount": 1570, "description": "مرسي (مدشه)", "type": "خزينة", "date": "2026-11-11"},
-        {"amount": 800, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 50, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 850, "description": "عميل نقدى", "type": "كاش", "date": "2026-11-11"},
-        {"amount": 140000, "description": "ابو حمزه", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 39200, "description": "محمد ابو فهد", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 5700, "description": "علي محمد", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 1700, "description": "نقدي", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 850, "description": "نقدي", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 100000, "description": "ايه بي ديري", "type": "تنمية", "date": "2026-11-12"},
-        {"amount": 40000, "description": "عبدالتواب احمد", "type": "ب مصر", "date": "2026-11-12"},
-        {"amount": 200000, "description": "الخيرات", "type": "زراعي", "date": "2026-11-12"},
-        {"amount": 5000, "description": "حماده عبدالخالق", "type": "كاش", "date": "2026-11-12"},
-        {"amount": 1190, "description": "نقدي", "type": "كاش", "date": "2026-11-12"}
+        {"receipt": "K3786", "amount": 800, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3787", "amount": 16000, "description": "محمود ابو زيد - الهداهده", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3788", "amount": 30000, "description": "احمد راغب(الهداهدة)", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3789", "amount": 44000, "description": "اسامه علي عبد الكريم", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3790", "amount": 50, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3791", "amount": 200000, "description": "محمد يونس عبد اللطيف(قلمشاه)", "type": "ب مصر", "date": "2026-11-11"},
+        {"receipt": "K3793", "amount": 29000, "description": "حمزة عبدالحميد خليفة - حلوان", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3794", "amount": 10700, "description": "محمد حنفي(شعبان) طريق اسيوط", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3795", "amount": 1570, "description": "مرسي (مدشه)", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3796", "amount": 850, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-11"},
+        {"receipt": "K3797", "amount": 39200, "description": "محمد ابو فهد-المنيب", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3798", "amount": 140000, "description": "ابو حمزة للأعلاف", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3799", "amount": 5700, "description": "علي محمد (نصار)", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3800", "amount": 1700, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3801", "amount": 850, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3802", "amount": 100000, "description": "ايه بي ديري /هشام فؤادطارق حسن وشركاه", "type": "تنمية", "date": "2026-11-12"},
+        {"receipt": "K3803", "amount": 1190, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3804", "amount": 5000, "description": "حماده عبد الخالق قيصر", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3805", "amount": 200000, "description": "مزرعه الخيرات", "type": "زراعي", "date": "2026-11-12"},
+        {"receipt": "K3806", "amount": 40000, "description": "عبد التواب احمد( ميدوم )", "type": "ب مصر", "date": "2026-11-12"},
+        {"receipt": "K3807", "amount": 850, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
+        {"receipt": "K3808", "amount": 5000, "description": "قرنى احمد محمد حسين (كمال علوى)", "type": "خزينة", "date": "2026-11-14"},
+        {"receipt": "K3809", "amount": 1700, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-14"},
+        {"receipt": "K3810", "amount": 605, "description": "بدوي حجازي البطل (الشوبك )", "type": "خزينة", "date": "2026-11-14"},
+        {"receipt": "K3811", "amount": 21500, "description": "بدوي حجازي البطل (الشوبك )", "type": "ب مصر", "date": "2026-11-14"},
+        {"receipt": "K3812", "amount": 13495, "description": "بدوي حجازي البطل (الشوبك )", "type": "فودا", "date": "2026-11-14"},
+        {"receipt": "K3813", "amount": 7000, "description": "ايمن علي حسن", "type": "خزينة", "date": "2026-11-14"},
+        {"receipt": "K3814", "amount": 2000, "description": "سامي قرني(اسعد نصيف)", "type": "خزينة", "date": "2026-11-14"},
+        {"receipt": "K3815", "amount": 40000, "description": "عدلي عبدالهادي (ابو شويقي)", "type": "خزينة", "date": "2026-11-14"},
+        {"receipt": "K3816", "amount": 150000, "description": "كرم مسعود ابو بكر (الهداهده)", "type": "خزينة", "date": "2026-11-14"},
+        {"receipt": "K3817", "amount": 2550, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-14"}
     ]
     existing_weekly_tx = list(default_seed_tx)
     if os.path.exists(data_path):
@@ -134,9 +145,13 @@ def extract_cashflow():
             with open(data_path, 'r', encoding='utf-8') as f:
                 prev_d = json.load(f)
                 if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
-                    seen_sigs = set(f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}" for t in existing_weekly_tx)
+                    seen_sigs = set(f"{t.get('date')}_{normalize_arabic(t.get('description',''))}_{float(t.get('amount', 0))}" for t in existing_weekly_tx)
                     for t in prev_d['weeklyTreasuryTransactions']:
-                        sig = f"{t.get('date')}_{t.get('description')}_{t.get('amount')}_{t.get('type')}"
+                        t_date = str(t.get('date', '')).strip()
+                        # If date is within the current active cycle, default_seed_tx is authoritative
+                        if "2026-11-11" <= t_date <= "2026-11-17":
+                            continue
+                        sig = f"{t.get('date')}_{normalize_arabic(t.get('description',''))}_{float(t.get('amount', 0))}"
                         if sig not in seen_sigs:
                             existing_weekly_tx.append(t)
                             seen_sigs.add(sig)
