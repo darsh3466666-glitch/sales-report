@@ -378,8 +378,9 @@ export async function saveRemoteCycleState(state: ActiveCashFlowCycleState): Pro
   if (!state) return;
   try {
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
+    const cleanState = JSON.parse(JSON.stringify(state));
     await Promise.race([
-      setDoc(docRef, state, { merge: true }),
+      setDoc(docRef, cleanState, { merge: true }),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 3000)),
     ]);
   } catch (e) {
@@ -1417,7 +1418,7 @@ export async function getLiveCashFlowData(options?: {
 
     const addTxToWeeklyPool = (tx: TreasuryIncomingTx) => {
       if (!tx) return;
-      const amt = Number(tx.amount) || 0;
+      let amt = Number(tx.amount) || 0;
       if (amt <= 0) return;
       const desc = String(tx.description || "").trim();
       if (!desc) return;
@@ -1432,6 +1433,25 @@ export async function getLiveCashFlowData(options?: {
       const receiptNo = String(tx.receipt || "").trim();
       const isNormCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc);
       const normDesc = isNormCash ? "نقدي" : normalizeArabicName(desc);
+
+      // Deduplication for un-receipted cash aggregates (e.g. daily sales totals vs individual treasury receipts)
+      if (isNormCash && !receiptNo) {
+        const cashTotalOnDate = Array.from(weeklyTxMap.values())
+          .filter(
+            (t) =>
+              (t.date || effectiveWeekStart) === (d || effectiveWeekStart) &&
+              /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(t.description)
+          )
+          .reduce((sum, t) => sum + t.amount, 0);
+
+        if (cashTotalOnDate >= amt || Math.abs(cashTotalOnDate - amt) < 1) {
+          // The daily cash sum is already fully captured by verified individual receipts
+          return;
+        } else if (cashTotalOnDate > 0 && amt > cashTotalOnDate) {
+          // Only capture the remaining unrecorded delta
+          amt = amt - cashTotalOnDate;
+        }
+      }
 
       // Check if an existing transaction in the pool already represents this payment
       for (const existing of weeklyTxMap.values()) {
@@ -1467,13 +1487,16 @@ export async function getLiveCashFlowData(options?: {
       const isCurrentWeek = (!d || (d >= effectiveWeekStart && d <= effectiveWeekEnd));
       if (!isCurrentWeek && archivedTxSet.has(sig)) return;
 
-      weeklyTxMap.set(sig, {
+      const txObj: TreasuryIncomingTx = {
         amount: amt,
         description: desc,
         type: typ,
         date: d || effectiveWeekStart,
-        receipt: receiptNo || undefined,
-      });
+      };
+      if (receiptNo) {
+        txObj.receipt = receiptNo;
+      }
+      weeklyTxMap.set(sig, txObj);
     };
 
     // 1a. From static verified seed in cashflow_data.json

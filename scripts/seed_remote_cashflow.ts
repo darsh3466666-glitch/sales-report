@@ -57,7 +57,8 @@ async function main() {
 
   console.log("Saving active cycle state to Firestore...");
   const cycleRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
-  await setDoc(cycleRef, activeCycleState, { merge: true });
+  const cleanActiveCycleState = JSON.parse(JSON.stringify(activeCycleState));
+  await setDoc(cycleRef, cleanActiveCycleState, { merge: true });
 
   // 5. Verify Firestore write
   const verifySnap = await getDoc(cycleRef);
