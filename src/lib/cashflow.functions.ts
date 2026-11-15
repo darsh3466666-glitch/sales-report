@@ -1697,25 +1697,6 @@ export async function getLiveCashFlowData(options?: {
       const isNormCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc);
       const normDesc = isNormCash ? "نقدي" : normalizeArabicName(desc);
 
-      // Deduplication for un-receipted cash aggregates (e.g. daily sales totals vs individual treasury receipts)
-      if (isNormCash && !receiptNo) {
-        const cashTotalOnDate = Array.from(weeklyTxMap.values())
-          .filter(
-            (t) =>
-              (t.date || effectiveWeekStart) === (d || effectiveWeekStart) &&
-              /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(t.description)
-          )
-          .reduce((sum, t) => sum + t.amount, 0);
-
-        if (cashTotalOnDate >= amt || Math.abs(cashTotalOnDate - amt) < 1) {
-          // The daily cash sum is already fully captured by verified individual receipts
-          return;
-        } else if (cashTotalOnDate > 0 && amt > cashTotalOnDate) {
-          // Only capture the remaining unrecorded delta
-          amt = amt - cashTotalOnDate;
-        }
-      }
-
       // Check if an existing transaction in the pool already represents this payment
       for (const existing of weeklyTxMap.values()) {
         const existDate = (existing.date || effectiveWeekStart).trim();
