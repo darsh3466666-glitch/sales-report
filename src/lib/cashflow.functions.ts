@@ -1119,8 +1119,6 @@ export async function getLiveCashFlowData(options?: {
 
   let rawData: any = null;
   let rawConfig: any = null;
-  let salesReportsList: any[] = [];
-  const allSalesCustomersMap = new Map<string, any>();
 
   if (typeof window === "undefined") {
     try {
@@ -1139,21 +1137,6 @@ export async function getLiveCashFlowData(options?: {
         rawConfig = JSON.parse(
           fs.readFileSync(path.join(targetDir, "cashflow_config.json"), "utf8")
         );
-      }
-      if (fs.existsSync(path.join(targetDir, "sales_data.json"))) {
-        const sData = JSON.parse(
-          fs.readFileSync(path.join(targetDir, "sales_data.json"), "utf8")
-        );
-        if (Array.isArray(sData)) {
-          salesReportsList = sData;
-          for (const rep of sData) {
-            for (const sc of rep.customers || []) {
-              if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
-                allSalesCustomersMap.set(sc.customer_name, sc);
-              }
-            }
-          }
-        }
       }
     } catch (e) {
       // ignore
@@ -1180,27 +1163,6 @@ export async function getLiveCashFlowData(options?: {
     } catch (e) {
       console.warn("Failed to fetch cashflow_config.json:", e);
     }
-
-    try {
-      const sRes = await fetch(`${basePath}sales_data.json?t=${Date.now()}`, {
-        cache: "no-store",
-      });
-      if (sRes.ok) {
-        const sData = await sRes.json();
-        if (Array.isArray(sData)) {
-          salesReportsList = sData;
-          for (const rep of sData) {
-            for (const sc of rep.customers || []) {
-              if (sc && sc.customer_name && !allSalesCustomersMap.has(sc.customer_name)) {
-                allSalesCustomersMap.set(sc.customer_name, sc);
-              }
-            }
-          }
-        }
-      }
-    } catch (e) {
-      // ignore
-    }
   }
 
   try {
@@ -1214,7 +1176,19 @@ export async function getLiveCashFlowData(options?: {
     if (remoteOverrides) {
       syncRemoteOverridesToLocal(remoteOverrides);
     }
-    const overrides = getUserOverrides();
+    const localOverrides = getUserOverrides();
+    const overrides: UserOverrides = {
+      fixedAmounts: { ...(localOverrides.fixedAmounts || {}), ...(remoteOverrides?.fixedAmounts || {}) },
+      notes: { ...(localOverrides.notes || {}), ...(remoteOverrides?.notes || {}) },
+      pinnedStatus: { ...(localOverrides.pinnedStatus || {}), ...(remoteOverrides?.pinnedStatus || {}) },
+      deletedCustomers: Array.from(
+        new Set([...(localOverrides.deletedCustomers || []), ...(remoteOverrides?.deletedCustomers || [])])
+      ),
+      addedCustomers:
+        remoteOverrides?.addedCustomers && remoteOverrides.addedCustomers.length > 0
+          ? remoteOverrides.addedCustomers
+          : localOverrides.addedCustomers || [],
+    };
 
     const weekInfo = getCurrentCashFlowWeekWindow(options?.referenceDate || rawData?.reportDate || new Date());
     const currentCycleId = `week_${weekInfo.weekStart}_to_${weekInfo.weekEnd}`;
@@ -1659,104 +1633,17 @@ export async function getLiveCashFlowData(options?: {
       weeklyTxMap.set(sig, txObj);
     };
 
-    // 1a. From static verified seed in cashflow_data.json
+    // 1a. From authentic sheet قبض / verified movements in cashflow_data.json
     if (Array.isArray(rawData?.weeklyTreasuryTransactions)) {
       for (const tx of rawData.weeklyTreasuryTransactions) {
         addTxToWeeklyPool(tx);
       }
     }
 
-    // 1b. From previously saved active cycle state in localStorage
-    if (isSavedCycleValid && Array.isArray(savedCycle?.weeklyTreasuryTransactions)) {
-      for (const tx of savedCycle.weeklyTreasuryTransactions) {
-        addTxToWeeklyPool(tx);
-      }
-    }
-
-    // 1c. Safeguard: restore transactions previously attached to customers in savedCycle
-    if (isSavedCycleValid && Array.isArray(savedCycle?.customers)) {
-      for (const c of savedCycle.customers) {
-        if (Array.isArray(c.treasuryTransactions)) {
-          for (const tx of c.treasuryTransactions) {
-            addTxToWeeklyPool(tx);
-          }
-        }
-      }
-    }
-
-    // 1d. From live incoming transactions fetched right now from Treasury dashboard
+    // 1b. From live incoming transactions fetched right now from Treasury dashboard (INCOMING ONLY!)
     if (Array.isArray(liveTreasuryTx)) {
       for (const tx of liveTreasuryTx) {
         addTxToWeeklyPool(tx);
-      }
-    }
-
-    // 1e. From daily sales and collection reports in sales_data.json
-    // Any customer with collected_amount > 0 in a report within this active week is an authentic verified collection!
-    for (const rep of salesReportsList) {
-      const repDate = String(rep.report?.report_date || rep.date || rep.report_date || "").trim();
-      if (repDate && repDate >= effectiveWeekStart && repDate <= effectiveWeekEnd) {
-        for (const sc of rep.customers || []) {
-          const amt = Number(sc.collected_amount) || 0;
-          if (amt <= 0) continue;
-          const cName = String(sc.customer_name || "").trim();
-          if (!cName) continue;
-
-          // Check if this collection was already captured in weeklyTxMap (e.g. from Treasury or seed)
-          let alreadyCaptured = false;
-          const normCName = normalizeArabicName(cName);
-
-          if (isCashNorm(normCName)) {
-            const existingCashTotalOnDate = Array.from(weeklyTxMap.values())
-              .filter(
-                (t) =>
-                  (t.date === repDate || !t.date) &&
-                  isCashNorm(normalizeArabicName(t.description))
-              )
-              .reduce((sum, t) => sum + t.amount, 0);
-            if (existingCashTotalOnDate >= amt || Math.abs(existingCashTotalOnDate - amt) < 1) {
-              alreadyCaptured = true;
-            } else if (existingCashTotalOnDate > 0 && amt > existingCashTotalOnDate) {
-              // Deduplication delta: capture only the unrecorded portion so individual receipts are never duplicated
-              const delta = amt - existingCashTotalOnDate;
-              alreadyCaptured = true;
-              addTxToWeeklyPool({
-                amount: delta,
-                description: cName,
-                type: "خزينة",
-                date: repDate || effectiveWeekStart,
-              });
-            }
-          }
-
-          if (!alreadyCaptured) {
-            for (const existingTx of weeklyTxMap.values()) {
-              const existingDate = (existingTx.date || "").trim();
-              const sameDate = !existingDate || !repDate || existingDate === repDate;
-              if (sameDate && Math.abs(existingTx.amount - amt) < 1) {
-                const normDesc = normalizeArabicName(existingTx.description);
-                if (
-                  normDesc === normCName ||
-                  matchTreasuryDescriptionToCustomer(existingTx.description, cName) ||
-                  matchTreasuryDescriptionToCustomer(cName, existingTx.description)
-                ) {
-                  alreadyCaptured = true;
-                  break;
-                }
-              }
-            }
-          }
-
-          if (!alreadyCaptured) {
-            const isBank = isBankCustomer(cName);
-            addTxToWeeklyPool({
-              amount: amt,
-              description: cName,
-              type: isBank ? "بنك" : "خزينة",
-              date: repDate || effectiveWeekStart,
-            });
-          }
-        }
       }
     }
 
@@ -1820,27 +1707,7 @@ export async function getLiveCashFlowData(options?: {
           }
         }
 
-        let matchedSalesName = "";
-        let matchedSalesObj: any = null;
-        if (!matchedMasterName) {
-          const matchedSalesExact = Array.from(allSalesCustomersMap.values()).find(
-            (sc) => normTxDesc === normalizeArabicName(sc.customer_name)
-          );
-          if (matchedSalesExact) {
-            matchedSalesName = matchedSalesExact.customer_name;
-            matchedSalesObj = matchedSalesExact;
-          } else {
-            const matchedSalesFuzzy = Array.from(allSalesCustomersMap.values()).find(
-              (sc) => matchTreasuryDescriptionToCustomer(tx.description, sc.customer_name)
-            );
-            if (matchedSalesFuzzy) {
-              matchedSalesName = matchedSalesFuzzy.customer_name;
-              matchedSalesObj = matchedSalesFuzzy;
-            }
-          }
-        }
-
-        const validCustName = matchedMasterName || matchedSalesName;
+        const validCustName = matchedMasterName;
         const normValid = normalizeArabicName(validCustName);
 
         // STRICT REQUIREMENT: Only accept if it is an authentic customer from Master Data!
@@ -1873,13 +1740,6 @@ export async function getLiveCashFlowData(options?: {
             );
             const currentBal = matchedMasterCust?.currentBalance !== undefined
               ? Number(matchedMasterCust.currentBalance)
-              : matchedSalesObj
-              ? Number(
-                  matchedSalesObj.outstanding_amount ||
-                    matchedSalesObj.prev_balance ||
-                    matchedSalesObj.total_balance ||
-                    0
-                )
               : 0;
             const dueDate = matchedMasterCust?.dueDate || "";
 

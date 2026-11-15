@@ -64,7 +64,6 @@ async function main() {
   };
 
   console.log("Saving user overrides to Firestore...");
-  const ovRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
   await setDoc(ovRef, userOverrides, { merge: true });
 
   console.log("Saving active cycle state to Firestore...");
