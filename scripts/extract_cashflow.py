@@ -106,8 +106,7 @@ def extract_cashflow():
 
     # 1. Load active week treasury transactions dynamically:
     # A) From public/cashflow_data.json to retain all days of active cycle
-    # B) From sheet 'قبض' in 'شيت تحصيل.xlsm' (genuine ERP export with exact timestamps)
-    # C) From live Treasury URL (https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json) - INCOMING ONLY!
+    # B) From live Treasury URL (https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json) - INCOMING ONLY!
     data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
     existing_weekly_tx = []
     seen_sigs = set()
@@ -129,31 +128,6 @@ def extract_cashflow():
                                 seen_sigs.add(sig)
         except Exception as e:
             print("Could not read previous weekly treasury data:", e)
-
-    # Read sheet 'قبض' from Excel
-    if 'قبض' in wb.sheetnames:
-        ws_q = wb['قبض']
-        q_rows = list(ws_q.iter_rows(values_only=True))
-        for r in q_rows[1:]:
-            if r and len(r) >= 3 and r[0] and r[2]:
-                q_name = str(r[0]).strip()
-                norm_q = normalize_arabic(q_name)
-                if not norm_q:
-                    continue
-                q_amt = float(r[2]) if isinstance(r[2], (int, float)) else 0.0
-                if q_amt <= 0:
-                    continue
-                q_date_val = r[1]
-                q_date_str = str(q_date_val)[:10] if q_date_val else ""
-                sig = f"{q_date_str}_{norm_q}_{q_amt}"
-                if sig not in seen_sigs:
-                    existing_weekly_tx.append({
-                        "amount": q_amt,
-                        "description": q_name,
-                        "type": "خزينة",
-                        "date": q_date_str
-                    })
-                    seen_sigs.add(sig)
 
     # Read from live Treasury link (INCOMING ONLY!)
     try:
