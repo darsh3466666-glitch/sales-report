@@ -104,59 +104,86 @@ def extract_cashflow():
     fixed_amounts = existing_config.get("fixedAmounts", {})
     notes = existing_config.get("notes", {})
 
-    # 1. Load active week treasury transactions
+    # 1. Load active week treasury transactions dynamically:
+    # A) From public/cashflow_data.json to retain all days of active cycle
+    # B) From sheet 'قبض' in 'شيت تحصيل.xlsm' (genuine ERP export with exact timestamps)
+    # C) From live Treasury URL (https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json) - INCOMING ONLY!
     data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
-    default_seed_tx = [
-        {"receipt": "K3786", "amount": 800, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3787", "amount": 16000, "description": "محمود ابو زيد - الهداهده", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3788", "amount": 30000, "description": "احمد راغب(الهداهدة)", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3789", "amount": 44000, "description": "اسامه علي عبد الكريم", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3790", "amount": 50, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3791", "amount": 200000, "description": "محمد يونس عبد اللطيف(قلمشاه)", "type": "ب مصر", "date": "2026-11-11"},
-        {"receipt": "K3793", "amount": 29000, "description": "حمزة عبدالحميد خليفة - حلوان", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3794", "amount": 10700, "description": "محمد حنفي(شعبان) طريق اسيوط", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3795", "amount": 1570, "description": "مرسي (مدشه)", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3796", "amount": 850, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-11"},
-        {"receipt": "K3797", "amount": 39200, "description": "محمد ابو فهد-المنيب", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3798", "amount": 140000, "description": "ابو حمزة للأعلاف", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3799", "amount": 5700, "description": "علي محمد (نصار)", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3800", "amount": 1700, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3801", "amount": 850, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3802", "amount": 100000, "description": "ايه بي ديري /هشام فؤادطارق حسن وشركاه", "type": "تنمية", "date": "2026-11-12"},
-        {"receipt": "K3803", "amount": 1190, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3804", "amount": 5000, "description": "حماده عبد الخالق قيصر", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3805", "amount": 200000, "description": "مزرعه الخيرات", "type": "زراعي", "date": "2026-11-12"},
-        {"receipt": "K3806", "amount": 40000, "description": "عبد التواب احمد( ميدوم )", "type": "ب مصر", "date": "2026-11-12"},
-        {"receipt": "K3807", "amount": 850, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-12"},
-        {"receipt": "K3808", "amount": 5000, "description": "قرنى احمد محمد حسين (كمال علوى)", "type": "خزينة", "date": "2026-11-14"},
-        {"receipt": "K3809", "amount": 1700, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-14"},
-        {"receipt": "K3810", "amount": 605, "description": "بدوي حجازي البطل (الشوبك )", "type": "خزينة", "date": "2026-11-14"},
-        {"receipt": "K3811", "amount": 21500, "description": "بدوي حجازي البطل (الشوبك )", "type": "ب مصر", "date": "2026-11-14"},
-        {"receipt": "K3812", "amount": 13495, "description": "بدوي حجازي البطل (الشوبك )", "type": "فودا", "date": "2026-11-14"},
-        {"receipt": "K3813", "amount": 7000, "description": "ايمن علي حسن", "type": "خزينة", "date": "2026-11-14"},
-        {"receipt": "K3814", "amount": 2000, "description": "سامي قرني(اسعد نصيف)", "type": "خزينة", "date": "2026-11-14"},
-        {"receipt": "K3815", "amount": 40000, "description": "عدلي عبدالهادي (ابو شويقي)", "type": "خزينة", "date": "2026-11-14"},
-        {"receipt": "K3816", "amount": 150000, "description": "كرم مسعود ابو بكر (الهداهده)", "type": "خزينة", "date": "2026-11-14"},
-        {"receipt": "K3817", "amount": 2550, "description": "عميل نقدى", "type": "خزينة", "date": "2026-11-14"}
-    ]
-    existing_weekly_tx = list(default_seed_tx)
+    existing_weekly_tx = []
+    seen_sigs = set()
+
+    # Read from public/cashflow_data.json first to retain all days of active cycle
     if os.path.exists(data_path):
         try:
             with open(data_path, 'r', encoding='utf-8') as f:
                 prev_d = json.load(f)
                 if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
-                    seen_sigs = set(f"{t.get('date')}_{normalize_arabic(t.get('description',''))}_{float(t.get('amount', 0))}" for t in existing_weekly_tx)
                     for t in prev_d['weeklyTreasuryTransactions']:
                         t_date = str(t.get('date', '')).strip()
-                        # If date is within the current active cycle, default_seed_tx is authoritative
-                        if "2026-11-11" <= t_date <= "2026-11-17":
-                            continue
-                        sig = f"{t.get('date')}_{normalize_arabic(t.get('description',''))}_{float(t.get('amount', 0))}"
-                        if sig not in seen_sigs:
-                            existing_weekly_tx.append(t)
-                            seen_sigs.add(sig)
-        except Exception:
-            pass
+                        t_desc = normalize_arabic(t.get('description', ''))
+                        t_amt = float(t.get('amount', 0))
+                        if t_amt > 0 and t_desc:
+                            sig = f"{t_date}_{t_desc}_{t_amt}"
+                            if sig not in seen_sigs:
+                                existing_weekly_tx.append(t)
+                                seen_sigs.add(sig)
+        except Exception as e:
+            print("Could not read previous weekly treasury data:", e)
+
+    # Read sheet 'قبض' from Excel
+    if 'قبض' in wb.sheetnames:
+        ws_q = wb['قبض']
+        q_rows = list(ws_q.iter_rows(values_only=True))
+        for r in q_rows[1:]:
+            if r and len(r) >= 3 and r[0] and r[2]:
+                q_name = str(r[0]).strip()
+                norm_q = normalize_arabic(q_name)
+                if not norm_q:
+                    continue
+                q_amt = float(r[2]) if isinstance(r[2], (int, float)) else 0.0
+                if q_amt <= 0:
+                    continue
+                q_date_val = r[1]
+                q_date_str = str(q_date_val)[:10] if q_date_val else ""
+                sig = f"{q_date_str}_{norm_q}_{q_amt}"
+                if sig not in seen_sigs:
+                    existing_weekly_tx.append({
+                        "amount": q_amt,
+                        "description": q_name,
+                        "type": "خزينة",
+                        "date": q_date_str
+                    })
+                    seen_sigs.add(sig)
+
+    # Read from live Treasury link (INCOMING ONLY!)
+    try:
+        import urllib.request
+        req = urllib.request.Request(
+            "https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json",
+            headers={"User-Agent": "Mozilla/5.0"}
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            t_data = json.loads(resp.read().decode('utf-8'))
+            t_rep_date = str(t_data.get('reportDate', '')).strip()
+            incoming_list = t_data.get('transactions', {}).get('incoming', [])
+            for item in incoming_list:
+                i_amt = float(item.get('amount', 0))
+                i_desc = str(item.get('description', '')).strip()
+                i_type = str(item.get('type', 'خزينة')).strip()
+                i_date = str(item.get('date', t_rep_date)).strip()
+                norm_i = normalize_arabic(i_desc)
+                if i_amt > 0 and norm_i:
+                    sig = f"{i_date}_{norm_i}_{i_amt}"
+                    if sig not in seen_sigs:
+                        existing_weekly_tx.append({
+                            "amount": i_amt,
+                            "description": i_desc,
+                            "type": i_type,
+                            "date": i_date
+                        })
+                        seen_sigs.add(sig)
+    except Exception as e:
+        print("Note: live treasury incoming fetch failed or offline:", e)
 
     paid_names_set = set()
     for t in existing_weekly_tx:

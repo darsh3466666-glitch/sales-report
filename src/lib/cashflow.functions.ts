@@ -424,6 +424,46 @@ export async function saveRemoteUserOverrides(overrides: UserOverrides): Promise
   }
 }
 
+export const FIRESTORE_CF_PREV_WEEK_DOC = "previous_week";
+
+/**
+ * Fetch remote previous week comparison metrics from Firestore.
+ * Ensures all devices (mobile, incognito, PC) have identical last-week comparison metrics.
+ */
+export async function fetchRemotePreviousWeek(): Promise<CashFlowComparisonMetrics | null> {
+  try {
+    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_PREV_WEEK_DOC);
+    const snap = await Promise.race([
+      getDoc(docRef),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 2500)),
+    ]);
+    if (snap && snap.exists()) {
+      return snap.data() as CashFlowComparisonMetrics;
+    }
+    return null;
+  } catch (e) {
+    console.warn("Could not fetch remote previous week from Firestore:", e);
+    return null;
+  }
+}
+
+/**
+ * Save previous week comparison metrics to Firestore so all devices stay in sync.
+ */
+export async function saveRemotePreviousWeek(metrics: CashFlowComparisonMetrics): Promise<void> {
+  if (!metrics) return;
+  try {
+    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_PREV_WEEK_DOC);
+    const cleanData = JSON.parse(JSON.stringify(metrics));
+    await Promise.race([
+      setDoc(docRef, cleanData, { merge: true }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 3000)),
+    ]);
+  } catch (e) {
+    console.warn("Could not save remote previous week to Firestore:", e);
+  }
+}
+
 export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
@@ -1154,10 +1194,11 @@ export async function getLiveCashFlowData(options?: {
   }
 
   try {
-    const [liveTreasuryTx, remoteCycle, remoteOverrides] = await Promise.all([
+    const [liveTreasuryTx, remoteCycle, remoteOverrides, remotePrevWeek] = await Promise.all([
       fetchLiveTreasuryIncoming(),
       fetchRemoteCycleState(),
       fetchRemoteUserOverrides(),
+      fetchRemotePreviousWeek(),
     ]);
 
     if (remoteOverrides) {
@@ -1274,6 +1315,56 @@ export async function getLiveCashFlowData(options?: {
         }
         return true;
       });
+
+      // User Rule (استثناء التواريخ): If customer's dueDate is postponed outside active week (> weekInfo.weekEnd) and has not paid:
+      // They EXIT the active cycle completely!
+      baseCustomers = baseCustomers.filter((c) => {
+        if (c.customerName === CASH_NAME || c.customerName.includes("نقدي")) return true;
+        if (c.isPinned) return true;
+        const hasPaid = (c.collectedFromSheet > 0 || c.collectedFromTreasury > 0);
+        if (c.dueDate && c.dueDate > weekInfo.weekEnd && !hasPaid) {
+          return false; // POSTPONED TO FUTURE WEEK -> EXITS CURRENT CYCLE!
+        }
+        return true;
+      });
+
+      // Two-way sync: If any customer in Master_Data had their dueDate advanced INTO this active week (<= weekInfo.weekEnd),
+      // and they are not yet in baseCustomers (and balance >= 5000 and not settled):
+      // They ENTER the active cycle list immediately!
+      for (const mc of rawData?.masterCustomers || []) {
+        if (!mc.customerName || mc.currentBalance < 5000) continue;
+        if (mc.notes?.includes("عميل خالص") || mc.notes?.includes("تم التصفية")) continue;
+        const norm = normalizeArabicName(mc.customerName);
+        if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
+          continue;
+        }
+        const isAlreadyInBase = baseCustomers.some(
+          (bc) => bc.customerName === mc.customerName || normalizeArabicName(bc.customerName) === norm
+        );
+        if (!isAlreadyInBase && mc.dueDate && mc.dueDate <= weekInfo.weekEnd) {
+          const expAmt =
+            overrides.fixedAmounts?.[mc.customerName] !== undefined
+              ? overrides.fixedAmounts[mc.customerName]
+              : mc.currentBalance;
+          baseCustomers.push({
+            index: baseCustomers.length + 1,
+            customerName: mc.customerName,
+            normalizedName: norm,
+            currentBalance: mc.currentBalance,
+            expectedAmount: Number(expAmt) || 0,
+            collectedFromSheet: Number(mc.collectedFromSheet) || 0,
+            collectedFromTreasury: 0,
+            totalCollected: Number(mc.collectedFromSheet) || 0,
+            dueDate: mc.dueDate,
+            rate: 0,
+            status: "لم يسدد",
+            remaining: Number(expAmt) || 0,
+            notes: overrides.notes?.[mc.customerName] || mc.notes || "",
+            isPinned: false,
+            treasuryTransactions: [],
+          });
+        }
+      }
     } else {
       // 2. INITIALIZE FRESH BASELINE FOR THE CYCLE (ONCE AT CYCLE START / RESET)
       baseCustomers = (rawData?.customers || []).map((c: any, idx: number) => {
@@ -1348,6 +1439,32 @@ export async function getLiveCashFlowData(options?: {
 
         return true;
       });
+
+      // Rollover unpaid customers from previous cycle (User Rule: ينزل بالمبلغ المتبقي الذي لم يسدده من الأسبوع المنتهي)
+      if (savedCycle && Array.isArray(savedCycle.customers)) {
+        for (const prevCust of savedCycle.customers) {
+          const norm = prevCust.normalizedName || normalizeArabicName(prevCust.customerName);
+          const alreadyIn = baseCustomers.some(
+            (b) => b.customerName === prevCust.customerName || normalizeArabicName(b.customerName) === norm
+          );
+          const remAmt = prevCust.remaining !== undefined ? prevCust.remaining : prevCust.expectedAmount;
+          if (!alreadyIn && remAmt > 0 && prevCust.currentBalance >= 5000) {
+            if (prevCust.notes?.includes("عميل خالص") || prevCust.notes?.includes("تم التصفية")) continue;
+            baseCustomers.push({
+              ...prevCust,
+              index: baseCustomers.length + 1,
+              expectedAmount: remAmt, // Carry over UNPAID REMAINING ONLY!
+              collectedFromSheet: 0,
+              collectedFromTreasury: 0,
+              totalCollected: 0,
+              remaining: remAmt,
+              rate: 0,
+              status: "لم يسدد",
+              treasuryTransactions: [],
+            });
+          }
+        }
+      }
 
       // Filter out user-deleted customers for this active week
       if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
@@ -1898,7 +2015,10 @@ export async function getLiveCashFlowData(options?: {
       } catch (e) {}
     }
 
-    const activePreviousWeek = storedPreviousWeek || rawConfig?.previousWeek;
+    const activePreviousWeek = remotePrevWeek || storedPreviousWeek || rawConfig?.previousWeek;
+    if (!remotePrevWeek && storedPreviousWeek) {
+      saveRemotePreviousWeek(storedPreviousWeek).catch(() => {});
+    }
     const hasGenuinePreviousSnapshot = Boolean(
       activePreviousWeek &&
       typeof activePreviousWeek.collected === "number" &&
@@ -2200,14 +2320,15 @@ export async function archiveCurrentWeekAndStartNew(
         : 0,
   };
 
-  if (typeof window !== "undefined") {
-    try {
-      localStorage.setItem(
-        "cashflow_previous_week_override",
-        JSON.stringify(newPreviousWeek)
-      );
-    } catch (e) {}
-  }
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem(
+          "cashflow_previous_week_override",
+          JSON.stringify(newPreviousWeek)
+        );
+      } catch (e) {}
+    }
+    await saveRemotePreviousWeek(newPreviousWeek);
 
   // 4. Compute next week window (advancing forward)
   const currentEnd = new Date(currentSummary.weekEnd);
