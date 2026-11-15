@@ -2901,8 +2901,8 @@
     {
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
       "currentBalance": 32765.0,
-      "dueDate": "2026-11-24",
-      "notes": "الباقي بعد 10 ايام ودفعة الفلوس الجاية ف رمضان",
+      "dueDate": "2026-11-30",
+      "notes": "الباقي بعد 15 ايام ودفعة الفلوس الجاية ف او اسبوع رمضان",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -5069,20 +5069,6 @@
       "index": 29
     },
     {
-      "customerName": "كرم مسعود ابو بكر (الهداهده)",
-      "normalizedName": "كرم مسعود ابو بكر الهداهده",
-      "currentBalance": 32765.0,
-      "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-24",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 0.0,
-      "notes": "الباقي بعد 10 ايام ودفعة الفلوس الجاية ف رمضان",
-      "isPinned": false,
-      "index": 30
-    },
-    {
       "customerName": "احمد راغب(الهداهدة)",
       "normalizedName": "احمد راغب الهداهده",
       "currentBalance": 4710.0,
@@ -5094,7 +5080,7 @@
       "remaining": 0.0,
       "notes": "دورة جديدة اخرها العيد الكبير",
       "isPinned": false,
-      "index": 31
+      "index": 30
     },
     {
       "customerName": "عبد التواب احمد( ميدوم )",
@@ -5108,7 +5094,7 @@
       "remaining": 0.0,
       "notes": "الاثنين",
       "isPinned": false,
-      "index": 32
+      "index": 31
     },
     {
       "customerName": "سيد الهواري - كوم أبو راضي",
@@ -5121,6 +5107,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "والحساب يوم الثلاثاء  3/11/2026",
+      "isPinned": false,
+      "index": 32
+    },
+    {
+      "customerName": "كرم مسعود ابو بكر (الهداهده)",
+      "normalizedName": "كرم مسعود ابو بكر الهداهده",
+      "currentBalance": 32765.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-30",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "الباقي بعد 15 ايام ودفعة الفلوس الجاية ف او اسبوع رمضان",
       "isPinned": false,
       "index": 33
     },
