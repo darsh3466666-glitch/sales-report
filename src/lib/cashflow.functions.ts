@@ -1360,21 +1360,6 @@ export async function getLiveCashFlowData(options?: {
             ? overrides.fixedAmounts[c.customerName]
             : c.expectedAmount;
 
-        let notes =
-          overrides.notes?.[c.customerName] !== undefined
-            ? overrides.notes[c.customerName]
-            : c.notes || "";
-
-        // Strictly remove synthetic "سداد وارد غير متوقع" note as instructed by user!
-        if (notes && notes.includes("سداد وارد غير متوقع")) {
-          notes = "";
-        }
-
-        const isPinned =
-          overrides.pinnedStatus?.[c.customerName] !== undefined
-            ? overrides.pinnedStatus[c.customerName]
-            : Boolean(c.isPinned);
-
         const norm = c.normalizedName || normalizeArabicName(c.customerName);
         const masterCust = (rawData?.masterCustomers || []).find(
           (mc: any) =>
@@ -1388,9 +1373,24 @@ export async function getLiveCashFlowData(options?: {
 
         const liveDueDate = masterCust?.dueDate !== undefined ? masterCust.dueDate : (c.dueDate || "");
         const liveBalance = masterCust?.currentBalance !== undefined ? masterCust.currentBalance : c.currentBalance;
-        if (!overrides.notes?.[c.customerName] && masterCust?.notes) {
-          notes = masterCust.notes;
+        
+        // Notes: live from Master_Data Column M, exactly like due dates and balances!
+        let notes =
+          masterCust?.notes !== undefined
+            ? masterCust.notes
+            : overrides.notes?.[c.customerName] !== undefined
+            ? overrides.notes[c.customerName]
+            : c.notes || "";
+
+        // Strictly remove synthetic "سداد وارد غير متوقع" note as instructed by user!
+        if (notes && notes.includes("سداد وارد غير متوقع")) {
+          notes = "";
         }
+
+        const isPinned =
+          overrides.pinnedStatus?.[c.customerName] !== undefined
+            ? overrides.pinnedStatus[c.customerName]
+            : Boolean(c.isPinned);
 
         const collectedFromSheet = Math.max(
           Number(c.collectedFromSheet) || 0,
@@ -1473,7 +1473,7 @@ export async function getLiveCashFlowData(options?: {
             rate: 0,
             status: "لم يسدد",
             remaining: Number(expAmt) || 0,
-            notes: overrides.notes?.[mc.customerName] || mc.notes || "",
+            notes: mc.notes !== undefined ? mc.notes : (overrides.notes?.[mc.customerName] || ""),
             isPinned: false,
             treasuryTransactions: [],
           });
@@ -1497,8 +1497,16 @@ export async function getLiveCashFlowData(options?: {
             ? c.expectedAmount
             : c.currentBalance || 0;
 
+        const masterCust = (rawData?.masterCustomers || []).find(
+          (mc: any) =>
+            mc.customerName === name ||
+            normalizeArabicName(mc.customerName) === (c.normalizedName || normalizeArabicName(name))
+        );
+
         const notes =
-          overrides.notes?.[name] !== undefined
+          masterCust?.notes !== undefined
+            ? masterCust.notes
+            : overrides.notes?.[name] !== undefined
             ? overrides.notes[name]
             : c.notes || rawConfig?.notes?.[name] || "";
 
@@ -1875,9 +1883,11 @@ export async function getLiveCashFlowData(options?: {
                 : 0; // Strictly 0 for unexpected inflow!
 
             let notes =
-              overrides.notes?.[custName] !== undefined
+              matchedMasterCust?.notes !== undefined
+                ? matchedMasterCust.notes
+                : overrides.notes?.[custName] !== undefined
                 ? overrides.notes[custName]
-                : rawConfig?.notes?.[custName] || matchedMasterCust?.notes || "";
+                : rawConfig?.notes?.[custName] || "";
             if (notes.includes("سداد وارد غير متوقع")) {
               notes = "";
             }

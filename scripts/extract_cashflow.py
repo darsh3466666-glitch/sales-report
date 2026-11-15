@@ -260,10 +260,9 @@ def extract_cashflow():
         else:
             expected = bal
 
-        # Notes priority: Master_Data Column M first, then config notes
-        note = m_note or notes.get(m_name, '')
-        if note:
-            notes[m_name] = note
+        # Notes: Master_Data Column M is authoritative, exactly like due dates and balances!
+        note = m_note if m_note is not None else notes.get(m_name, '')
+        notes[m_name] = note
 
         data_rows.append({
             'customerName': m_name,
