@@ -29,13 +29,25 @@ async function main() {
     } catch (e) {}
   }
 
-  // 3. Prepare User Overrides
+  // 3. Prepare User Overrides, strictly preserving user-deleted and manually added customers!
+  let existingDeleted: string[] = [];
+  let existingAdded: any[] = [];
+  const ovRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
+  try {
+    const ovSnap = await getDoc(ovRef);
+    if (ovSnap.exists()) {
+      const d = ovSnap.data();
+      if (Array.isArray(d?.deletedCustomers)) existingDeleted = d.deletedCustomers;
+      if (Array.isArray(d?.addedCustomers)) existingAdded = d.addedCustomers;
+    }
+  } catch (e) {}
+
   const userOverrides = {
     fixedAmounts: cfgFixed,
     notes: cfgNotes,
     pinnedStatus: cfgPinned,
-    deletedCustomers: [],
-    addedCustomers: [],
+    deletedCustomers: existingDeleted,
+    addedCustomers: existingAdded,
     updatedAt: new Date().toISOString()
   };
 

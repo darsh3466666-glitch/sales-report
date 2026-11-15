@@ -820,12 +820,22 @@ export function deleteCustomerFromSummary(
   }
 
   try {
-    const cycle = getActiveCycleState();
-    if (cycle) {
+    let cycle = getActiveCycleState();
+    if (!cycle) {
+      cycle = {
+        cycleId: `week_${summary.weekStart}_to_${summary.weekEnd}`,
+        weekStart: summary.weekStart,
+        weekEnd: summary.weekEnd,
+        weekLabel: summary.weekLabel,
+        weeklyGoal: summary.weeklyGoal || 4000000,
+        customers: remainingCusts,
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
       cycle.customers = remainingCusts;
       cycle.updatedAt = new Date().toISOString();
-      saveActiveCycleState(cycle);
     }
+    saveActiveCycleState(cycle);
   } catch (e) {}
 
   return {
@@ -1330,11 +1340,20 @@ export async function getLiveCashFlowData(options?: {
 
       // Two-way sync: If any customer in Master_Data had their dueDate advanced INTO this active week (<= weekInfo.weekEnd),
       // and they are not yet in baseCustomers (and balance >= 5000 and not settled):
-      // They ENTER the active cycle list immediately!
+      // They ENTER the active cycle list immediately UNLESS explicitly deleted by user for this active week!
+      const activeDeletedNormSet = new Set(
+        (overrides.deletedCustomers || []).map((n) => normalizeArabicName(n))
+      );
       for (const mc of rawData?.masterCustomers || []) {
         if (!mc.customerName || mc.currentBalance < 5000) continue;
         if (mc.notes?.includes("عميل خالص") || mc.notes?.includes("تم التصفية")) continue;
         const norm = normalizeArabicName(mc.customerName);
+        if (
+          activeDeletedNormSet.has(norm) ||
+          (overrides.deletedCustomers || []).includes(mc.customerName)
+        ) {
+          continue; // User explicitly deleted this customer for this active week! DO NOT RE-ADD!
+        }
         if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
           continue;
         }
@@ -1465,22 +1484,32 @@ export async function getLiveCashFlowData(options?: {
           }
         }
       }
+    }
 
-      // Filter out user-deleted customers for this active week
-      if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
-        const deletedSet = new Set(overrides.deletedCustomers);
-        baseCustomers = baseCustomers.filter((c) => !deletedSet.has(c.customerName));
-      }
+    // Filter out user-deleted customers for this active week (applies strictly to both saved cycle and fresh baseline)
+    if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
+      const deletedSet = new Set(
+        overrides.deletedCustomers.map((n) => normalizeArabicName(n))
+      );
+      baseCustomers = baseCustomers.filter((c) => {
+        const norm = c.normalizedName || normalizeArabicName(c.customerName);
+        return !deletedSet.has(norm) && !overrides.deletedCustomers!.includes(c.customerName);
+      });
+    }
 
-      // Append user-added customers for this active week
-      if (overrides.addedCustomers && overrides.addedCustomers.length > 0) {
-        for (const ac of overrides.addedCustomers) {
-          if (!baseCustomers.some((c) => c.customerName === ac.customerName)) {
-            baseCustomers.push({
-              ...ac,
-              index: baseCustomers.length + 1,
-            });
-          }
+    // Append user-added customers for this active week
+    if (overrides.addedCustomers && overrides.addedCustomers.length > 0) {
+      for (const ac of overrides.addedCustomers) {
+        const norm = ac.normalizedName || normalizeArabicName(ac.customerName);
+        if (
+          !baseCustomers.some(
+            (c) => c.customerName === ac.customerName || normalizeArabicName(c.customerName) === norm
+          )
+        ) {
+          baseCustomers.push({
+            ...ac,
+            index: baseCustomers.length + 1,
+          });
         }
       }
     }
