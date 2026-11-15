@@ -7,6 +7,7 @@ import {
   saveCustomerOverride,
   archiveCurrentWeekAndStartNew,
   deleteCustomerFromSummary,
+  deleteMultipleCustomersFromSummary,
   addCustomerToSummary,
   type CashFlowSummary,
 } from "@/lib/cashflow.functions";
@@ -89,6 +90,13 @@ function CashFlowPage() {
     setActiveSummary((prev) => {
       if (!prev) return prev;
       return deleteCustomerFromSummary(prev, customerName);
+    });
+  }, []);
+
+  const handleCustomersBulkDelete = useCallback((customerNames: string[]) => {
+    setActiveSummary((prev) => {
+      if (!prev) return prev;
+      return deleteMultipleCustomersFromSummary(prev, customerNames);
     });
   }, []);
 
@@ -257,6 +265,7 @@ function CashFlowPage() {
               summary={activeSummary}
               onCustomerSave={handleCustomerSave}
               onCustomerDelete={handleCustomerDelete}
+              onCustomersBulkDelete={handleCustomersBulkDelete}
               onCustomerAdd={handleCustomerAdd}
               onRefresh={() => refetch()}
             />

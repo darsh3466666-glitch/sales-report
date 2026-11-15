@@ -569,6 +569,29 @@ export function markCustomerAsDeleted(customerName: string) {
 }
 
 /**
+ * Mark multiple customers as deleted by user for this cycle in a single atomic operation.
+ */
+export function markMultipleCustomersAsDeleted(customerNames: string[]) {
+  if (typeof window === "undefined" || !customerNames || customerNames.length === 0) return;
+  try {
+    const current = getUserOverrides();
+    const deleted = new Set(current.deletedCustomers || []);
+    const namesSet = new Set(customerNames);
+    customerNames.forEach((n) => {
+      if (n) deleted.add(n);
+    });
+    current.deletedCustomers = Array.from(deleted);
+    if (current.addedCustomers) {
+      current.addedCustomers = current.addedCustomers.filter((c) => !namesSet.has(c.customerName));
+    }
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
+    saveRemoteUserOverrides(current).catch(() => {});
+  } catch (err) {
+    console.error("Failed to mark multiple customers as deleted:", err);
+  }
+}
+
+/**
  * Save customer added manually by user.
  */
 export function saveManuallyAddedCustomer(customer: CashFlowCustomer) {
@@ -770,6 +793,104 @@ export function deleteCustomerFromSummary(
   markCustomerAsDeleted(customerName);
   const remainingCusts = summary.customers
     .filter((c) => c.customerName !== customerName)
+    .map((c, idx) => ({ ...c, index: idx + 1 }));
+
+  let totalExpected = 0;
+  let totalCollected = 0;
+  let collectedFromSheet = 0;
+  let collectedFromTreasury = 0;
+  let overdueCount = 0;
+  const todayStr = new Date().toISOString().split("T")[0];
+
+  for (const c of remainingCusts) {
+    totalExpected += c.expectedAmount;
+    totalCollected += c.totalCollected;
+    collectedFromSheet += c.collectedFromSheet;
+    collectedFromTreasury += c.collectedFromTreasury;
+    if (c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9) {
+      overdueCount++;
+    }
+  }
+
+  const { collectedCash, collectedBank } = calculateCashAndBankBreakdown(remainingCusts);
+
+  const weeklyGoal = summary.weeklyGoal || 4000000;
+  const remainingToTarget = Math.max(0, weeklyGoal - totalCollected);
+  const collectionRate = totalExpected > 0 ? totalCollected / totalExpected : 0;
+
+  let comparison = summary.comparison;
+  if (comparison) {
+    const currentWeekRate = weeklyGoal > 0 ? (totalCollected / weeklyGoal) * 100 : 0;
+    const growthRate =
+      comparison.lastWeek.collected > 0
+        ? ((totalCollected - comparison.lastWeek.collected) / comparison.lastWeek.collected) * 100
+        : 0;
+    comparison = {
+      ...comparison,
+      currentWeek: {
+        ...comparison.currentWeek,
+        target: weeklyGoal,
+        collected: totalCollected,
+        remainingToTarget,
+        achievementRate: currentWeekRate,
+        overdueCount,
+        expected: totalExpected,
+        remainingExpected: Math.max(0, totalExpected - totalCollected),
+        collectionRate: totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0,
+      },
+      growthRate,
+    };
+  }
+
+  try {
+    let cycle = getActiveCycleState();
+    if (!cycle) {
+      cycle = {
+        cycleId: `week_${summary.weekStart}_to_${summary.weekEnd}`,
+        weekStart: summary.weekStart,
+        weekEnd: summary.weekEnd,
+        weekLabel: summary.weekLabel,
+        weeklyGoal: summary.weeklyGoal || 4000000,
+        customers: remainingCusts,
+        updatedAt: new Date().toISOString(),
+      };
+    } else {
+      cycle.customers = remainingCusts;
+      cycle.updatedAt = new Date().toISOString();
+    }
+    saveActiveCycleState(cycle);
+  } catch (e) {}
+
+  return {
+    ...summary,
+    totalExpected,
+    totalCollected,
+    collectedFromSheet,
+    collectedFromTreasury,
+    collectedCash,
+    collectedBank,
+    collectionRate,
+    remainingToTarget,
+    customerCount: remainingCusts.length,
+    overdueCount,
+    customers: remainingCusts,
+    comparison,
+  };
+}
+
+/**
+ * Delete multiple customers from summary and update state instantly in-memory in one batch.
+ */
+export function deleteMultipleCustomersFromSummary(
+  summary: CashFlowSummary,
+  customerNames: string[]
+): CashFlowSummary {
+  if (!customerNames || customerNames.length === 0) return summary;
+  markMultipleCustomersAsDeleted(customerNames);
+
+  const toDeleteSet = new Set(customerNames);
+  const remainingCusts = summary.customers
+    .filter((c) => !toDeleteSet.has(c.customerName))
     .map((c, idx) => ({ ...c, index: idx + 1 }));
 
   let totalExpected = 0;

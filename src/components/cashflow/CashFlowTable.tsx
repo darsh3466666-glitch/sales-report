@@ -43,6 +43,7 @@ interface CashFlowTableProps {
     updates: { expectedAmount: number; isPinned: boolean; notes: string }
   ) => void;
   onCustomerDelete?: (customerName: string) => void;
+  onCustomersBulkDelete?: (customerNames: string[]) => void;
   onCustomerAdd?: (newCustomer: {
     customerName: string;
     expectedAmount: number;
@@ -100,12 +101,17 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   summary,
   onCustomerSave,
   onCustomerDelete,
+  onCustomersBulkDelete,
   onCustomerAdd,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+
+  // Multi-select bulk deletion state
+  const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
+  const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
   // Add Customer Modal State
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -389,6 +395,60 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     return list;
   }, [summary.customers, searchTerm, statusFilter, todayStr, sortKey, sortDirection]);
 
+  // Multi-select bulk deletion logic
+  const deletableFilteredCustomers = useMemo(() => {
+    return filteredCustomers.filter((c) => c.customerName !== "عميل نقدي (كاش)");
+  }, [filteredCustomers]);
+
+  const isAllSelected =
+    deletableFilteredCustomers.length > 0 &&
+    deletableFilteredCustomers.every((c) => selectedCustomers.has(c.customerName));
+
+  const isSomeSelected =
+    deletableFilteredCustomers.some((c) => selectedCustomers.has(c.customerName)) && !isAllSelected;
+
+  const handleToggleSelectAll = useCallback(() => {
+    if (isAllSelected) {
+      setSelectedCustomers((prev) => {
+        const next = new Set(prev);
+        deletableFilteredCustomers.forEach((c) => next.delete(c.customerName));
+        return next;
+      });
+    } else {
+      setSelectedCustomers((prev) => {
+        const next = new Set(prev);
+        deletableFilteredCustomers.forEach((c) => next.add(c.customerName));
+        return next;
+      });
+    }
+  }, [isAllSelected, deletableFilteredCustomers]);
+
+  const handleToggleSelectCustomer = useCallback((customerName: string) => {
+    if (customerName === "عميل نقدي (كاش)") return;
+    setSelectedCustomers((prev) => {
+      const next = new Set(prev);
+      if (next.has(customerName)) {
+        next.delete(customerName);
+      } else {
+        next.add(customerName);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleExecuteBulkDelete = useCallback(() => {
+    const toDelete = Array.from(selectedCustomers);
+    if (!toDelete.length) return;
+    if (onCustomersBulkDelete) {
+      onCustomersBulkDelete(toDelete);
+    } else if (onCustomerDelete) {
+      toDelete.forEach((n) => onCustomerDelete(n));
+    }
+    toast.success(`تم حذف ${toDelete.length} عميل بنجاح من كاش فلو الأسبوع`);
+    setSelectedCustomers(new Set());
+    setIsBulkDeleteModalOpen(false);
+  }, [selectedCustomers, onCustomersBulkDelete, onCustomerDelete]);
+
   const handleExport = () => {
     try {
       exportCashFlowToExcel(summary);
@@ -644,12 +704,66 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         </div>
       </div>
 
+      {/* Bulk Selection Action Bar */}
+      {selectedCustomers.size > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-rose-500/10 dark:bg-rose-950/40 border-2 border-rose-500/40 p-3.5 rounded-2xl shadow-sm no-print animate-in fade-in slide-in-from-top-2 duration-200">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-rose-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
+              {selectedCustomers.size}
+            </div>
+            <div>
+              <span className="text-sm sm:text-base font-black text-foreground">
+                تم تحديد <strong className="text-rose-600 dark:text-rose-400">{selectedCustomers.size}</strong> عميل
+              </span>
+              <span className="hidden sm:inline-block text-xs text-muted-foreground mr-2 font-medium">
+                (جاهز للحذف من كاش فلو هذا الأسبوع)
+              </span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mr-auto">
+            <button
+              type="button"
+              onClick={() => setSelectedCustomers(new Set())}
+              className="h-9 px-3.5 rounded-xl border-2 border-border hover:bg-muted text-foreground font-bold text-xs inline-flex items-center gap-1.5 cursor-pointer transition-colors"
+              title="إلغاء التحديد الحالي"
+            >
+              <X className="h-4 w-4" />
+              <span>إلغاء التحديد</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsBulkDeleteModalOpen(true)}
+              className="h-9 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black text-xs inline-flex items-center gap-1.5 cursor-pointer shadow-sm transition-all"
+              title="حذف كل العملاء المحددين دفعة واحدة"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>حذف المحددين ({selectedCustomers.size})</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Cash Flow Main Data Table */}
       <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden cashflow-table-container">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
+                <TableHead className="w-12 text-center py-3.5 no-print col-select">
+                  <div className="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      checked={isAllSelected}
+                      ref={(el) => {
+                        if (el) el.indeterminate = isSomeSelected;
+                      }}
+                      onChange={handleToggleSelectAll}
+                      className="h-4 w-4 rounded border-2 border-primary/40 accent-primary cursor-pointer transition-transform hover:scale-110"
+                      title={isAllSelected ? "إلغاء تحديد الكل" : "تحديد كل العملاء المعروضين"}
+                      aria-label="تحديد كل العملاء المعروضين"
+                    />
+                  </div>
+                </TableHead>
                 {renderSortHeader("index", "م", "center", "w-14 col-index")}
                 {renderSortHeader("currentBalance", "الرصيد الحالي", "right", "min-w-[130px] col-balance")}
                 {renderSortHeader("customerName", "العميل", "right", "min-w-[220px] col-customer")}
@@ -667,7 +781,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               {filteredCustomers.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={11}
+                    colSpan={12}
                     className="h-36 text-center text-muted-foreground text-sm font-bold"
                   >
                     لا توجد بيانات مطابقة للبحث أو التصفية الحالية.
@@ -676,6 +790,8 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               ) : (
                 filteredCustomers.map((cust, idx) => {
                   const isEditingThisRow = editing?.customerName === cust.customerName;
+                  const isSelected = selectedCustomers.has(cust.customerName);
+                  const isDeletable = cust.customerName !== "عميل نقدي (كاش)";
                   const isOverdue =
                     Boolean(cust.dueDate && cust.dueDate < todayStr && cust.remaining > 0 && (cust.rate || 0) < 0.9);
                   const isDueToday = cust.dueDate === todayStr;
@@ -683,12 +799,15 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
                   // High-fidelity UI/UX Pro Max Row Styling:
                   // 1. Editing: Primary highlighted outline
-                  // 2. Due Today & Unpaid: Soft rose background with a bold blue right-border callout
-                  // 3. Completed (مكتمل / فائض): Subtle emerald background (0.04 opacity)
-                  // 4. Partial (جزئي): Subtle amber background (0.04 opacity)
-                  // 5. Unpaid (لم يسدد): Subtle rose background (0.04 opacity - exact match with completed)
+                  // 2. Selected for Bulk Delete: Highlighted with rose border & soft rose background
+                  // 3. Due Today & Unpaid: Soft rose background with a bold blue right-border callout
+                  // 4. Completed (مكتمل / فائض): Subtle emerald background (0.04 opacity)
+                  // 5. Partial (جزئي): Subtle amber background (0.04 opacity)
+                  // 6. Unpaid (لم يسدد): Subtle rose background (0.04 opacity - exact match with completed)
                   const rowClass = isEditingThisRow
                     ? "bg-primary/10 border-2 border-primary"
+                    : isSelected
+                    ? "bg-rose-500/[0.08] dark:bg-rose-950/30 border-b border-border/80 border-r-4 border-r-rose-600 dark:border-r-rose-500 transition-colors"
                     : isDueToday && cust.remaining > 0 && cust.status === "لم يسدد"
                     ? "bg-rose-500/[0.04] dark:bg-rose-950/20 border-b border-border/80 border-r-4 border-r-blue-500 dark:border-r-blue-400 hover:bg-rose-500/[0.08] dark:hover:bg-rose-950/30 transition-colors"
                     : isDueToday && (cust.status === "مكتمل" || (cust as any).status === "فائض")
@@ -703,6 +822,23 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
                   return (
                     <TableRow key={cust.customerName} className={rowClass}>
+                      {/* Selection Checkbox */}
+                      <TableCell className="text-center py-3 no-print col-select">
+                        {isDeletable ? (
+                          <div className="flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleToggleSelectCustomer(cust.customerName)}
+                              className="h-4 w-4 rounded border-2 border-primary/40 accent-primary cursor-pointer transition-transform hover:scale-110"
+                              aria-label={`تحديد ${cust.customerName}`}
+                            />
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground/30 text-xs select-none">-</span>
+                        )}
+                      </TableCell>
+
                       {/* Index */}
                       <TableCell
                         className={`text-center py-3 col-index ${FONT.index} ${
@@ -1201,6 +1337,95 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               >
                 <UserPlus className="h-4 w-4 ml-1.5" />
                 <span>إضافة العميل</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Delete Confirmation Modal - UI/UX Pro Max */}
+      {isBulkDeleteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150"
+          dir="rtl"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsBulkDeleteModalOpen(false);
+          }}
+        >
+          <div className="bg-card text-card-foreground border-2 border-rose-500/40 shadow-2xl rounded-3xl w-full max-w-lg p-6 space-y-4 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center gap-3 border-b border-border/80 pb-3">
+              <div className="p-3 bg-rose-500/15 rounded-2xl text-rose-600 dark:text-rose-400">
+                <Trash2 className="h-6 w-6 stroke-[2.5]" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-black text-foreground">
+                  تأكيد حذف {selectedCustomers.size} عميل دفعة واحدة
+                </h3>
+                <p className="text-xs text-muted-foreground font-medium mt-0.5">
+                  استبعاد هؤلاء العملاء من كاش فلو الأسبوع الحالي
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground flex items-center justify-center cursor-pointer transition-colors"
+                title="إغلاق"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-sm font-bold text-foreground">
+                هل أنت متأكد من رغبتك في حذف العملاء التاليين ({selectedCustomers.size}) من جدول هذا الأسبوع؟
+              </p>
+
+              {/* Scrollable preview list with quick removal chips */}
+              <div className="max-h-52 overflow-y-auto space-y-1.5 p-3 rounded-2xl bg-muted/40 border border-border/80">
+                {Array.from(selectedCustomers).map((name, i) => (
+                  <div
+                    key={name}
+                    className="flex items-center justify-between text-xs font-bold bg-background/90 px-3 py-2 rounded-xl border border-border/60 hover:border-rose-300 dark:hover:border-rose-900 transition-colors"
+                  >
+                    <span className="text-foreground flex items-center gap-1.5 truncate">
+                      <span className="text-muted-foreground text-[11px] font-mono">{i + 1}.</span>
+                      <span className="truncate">{name}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleToggleSelectCustomer(name)}
+                      className="text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/60 p-1 rounded-lg cursor-pointer transition-colors mr-2 shrink-0"
+                      title="إزالة من قائمة الحذف"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="text-xs text-amber-800 dark:text-amber-300 bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl leading-relaxed flex items-start gap-2">
+                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                <div>
+                  <strong>ملاحظة هامة:</strong> الحذف هنا يستبعد العملاء من خطة الكاش فلو للأسبوع الحالي فقط ولن يتم حذفهم من ملف التحصيل الرئيسي، وسيعودون تلقائياً عند بدء دورة أسبوع جديد حسب تواريخ استحقاقهم.
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-border/80">
+              <Button
+                variant="outline"
+                onClick={() => setIsBulkDeleteModalOpen(false)}
+                className="rounded-xl font-bold cursor-pointer h-10 px-4"
+              >
+                تراجع وإلغاء
+              </Button>
+              <Button
+                variant="default"
+                onClick={handleExecuteBulkDelete}
+                className="bg-rose-600 hover:bg-rose-700 active:scale-95 text-white font-black h-10 px-5 rounded-xl shadow-md cursor-pointer transition-transform gap-1.5"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>نعم، حذف {selectedCustomers.size} عميل</span>
               </Button>
             </div>
           </div>
