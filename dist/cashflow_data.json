@@ -3,7 +3,7 @@
   "weekStart": "2026-11-11",
   "weekEnd": "2026-11-17",
   "weeklyGoal": 4000000,
-  "totalExpected": 8498012.15,
+  "totalExpected": 8473512.15,
   "totalCollected": 0.0,
   "customerCount": 40,
   "remainingToTarget": 4000000.0,
@@ -4005,7 +4005,7 @@
     {
       "customerName": "سيد الهواري - كوم أبو راضي",
       "currentBalance": 24500.0,
-      "dueDate": "2026-11-15",
+      "dueDate": "2026-11-25",
       "notes": "والحساب يوم الثلاثاء  3/11/2026",
       "isActive2026": true,
       "isKhalis": false
@@ -4165,7 +4165,7 @@
     {
       "customerName": "كرومه (هجمين العزازية)",
       "currentBalance": 400.0,
-      "dueDate": "2026-11-16",
+      "dueDate": "2026-11-30",
       "notes": "",
       "isActive2026": true,
       "isKhalis": false
@@ -4817,20 +4817,6 @@
       "index": 11
     },
     {
-      "customerName": "سيد الهواري - كوم أبو راضي",
-      "normalizedName": "سيد الهواري كوم ابو راضي",
-      "currentBalance": 24500.0,
-      "expectedAmount": 24500.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-15",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 24500.0,
-      "notes": "والحساب يوم الثلاثاء  3/11/2026",
-      "isPinned": false,
-      "index": 12
-    },
-    {
       "customerName": "ايمن محمود يوسف (طاميه)",
       "normalizedName": "ايمن محمود يوسف طاميه",
       "currentBalance": 1188201.0,
@@ -4842,7 +4828,7 @@
       "remaining": 1188201.0,
       "notes": "وزود 123 الف عن بداية السنة",
       "isPinned": false,
-      "index": 13
+      "index": 12
     },
     {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
@@ -4856,7 +4842,7 @@
       "remaining": 1440.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 14
+      "index": 13
     },
     {
       "customerName": "مجدي محمد عبد العال",
@@ -4870,7 +4856,7 @@
       "remaining": 4110300.0,
       "notes": "تصفية بعد 4شهور يوم 28/8 واخد 15 يوم سماح لحد 15/9 وهيصفي كل شهرين",
       "isPinned": false,
-      "index": 15
+      "index": 14
     },
     {
       "customerName": "هليل عبدالحليم(الهداهده)",
@@ -4884,7 +4870,7 @@
       "remaining": 348550.0,
       "notes": "دورة + دفعات 50% من المسحوب يوصل 500 الف يدفع 250 الف وهكذا",
       "isPinned": false,
-      "index": 16
+      "index": 15
     },
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
@@ -4898,7 +4884,7 @@
       "remaining": 255400.0,
       "notes": "الاثنين او الثلاثاء 17/11/2026",
       "isPinned": false,
-      "index": 17
+      "index": 16
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -4912,7 +4898,7 @@
       "remaining": 179600.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 18
+      "index": 17
     },
     {
       "customerName": "بدوي حجازي البطل (الشوبك )",
@@ -4926,7 +4912,7 @@
       "remaining": 80600.0,
       "notes": "",
       "isPinned": false,
-      "index": 19
+      "index": 18
     },
     {
       "customerName": "محمد سيد (مصطفي الصعيدي)",
@@ -4940,7 +4926,7 @@
       "remaining": 63485.0,
       "notes": "جي بعد بكرا وهيسدد",
       "isPinned": false,
-      "index": 20
+      "index": 19
     },
     {
       "customerName": "محمود اسماعيل",
@@ -4954,7 +4940,7 @@
       "remaining": 60000.0,
       "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 21
+      "index": 20
     },
     {
       "customerName": "توفيق محمد (نجع العرب)",
@@ -4968,7 +4954,7 @@
       "remaining": 20310.0,
       "notes": "بعد 10 ايام الباقي",
       "isPinned": false,
-      "index": 22
+      "index": 21
     },
     {
       "customerName": "جمعه محمد عبد الحميد (سرسنا)",
@@ -4982,7 +4968,7 @@
       "remaining": 6200.0,
       "notes": "جمعه محمد سرسنا يوم الاثنين  17/11/2026",
       "isPinned": false,
-      "index": 23
+      "index": 22
     },
     {
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
@@ -4996,7 +4982,7 @@
       "remaining": 0.0,
       "notes": "الاربعاء 18/11/2026",
       "isPinned": false,
-      "index": 24
+      "index": 23
     },
     {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
@@ -5010,7 +4996,7 @@
       "remaining": 0.0,
       "notes": "جهينة",
       "isPinned": false,
-      "index": 25
+      "index": 24
     },
     {
       "customerName": "ابو حمزة للأعلاف",
@@ -5024,7 +5010,7 @@
       "remaining": 0.0,
       "notes": "عميل كاش",
       "isPinned": false,
-      "index": 26
+      "index": 25
     },
     {
       "customerName": "مرسي (مدشه)",
@@ -5038,7 +5024,7 @@
       "remaining": 0.0,
       "notes": "السبت او الاحد",
       "isPinned": false,
-      "index": 27
+      "index": 26
     },
     {
       "customerName": "علي محمد (نصار)",
@@ -5052,7 +5038,7 @@
       "remaining": 0.0,
       "notes": "فاتورة وفاتورة",
       "isPinned": false,
-      "index": 28
+      "index": 27
     },
     {
       "customerName": "مزرعه الخيرات",
@@ -5066,7 +5052,7 @@
       "remaining": 0.0,
       "notes": "جهينة الخميس القادم",
       "isPinned": false,
-      "index": 29
+      "index": 28
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -5080,7 +5066,7 @@
       "remaining": 0.0,
       "notes": "الخميس 12/11/2026 هيجيب 50 الف",
       "isPinned": false,
-      "index": 30
+      "index": 29
     },
     {
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
@@ -5094,7 +5080,7 @@
       "remaining": 0.0,
       "notes": "الباقي بعد 10 ايام ودفعة الفلوس الجاية ف رمضان",
       "isPinned": false,
-      "index": 31
+      "index": 30
     },
     {
       "customerName": "احمد راغب(الهداهدة)",
@@ -5108,7 +5094,7 @@
       "remaining": 0.0,
       "notes": "دورة جديدة اخرها العيد الكبير",
       "isPinned": false,
-      "index": 32
+      "index": 31
     },
     {
       "customerName": "عبد التواب احمد( ميدوم )",
@@ -5121,6 +5107,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "الاثنين",
+      "isPinned": false,
+      "index": 32
+    },
+    {
+      "customerName": "سيد الهواري - كوم أبو راضي",
+      "normalizedName": "سيد الهواري كوم ابو راضي",
+      "currentBalance": 24500.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-25",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "والحساب يوم الثلاثاء  3/11/2026",
       "isPinned": false,
       "index": 33
     },
