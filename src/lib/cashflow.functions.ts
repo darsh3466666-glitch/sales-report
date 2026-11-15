@@ -356,7 +356,7 @@ export async function fetchRemoteCycleState(): Promise<ActiveCashFlowCycleState 
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
     const snap = await Promise.race([
       getDoc(docRef),
-      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 2500)),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 5000)),
     ]);
     if (snap && snap.exists()) {
       const data = snap.data() as ActiveCashFlowCycleState;
@@ -381,7 +381,7 @@ export async function saveRemoteCycleState(state: ActiveCashFlowCycleState): Pro
     const cleanState = JSON.parse(JSON.stringify(state));
     await Promise.race([
       setDoc(docRef, cleanState, { merge: true }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 3000)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 6000)),
     ]);
   } catch (e) {
     console.warn("Could not save remote cycle state to Firestore:", e);
@@ -396,7 +396,7 @@ export async function fetchRemoteUserOverrides(): Promise<UserOverrides | null> 
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
     const snap = await Promise.race([
       getDoc(docRef),
-      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 2500)),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 5000)),
     ]);
     if (snap && snap.exists()) {
       return snap.data() as UserOverrides;
@@ -417,7 +417,7 @@ export async function saveRemoteUserOverrides(overrides: UserOverrides): Promise
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
     await Promise.race([
       setDoc(docRef, overrides, { merge: true }),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 3000)),
+      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 6000)),
     ]);
   } catch (e) {
     console.warn("Could not save remote overrides to Firestore:", e);
@@ -435,7 +435,7 @@ export async function fetchRemotePreviousWeek(): Promise<CashFlowComparisonMetri
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_PREV_WEEK_DOC);
     const snap = await Promise.race([
       getDoc(docRef),
-      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 2500)),
+      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 5000)),
     ]);
     if (snap && snap.exists()) {
       return snap.data() as CashFlowComparisonMetrics;
@@ -1355,7 +1355,7 @@ export async function getLiveCashFlowData(options?: {
       // "التحديث التلقائي قولت يحصل مرة واحدة بس بالنسبة للعملاء والمتوقع منهم وده لما نبدأ ف الاسبوع الجديد"
       // Expected amounts, pinned status, notes, added customers, and deleted customers remain strictly frozen!
       baseCustomers = savedCycle.customers.map((c) => {
-        const expectedAmount =
+        let expectedAmount =
           overrides.fixedAmounts?.[c.customerName] !== undefined
             ? overrides.fixedAmounts[c.customerName]
             : c.expectedAmount;
@@ -1373,7 +1373,26 @@ export async function getLiveCashFlowData(options?: {
 
         const liveDueDate = masterCust?.dueDate !== undefined ? masterCust.dueDate : (c.dueDate || "");
         const liveBalance = masterCust?.currentBalance !== undefined ? masterCust.currentBalance : c.currentBalance;
-        
+
+        const isPinned =
+          overrides.pinnedStatus?.[c.customerName] !== undefined
+            ? overrides.pinnedStatus[c.customerName]
+            : Boolean(c.isPinned);
+
+        const isCurrentWeekDue = Boolean(liveDueDate && liveDueDate >= weekInfo.weekStart && liveDueDate <= weekInfo.weekEnd);
+        const isUnexpected = isCurrentWeekDue ? false : Boolean(c.isUnexpectedInflow);
+
+        // Strict User Rule: If customer is due in a future week (> weekInfo.weekEnd) or is an unexpected inflow,
+        // and is not pinned: expected amount MUST BE ZERO (0)!
+        if (
+          c.customerName !== CASH_NAME &&
+          !c.customerName.includes("نقدي") &&
+          !isPinned &&
+          ((liveDueDate && liveDueDate > weekInfo.weekEnd) || isUnexpected)
+        ) {
+          expectedAmount = 0;
+        }
+
         // Notes: live from Master_Data Column M, exactly like due dates and balances!
         let notes =
           masterCust?.notes !== undefined
@@ -1386,11 +1405,6 @@ export async function getLiveCashFlowData(options?: {
         if (notes && notes.includes("سداد وارد غير متوقع")) {
           notes = "";
         }
-
-        const isPinned =
-          overrides.pinnedStatus?.[c.customerName] !== undefined
-            ? overrides.pinnedStatus[c.customerName]
-            : Boolean(c.isPinned);
 
         const collectedFromSheet = Math.max(
           Number(c.collectedFromSheet) || 0,
@@ -1616,7 +1630,6 @@ export async function getLiveCashFlowData(options?: {
         }
       }
     }
-
     // Ensure permanent Cash Customer exists and is pinned weekly
     let cashCust = baseCustomers.find(
       (c) => c.customerName === CASH_NAME || c.customerName.includes("نقدي")
@@ -1856,12 +1869,14 @@ export async function getLiveCashFlowData(options?: {
             // STRICT USER REQUIREMENT:
             // "المفروض العميل النقدي ف قايمة الكاش فلو يستقل بذاته زي مهو بنفس طريقة عرضه
             // لكن لما عملاء تيجي وهي مكنتش ف الكاش فلو تدخل ب اسمها عادي ولكن بمتوقع صفر"
-            const expectedAmount =
-              overrides.fixedAmounts?.[custName] !== undefined
-                ? overrides.fixedAmounts[custName]
-                : rawConfig?.fixedAmounts?.[custName] !== undefined
-                ? rawConfig.fixedAmounts[custName]
-                : 0; // Strictly 0 for unexpected inflow!
+            const isCustPinned = Boolean(
+              overrides.pinnedStatus?.[custName] !== undefined
+                ? overrides.pinnedStatus[custName]
+                : rawConfig?.pinnedCustomers?.[custName] ?? false
+            );
+            const expectedAmount = isCustPinned
+              ? (overrides.fixedAmounts?.[custName] ?? rawConfig?.fixedAmounts?.[custName] ?? 0)
+              : 0; // Strictly 0 for unexpected inflow!
 
             let notes =
               matchedMasterCust?.notes !== undefined
@@ -1892,7 +1907,7 @@ export async function getLiveCashFlowData(options?: {
                   ? overrides.pinnedStatus[custName]
                   : rawConfig?.pinnedCustomers?.[custName] ?? false
               ),
-              isUnexpectedInflow: true,
+              isUnexpectedInflow: !(dueDate && dueDate >= weekInfo.weekStart && dueDate <= weekInfo.weekEnd),
               treasuryTransactions: [tx],
             };
 
@@ -1958,12 +1973,17 @@ export async function getLiveCashFlowData(options?: {
         cust.expectedAmount = Math.max(cust.expectedAmount || 0, cust.totalCollected);
       }
 
-      // If customer is due in a future week (> weekInfo.weekEnd) and has paid this week:
-      // Their expectedAmount for this cycle is capped to their collected amount so remaining debt is postponed to their due week
-      if (cust.dueDate && cust.dueDate > weekInfo.weekEnd && cust.totalCollected > 0) {
-        if (overrides.fixedAmounts?.[cust.customerName] === undefined && !cust.isPinned) {
-          cust.expectedAmount = cust.totalCollected;
-        }
+      const isCurrentWeek = Boolean(cust.dueDate && cust.dueDate >= weekInfo.weekStart && cust.dueDate <= weekInfo.weekEnd);
+      const isUnexpected = isCurrentWeek ? false : Boolean(cust.isUnexpectedInflow);
+
+      // Strict User Rule: "لو عميل كان مش ف القائمة وسدد فلوس نازلها ف القائمة باسمه ولكن المتوقع بتاعه يكون صفر"
+      // If customer is due in a future week (> weekInfo.weekEnd) or is an unexpected inflow, their expectedAmount MUST BE 0!
+      if (
+        !isCashCust &&
+        !cust.isPinned &&
+        ((cust.dueDate && cust.dueDate > weekInfo.weekEnd) || isUnexpected)
+      ) {
+        cust.expectedAmount = 0;
       }
 
       cust.remaining = Math.max(0, cust.expectedAmount - cust.totalCollected);
