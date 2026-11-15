@@ -1957,6 +1957,14 @@ export async function getLiveCashFlowData(options?: {
         cust.expectedAmount = Math.max(cust.expectedAmount || 0, cust.totalCollected);
       }
 
+      // If customer is due in a future week (> weekInfo.weekEnd) and has paid this week:
+      // Their expectedAmount for this cycle is capped to their collected amount so remaining debt is postponed to their due week
+      if (cust.dueDate && cust.dueDate > weekInfo.weekEnd && cust.totalCollected > 0) {
+        if (overrides.fixedAmounts?.[cust.customerName] === undefined && !cust.isPinned) {
+          cust.expectedAmount = cust.totalCollected;
+        }
+      }
+
       cust.remaining = Math.max(0, cust.expectedAmount - cust.totalCollected);
       cust.rate =
         cust.expectedAmount > 0
