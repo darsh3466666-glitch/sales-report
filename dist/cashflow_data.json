@@ -4409,7 +4409,7 @@
       "currentBalance": 0.0,
       "dueDate": "",
       "notes": "",
-      "isActive2026": false,
+      "isActive2026": true,
       "isKhalis": true
     }
   ],
