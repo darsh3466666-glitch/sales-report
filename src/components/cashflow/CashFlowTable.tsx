@@ -357,8 +357,8 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             "مكتمل": 3,
             "لا يوجد استحقاق": 4,
           };
-          const orderA = order[a.status] || (a.status === "فائض" ? 3 : 99);
-          const orderB = order[b.status] || (b.status === "فائض" ? 3 : 99);
+          const orderA = order[a.status] || 99;
+          const orderB = order[b.status] || 99;
           const statusDiff = orderA - orderB;
           if (statusDiff !== 0) {
             cmp = statusDiff;

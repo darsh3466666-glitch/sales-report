@@ -512,7 +512,7 @@ export async function parseAndImportReport(args: { data: any }) {
   }
 
   if (!reportDate) {
-    reportDate = invoiceFileDate || collectionsFileDate;
+    reportDate = (invoiceFileDate || collectionsFileDate) || undefined;
 
     // Fallback to header row of sales sheet
     if (!reportDate) {

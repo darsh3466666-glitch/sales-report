@@ -61,7 +61,7 @@ export function TopProductsSection({
                           فواتير: {fmtNumber(p.salesQty || 0, 1)} كجم
                         </span>
                         <span className="inline-flex items-center px-1.5 py-0.5 rounded-md bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 shadow-2xs">
-                          تصنيع: {fmtNumber(p.mfgQty, 1)} كجم
+                          تصنيع: {fmtNumber(p.mfgQty || 0, 1)} كجم
                         </span>
                       </div>
                     ) : null}
