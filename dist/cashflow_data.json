@@ -4398,7 +4398,7 @@
     {
       "customerName": "وجيه مراد (فانوس)",
       "currentBalance": 19700.0,
-      "dueDate": "",
+      "dueDate": "2026-11-20",
       "notes": "",
       "isActive2026": true,
       "isKhalis": false
@@ -5038,6 +5038,20 @@
       "index": 24
     },
     {
+      "customerName": "وجيه مراد (فانوس)",
+      "normalizedName": "وجيه مراد فانوس",
+      "currentBalance": 19700.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-20",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 25
+    },
+    {
       "customerName": "مرسي (مدشه)",
       "normalizedName": "مرسي مدشه",
       "currentBalance": 195.0,
@@ -5049,7 +5063,7 @@
       "remaining": 0.0,
       "notes": "السبت او الاحد",
       "isPinned": false,
-      "index": 25
+      "index": 26
     },
     {
       "customerName": "علي محمد (نصار)",
@@ -5063,7 +5077,7 @@
       "remaining": 0.0,
       "notes": "فاتورة وفاتورة",
       "isPinned": false,
-      "index": 26
+      "index": 27
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -5077,7 +5091,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 27
+      "index": 28
     },
     {
       "customerName": "احمد راغب(الهداهدة)",
@@ -5091,7 +5105,7 @@
       "remaining": 0.0,
       "notes": "دورة جديدة اخرها العيد الكبير",
       "isPinned": false,
-      "index": 28
+      "index": 29
     },
     {
       "customerName": "سيد الهواري - كوم أبو راضي",
@@ -5105,7 +5119,7 @@
       "remaining": 0.0,
       "notes": "والحساب يوم الثلاثاء  3/11/2026",
       "isPinned": false,
-      "index": 29
+      "index": 30
     },
     {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
@@ -5119,7 +5133,7 @@
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 30
+      "index": 31
     },
     {
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
@@ -5133,7 +5147,7 @@
       "remaining": 0.0,
       "notes": "الباقي بعد 15 ايام ودفعة الفلوس الجاية ف او اسبوع رمضان",
       "isPinned": false,
-      "index": 31
+      "index": 32
     },
     {
       "customerName": "اسامه علي عبد الكريم",
@@ -5147,7 +5161,7 @@
       "remaining": 0.0,
       "notes": "مكالمة مع م علي",
       "isPinned": false,
-      "index": 32
+      "index": 33
     },
     {
       "customerName": "سامي قرني(اسعد نصيف)",
@@ -5161,7 +5175,7 @@
       "remaining": 0.0,
       "notes": "اسبوع بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 33
+      "index": 34
     },
     {
       "customerName": "محمود ابو زيد - الهداهده",
@@ -5175,7 +5189,7 @@
       "remaining": 0.0,
       "notes": "شهر ويبيع وصل 16 الف",
       "isPinned": false,
-      "index": 34
+      "index": 35
     },
     {
       "customerName": "حماده عبد الخالق قيصر",
@@ -5189,7 +5203,7 @@
       "remaining": 0.0,
       "notes": "هيصفي بعد شهر",
       "isPinned": false,
-      "index": 35
+      "index": 36
     },
     {
       "customerName": "قرنى احمد محمد حسين (كمال علوى)",
@@ -5203,7 +5217,7 @@
       "remaining": 0.0,
       "notes": "باخد علف واسدد القديم",
       "isPinned": false,
-      "index": 36
+      "index": 37
     },
     {
       "customerName": "ايمن علي حسن",
@@ -5217,7 +5231,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 37
+      "index": 38
     },
     {
       "customerName": "ابراهيم عيد (الخواجات)",
@@ -5231,7 +5245,7 @@
       "remaining": 0.0,
       "notes": "صفى  وفاتورة وفاتورة",
       "isPinned": false,
-      "index": 38
+      "index": 39
     },
     {
       "customerName": "عمرو حسن عابد",
@@ -5244,20 +5258,6 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "الخميس 12/11/2026",
-      "isPinned": false,
-      "index": 39
-    },
-    {
-      "customerName": "وجيه مراد (فانوس)",
-      "normalizedName": "وجيه مراد فانوس",
-      "currentBalance": 19700.0,
-      "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 0.0,
-      "notes": "",
       "isPinned": false,
       "index": 40
     }
