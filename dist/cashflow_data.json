@@ -1,11 +1,11 @@
 {
-  "reportDate": "2026-11-15",
+  "reportDate": "2026-11-16",
   "weekStart": "2026-11-11",
   "weekEnd": "2026-11-17",
   "weeklyGoal": 4000000,
   "totalExpected": 5265671.507139001,
   "totalCollected": 0.0,
-  "customerCount": 40,
+  "customerCount": 41,
   "remainingToTarget": 4000000.0,
   "collectionRate": 0.0,
   "masterCustomerNames": [
@@ -4674,6 +4674,24 @@
       "description": "نقدي",
       "type": "كاش",
       "date": "2026-11-15"
+    },
+    {
+      "amount": 139880.0,
+      "description": "ابو حمزه",
+      "type": "كاش",
+      "date": "2026-11-15"
+    },
+    {
+      "amount": 870.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-15"
+    },
+    {
+      "amount": 15000.0,
+      "description": "وجيه مراد",
+      "type": "كاش",
+      "date": "2026-11-15"
     }
   ],
   "customers": [
@@ -5236,6 +5254,20 @@
       "notes": "",
       "isPinned": false,
       "index": 40
+    },
+    {
+      "customerName": "وجيه مراد (فانوس)",
+      "normalizedName": "وجيه مراد فانوس",
+      "currentBalance": 19700.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 41
     }
   ]
 }
