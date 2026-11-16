@@ -456,33 +456,65 @@ export async function parseAndImportReport(args: { data: any }) {
 
   let reportDate = data.reportDate;
 
-  if (!reportDate) {
-    // 1. Prioritize invoice file date (wb2) - most reliable source of daily transactions
-    if (custReportName) {
-      const custRows = sheetRows(wb2, custReportName);
-      for (let i = 0; i < Math.min(6, custRows.length); i++) {
-        for (const cell of custRows[i] || []) {
-          const strCell = str(cell);
-          const mIso = strCell.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
-          if (mIso) {
-            reportDate = `${mIso[1]}-${mIso[2].padStart(2, "0")}-${mIso[3].padStart(2, "0")}`;
-            break;
-          }
+  // 1. Detect invoice file date (wb2) - most reliable source of daily transactions
+  let invoiceFileDate: string | null = null;
+  if (custReportName) {
+    const custRows = sheetRows(wb2, custReportName);
+    for (let i = 0; i < Math.min(6, custRows.length); i++) {
+      for (const cell of custRows[i] || []) {
+        const strCell = str(cell);
+        const mIso = strCell.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/);
+        if (mIso) {
+          invoiceFileDate = `${mIso[1]}-${mIso[2].padStart(2, "0")}-${mIso[3].padStart(2, "0")}`;
+          break;
         }
-        if (reportDate) break;
+      }
+      if (invoiceFileDate) break;
+    }
+  }
+
+  // 2. Detect collections file transaction date (wb1)
+  let collectionsFileDate: string | null = null;
+  if (invName) {
+    const invRowsCheck = sheetRows(wb1, invName);
+    for (let i = 1; i < Math.min(20, invRowsCheck.length); i++) {
+      if (invRowsCheck[i] && invRowsCheck[i][1]) {
+        const invIso = toISO(invRowsCheck[i][1]);
+        if (invIso) {
+          collectionsFileDate = invIso.slice(0, 10);
+          break;
+        }
       }
     }
-
-    // 2. Fallback to invoice transaction date in wb1 (فواتير sheet)
-    if (!reportDate && invName) {
-      const invRowsCheck = sheetRows(wb1, invName);
-      if (invRowsCheck.length > 1 && invRowsCheck[1]) {
-        const invIso = toISO(invRowsCheck[1][1]);
-        if (invIso) reportDate = invIso.slice(0, 10);
+  }
+  if (!collectionsFileDate && qabdName) {
+    const qabdRowsCheck = sheetRows(wb1, qabdName);
+    for (let i = 1; i < Math.min(20, qabdRowsCheck.length); i++) {
+      if (qabdRowsCheck[i] && qabdRowsCheck[i][1]) {
+        const qIso = toISO(qabdRowsCheck[i][1]);
+        if (qIso) {
+          collectionsFileDate = qIso.slice(0, 10);
+          break;
+        }
       }
     }
+  }
 
-    // 3. Fallback to header row of sales sheet
+  // Date Guard: Prevent corrupt merging if invoice file and collections file have different dates!
+  if (
+    invoiceFileDate &&
+    collectionsFileDate &&
+    invoiceFileDate !== collectionsFileDate
+  ) {
+    throw new Error(
+      `تعليق المزامنة المؤقت: تاريخ ملف فواتير اليوم (${invoiceFileDate}) لا يتطابق مع تاريخ شيت التحصيل (${collectionsFileDate}). تم إيقاف الدمج مؤقتاً لحين حفظ شيت التحصيل بنفس تاريخ اليوم لمنع تكرار أو دبلرة البيانات.`,
+    );
+  }
+
+  if (!reportDate) {
+    reportDate = invoiceFileDate || collectionsFileDate;
+
+    // Fallback to header row of sales sheet
     if (!reportDate) {
       const headerRow = salesRows[0] || [];
       for (const cell of headerRow) {
@@ -537,13 +569,17 @@ export async function parseAndImportReport(args: { data: any }) {
   for (let i = 1; i < invRows.length; i++) {
     const r = invRows[i];
     if (!r || !r[0]) continue;
+    const invIso = toISO(r[1]);
+    const rowDate = invIso ? invIso.slice(0, 10) : null;
+    if (rowDate && rowDate !== reportDate) continue;
+
     const rawCname = str(r[2]);
     if (isExcludedCustomer(rawCname)) continue;
     const cname = rawCname ? resolveCustomerName(rawCname) : "";
     const amt = num(r[3]);
     invoices.push({
       invoice_no: str(r[0]) || null,
-      invoice_date: toISO(r[1]),
+      invoice_date: invIso,
       customer_name: cname || null,
       item_name: null,
       quantity: null,
@@ -617,6 +653,10 @@ export async function parseAndImportReport(args: { data: any }) {
   for (let i = 1; i < qabdRows.length; i++) {
     const r = qabdRows[i];
     if (!r) continue;
+    const qIso = toISO(r[1]);
+    const rowDate = qIso ? qIso.slice(0, 10) : null;
+    if (rowDate && rowDate !== reportDate) continue;
+
     const amt = num(r[2]);
     totalReceiptsFromQabd += amt;
 

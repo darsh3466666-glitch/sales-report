@@ -54,24 +54,33 @@ async function main() {
     }
 
     console.log('[sync_reports] Parsing and updating report with verified engine...');
-    const res = await parseAndImportReport({
-      data: {
-        collectionsB64,
-        invoicesB64,
-        inventoryB64,
-        movementsB64,
-        isManual: true,
-        existingReports: preloadedReports,
-      },
-    });
+    try {
+      const res = await parseAndImportReport({
+        data: {
+          collectionsB64,
+          invoicesB64,
+          inventoryB64,
+          movementsB64,
+          isManual: true,
+          existingReports: preloadedReports,
+        },
+      });
 
-    console.log(`[sync_reports] Processed ${res.reportDate}: Sales ${res.totalSales}, Invoices ${res.invoiceCount}`);
-    if (res.allReports && res.allReports.length > 0) {
-      const newReport = res.allReports[0];
-      const olderReports = preloadedReports.filter(
-        (r) => r.report?.report_date !== newReport.report?.report_date
-      );
-      allReports = [newReport, ...olderReports];
+      console.log(`[sync_reports] Processed ${res.reportDate}: Sales ${res.totalSales}, Invoices ${res.invoiceCount}`);
+      if (res.allReports && res.allReports.length > 0) {
+        const newReport = res.allReports[0];
+        const olderReports = preloadedReports.filter(
+          (r) => r.report?.report_date !== newReport.report?.report_date
+        );
+        allReports = [newReport, ...olderReports];
+      }
+    } catch (err: any) {
+      if (err?.message && err.message.includes('تعليق المزامنة المؤقت')) {
+        console.log(`[sync_reports] ${err.message}`);
+        console.log('[sync_reports] Pausing sync without modifying reports until files are synchronized.');
+        process.exit(0);
+      }
+      throw err;
     }
   }
 

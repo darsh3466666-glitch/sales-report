@@ -163,6 +163,10 @@ def run_once(force=False):
 
         log(f"Sync completed successfully. Output:\n{ext_res.stdout.strip()}")
 
+        if "تعليق المزامنة المؤقت" in ext_res.stdout:
+            log("Sync paused due to date mismatch between files. Waiting for files to synchronize...")
+            return True
+
         # 1.5 Run cash flow extraction
         try:
             cf_script = os.path.join(REPO_DIR, 'scripts', 'extract_cashflow.py')
