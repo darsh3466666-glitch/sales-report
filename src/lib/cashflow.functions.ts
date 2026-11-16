@@ -194,15 +194,27 @@ export function cleanCustomerMatchingName(s: string): string {
     .replace(/[يى]/g, "ي")
     .replace(/ذ/g, "ز") // Egyptian colloquial typing: ابوذيد -> ابوزيد
     .replace(/ظ/g, "ض")
-    .replace(/[\s\-_]+/g, " ")
-    .replace(/عيد\s*التواب/g, "عبدالتواب")
-    .replace(/عبد\s+/g, "عبد")
-    .replace(/ابو\s+/g, "ابو")
-    .replace(/بن\s+/g, "بن");
+    .replace(/[\s\-_]+/g, " ");
+
   const parenIdx = res.indexOf("(");
   if (parenIdx >= 0) res = res.slice(0, parenIdx);
   const dashIdx = res.indexOf(" - ");
   if (dashIdx >= 0) res = res.slice(0, dashIdx);
+
+  // Strip common Egyptian honorific titles and punctuation from beginning (e.g. د.محمد, المعلم/, الحاج /)
+  res = res
+    .replace(
+      /^(المعلم|حاج|الحاج|مهندس|المهندس|م|استاذ|الاستاذ|أ|شيخ|الشيخ|دكتور|د)[\.\/\\\s\-_]+/g,
+      ""
+    )
+    .replace(/^[\.\/\\\-_]+/, "");
+
+  res = res
+    .replace(/عيد\s*التواب/g, "عبدالتواب")
+    .replace(/عبد\s+/g, "عبد")
+    .replace(/ابو\s+/g, "ابو")
+    .replace(/بن\s+/g, "بن");
+
   return res.trim();
 }
 
@@ -244,7 +256,7 @@ export function matchTreasuryDescriptionToCustomer(
   const stripPrefixHonorific = (s: string) =>
     s
       .replace(
-        /^(المعلم|حاج|الحاج|مهندس|المهندس|استاذ|الاستاذ|شيخ|الشيخ|دكتور|د|مزرعة|مزرعه|شركة|شركه|محطة|محطه|مصنع|معمل|معرض)\s+/g,
+        /^(المعلم|حاج|الحاج|مهندس|المهندس|م|استاذ|الاستاذ|أ|شيخ|الشيخ|دكتور|د|مزرعة|مزرعه|شركة|شركه|محطة|محطه|مصنع|معمل|معرض)[\.\/\\\s\-_]+/g,
         ""
       )
       .trim();
@@ -278,18 +290,24 @@ export function matchTreasuryDescriptionToCustomer(
   // "اسامه علي" matches "اسامه علي عبد الكريم"
   // "احمد راغب" matches "احمد راغب(الهداهدة)"
   // "محمد يونس" matches "محمد يونس عبد اللطيف(قلمشاه)"
+  // "حسن مصطفى حسن" matches "حسن مصطفى (منشأة الامراء)" (cd starts with cc)
   const cdWords = cd.split(" ").filter((w) => w.length >= 2);
-  if (cdWords.length >= 2) {
-    if (cc.startsWith(cd + " ") || cc === cd) {
-      return true;
-    }
+  const ccWords = cc.split(" ").filter((w) => w.length >= 2);
+
+  if (cdWords.length >= 2 && (cc.startsWith(cd + " ") || cc === cd)) {
+    return true;
+  }
+  if (ccWords.length >= 2 && (cd.startsWith(cc + " ") || cd === cc)) {
+    return true;
   }
 
   const dWords = nd.split(" ").filter((w) => w.length >= 2);
-  if (dWords.length >= 2) {
-    if (nc.startsWith(nd + " ") || bc.startsWith(nd + " ")) {
-      return true;
-    }
+  const cWords = bc.split(" ").filter((w) => w.length >= 2);
+  if (dWords.length >= 2 && (nc.startsWith(nd + " ") || bc.startsWith(nd + " "))) {
+    return true;
+  }
+  if (cWords.length >= 2 && (nd.startsWith(bc + " ") || nd === bc)) {
+    return true;
   }
 
   return false;

@@ -8,6 +8,8 @@ EXCEL_FILE = r'D:\Mostafa Ibrahim\شيت تحصيل.xlsm'
 PUBLIC_DIR = r'public'
 DIST_DIR = r'dist'
 
+import re
+
 def normalize_arabic(text):
     if not text:
         return ''
@@ -18,6 +20,43 @@ def normalize_arabic(text):
     for ch in ['(', ')', '-', '/', '\\', '_', '.', ',', '،']:
         text = text.replace(ch, ' ')
     return ' '.join(text.split())
+
+def clean_arabic_matching(text):
+    if not text:
+        return ''
+    s = str(text).strip()
+    idx = s.find('(')
+    if idx >= 0:
+        s = s[:idx]
+    idx_dash = s.find(' - ')
+    if idx_dash >= 0:
+        s = s[:idx_dash]
+    s = re.sub(r'^(المعلم|حاج|الحاج|مهندس|المهندس|م|استاذ|الاستاذ|أ|شيخ|الشيخ|دكتور|د)[\.\/\\\s\-_]+', '', s)
+    s = re.sub(r'^[\.\/\\\-_]+', '', s)
+    s = s.replace('أ', 'ا').replace('إ', 'ا').replace('آ', 'ا')
+    s = s.replace('ة', 'ه').replace('ى', 'ي')
+    s = s.replace('ذ', 'ز').replace('ض', 'ظ')
+    s = s.replace('عيد التواب', 'عبدالتواب').replace('عبد ', 'عبد').replace('ابو ', 'ابو').replace('بن ', 'بن')
+    for ch in ['-', '/', '\\', '_', '.', ',', '،']:
+        s = s.replace(ch, ' ')
+    return ' '.join(s.split())
+
+def match_treasury_to_customer(desc, cust_name):
+    if not desc or not cust_name:
+        return False
+    cd = clean_arabic_matching(desc)
+    cc = clean_arabic_matching(cust_name)
+    if not cd or not cc:
+        return False
+    if cd == cc:
+        return True
+    cd_words = [w for w in cd.split() if len(w) >= 2]
+    cc_words = [w for w in cc.split() if len(w) >= 2]
+    if len(cd_words) >= 2 and (cc.startswith(cd + ' ') or cc == cd):
+        return True
+    if len(cc_words) >= 2 and (cd.startswith(cc + ' ') or cd == cc):
+        return True
+    return False
 
 def format_date(val):
     if not val:
@@ -229,7 +268,11 @@ def extract_cashflow():
         is_active_2026 = m_info['isActive2026']
 
         is_pinned = bool(pinned_customers.get(m_name, False))
-        has_paid = norm in paid_names_set or any(norm in pn or pn in norm for pn in paid_names_set)
+        has_paid = (
+            norm in paid_names_set or
+            any(norm in pn or pn in norm for pn in paid_names_set) or
+            any(match_treasury_to_customer(tx.get('description', ''), m_name) for tx in existing_weekly_tx)
+        )
 
         # Exclusion 1: Settled accounts (عميل خالص / تم التصفية)
         if is_khalis:
