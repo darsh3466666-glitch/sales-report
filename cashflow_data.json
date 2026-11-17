@@ -4823,6 +4823,27 @@
       "description": "ايمن محمود يوسف",
       "type": "م علي منير",
       "date": "2026-11-17"
+    },
+    {
+      "receipt": "live_2026-11-17_7",
+      "amount": 1700.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-17"
+    },
+    {
+      "receipt": "live_2026-11-17_8",
+      "amount": 850.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-17"
+    },
+    {
+      "receipt": "live_2026-11-17_9",
+      "amount": 850.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-17"
     }
   ],
   "customers": [
