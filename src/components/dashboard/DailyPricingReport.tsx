@@ -51,13 +51,8 @@ export function DailyPricingReport({
       });
     }
 
-    // 2. Products from the allowed list present in today's sales, in exact specified order
-    const rawProducts = Array.from(
-      new Set(validItems.map((cp) => cp.product_name)),
-    );
-    const sortedProducts = TARGET_PRICING_PRODUCTS.filter((targetName) =>
-      rawProducts.includes(targetName),
-    );
+    // 2. All 6 target commodities are always displayed in standard order (even if 0 sales today)
+    const sortedProducts = TARGET_PRICING_PRODUCTS;
 
     // 3. Group by customer
     const customerMap = new Map<string, CustomerMatrixRow>();
