@@ -3,7 +3,7 @@
   "weekStart": "2026-11-11",
   "weekEnd": "2026-11-17",
   "weeklyGoal": 4000000,
-  "totalExpected": 5461486.507139001,
+  "totalExpected": 3938566.507139001,
   "totalCollected": 0.0,
   "customerCount": 43,
   "remainingToTarget": 4000000.0,
@@ -806,8 +806,8 @@
     },
     {
       "customerName": "حماده ابو خضره سيلا",
-      "currentBalance": 1214920.0,
-      "dueDate": "2026-11-17",
+      "currentBalance": 1077920.0,
+      "dueDate": "2026-11-27",
       "notes": "",
       "isActive2026": true,
       "isKhalis": false
@@ -1351,8 +1351,8 @@
     {
       "customerName": "سمحي ابو زيد عبد الرحمن (الهداهده)",
       "currentBalance": 13165.0,
-      "dueDate": "2026-11-21",
-      "notes": "بلاغ ا احمد",
+      "dueDate": "2026-12-07",
+      "notes": "بلاغ  اا احمد",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -2366,7 +2366,7 @@
     },
     {
       "customerName": "د.محمد العسكري (اطفيح)",
-      "currentBalance": 431981.6500000004,
+      "currentBalance": 231981.65000000037,
       "dueDate": "2026-11-15",
       "notes": "السبت 15/11/2026 1,570,000  من ياسر عبدالصمد",
       "isActive2026": true,
@@ -2862,7 +2862,7 @@
     },
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
-      "currentBalance": 144433.85713900067,
+      "currentBalance": 44433.85713900067,
       "dueDate": "2026-11-16",
       "notes": "هيجيب 100 الف",
       "isActive2026": true,
@@ -3191,7 +3191,7 @@
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
       "currentBalance": 17500.0,
-      "dueDate": "2026-11-18",
+      "dueDate": "2026-11-27",
       "notes": "دورة 4 شهور سدد القديم",
       "isActive2026": true,
       "isKhalis": false
@@ -3886,7 +3886,7 @@
     },
     {
       "customerName": "توفيق محمد (نجع العرب)",
-      "currentBalance": 20310.0,
+      "currentBalance": 12310.0,
       "dueDate": "2026-11-17",
       "notes": "بعد 10 ايام الباقي",
       "isActive2026": true,
@@ -4816,19 +4816,26 @@
       "description": "محمد العسكري",
       "type": "ب مصر",
       "date": "2026-11-17"
+    },
+    {
+      "receipt": "live_2026-11-17_6",
+      "amount": 200000.0,
+      "description": "ايمن محمود يوسف",
+      "type": "م علي منير",
+      "date": "2026-11-17"
     }
   ],
   "customers": [
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
       "normalizedName": "باديه فارم كوم ابو راضي",
-      "currentBalance": 144433.85713900067,
-      "expectedAmount": 144433.85713900067,
+      "currentBalance": 44433.85713900067,
+      "expectedAmount": 44433.85713900067,
       "collectedFromSheet": 0.0,
       "dueDate": "2026-11-16",
       "rate": 0.0,
       "status": "لم يسدد",
-      "remaining": 144433.85713900067,
+      "remaining": 44433.85713900067,
       "notes": "هيجيب 100 الف",
       "isPinned": true,
       "index": 1
@@ -5060,13 +5067,13 @@
     {
       "customerName": "د.محمد العسكري (اطفيح)",
       "normalizedName": "د محمد العسكري اطفيح",
-      "currentBalance": 431981.6500000004,
-      "expectedAmount": 431981.6500000004,
+      "currentBalance": 231981.65000000037,
+      "expectedAmount": 231981.65000000037,
       "collectedFromSheet": 0.0,
       "dueDate": "2026-11-15",
       "rate": 0.0,
       "status": "لم يسدد",
-      "remaining": 431981.6500000004,
+      "remaining": 231981.65000000037,
       "notes": "السبت 15/11/2026 1,570,000  من ياسر عبدالصمد",
       "isPinned": false,
       "index": 18
@@ -5086,20 +5093,6 @@
       "index": 19
     },
     {
-      "customerName": "حماده ابو خضره سيلا",
-      "normalizedName": "حماده ابو خضره سيلا",
-      "currentBalance": 1214920.0,
-      "expectedAmount": 1214920.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-17",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 1214920.0,
-      "notes": "",
-      "isPinned": false,
-      "index": 20
-    },
-    {
       "customerName": "الحاج /شريف الديب - البحيرة",
       "normalizedName": "الحاج شريف الديب البحيره",
       "currentBalance": 179600.0,
@@ -5111,7 +5104,7 @@
       "remaining": 179600.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 21
+      "index": 20
     },
     {
       "customerName": "بدوي حجازي البطل (الشوبك )",
@@ -5125,7 +5118,7 @@
       "remaining": 80600.0,
       "notes": "",
       "isPinned": false,
-      "index": 22
+      "index": 21
     },
     {
       "customerName": "محمود اسماعيل",
@@ -5139,21 +5132,21 @@
       "remaining": 60000.0,
       "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 23
+      "index": 22
     },
     {
       "customerName": "توفيق محمد (نجع العرب)",
       "normalizedName": "توفيق محمد نجع العرب",
-      "currentBalance": 20310.0,
-      "expectedAmount": 20310.0,
+      "currentBalance": 12310.0,
+      "expectedAmount": 12310.0,
       "collectedFromSheet": 0.0,
       "dueDate": "2026-11-17",
       "rate": 0.0,
       "status": "لم يسدد",
-      "remaining": 20310.0,
+      "remaining": 12310.0,
       "notes": "بعد 10 ايام الباقي",
       "isPinned": false,
-      "index": 24
+      "index": 23
     },
     {
       "customerName": "جمعه محمد عبد الحميد (سرسنا)",
@@ -5167,7 +5160,7 @@
       "remaining": 6200.0,
       "notes": "جمعه محمد سرسنا يوم الاثنين  17/11/2026",
       "isPinned": false,
-      "index": 25
+      "index": 24
     },
     {
       "customerName": "طارق ايوب (باديه فارم)",
@@ -5181,7 +5174,7 @@
       "remaining": 0.0,
       "notes": "اخر الشهر دقعة وشهر وهيبيع  15 يوم بلاغ م علي\\",
       "isPinned": false,
-      "index": 26
+      "index": 25
     },
     {
       "customerName": "وجيه مراد (فانوس)",
@@ -5195,7 +5188,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 27
+      "index": 26
     },
     {
       "customerName": "مرسي (مدشه)",
@@ -5209,7 +5202,7 @@
       "remaining": 0.0,
       "notes": "السبت او الاحد",
       "isPinned": false,
-      "index": 28
+      "index": 27
     },
     {
       "customerName": "علي محمد (نصار)",
@@ -5223,7 +5216,7 @@
       "remaining": 0.0,
       "notes": "فاتورة وفاتورة",
       "isPinned": false,
-      "index": 29
+      "index": 28
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -5237,7 +5230,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 30
+      "index": 29
     },
     {
       "customerName": "احمد راغب(الهداهدة)",
@@ -5251,7 +5244,7 @@
       "remaining": 0.0,
       "notes": "دورة جديدة اخرها العيد الكبير",
       "isPinned": false,
-      "index": 31
+      "index": 30
     },
     {
       "customerName": "سيد الهواري - كوم أبو راضي",
@@ -5265,7 +5258,7 @@
       "remaining": 0.0,
       "notes": "والحساب يوم الثلاثاء  3/11/2026",
       "isPinned": false,
-      "index": 32
+      "index": 31
     },
     {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
@@ -5278,6 +5271,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
+      "isPinned": false,
+      "index": 32
+    },
+    {
+      "customerName": "حماده ابو خضره سيلا",
+      "normalizedName": "حماده ابو خضره سيلا",
+      "currentBalance": 1077920.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-27",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
       "isPinned": false,
       "index": 33
     },
