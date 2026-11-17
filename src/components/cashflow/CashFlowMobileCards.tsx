@@ -41,9 +41,29 @@ export function CashFlowMobileCards({
             (cust.rate || 0) < 0.9
         );
         const isDueToday = cust.dueDate === todayStr;
-        const isBank = isBankCustomer(cust.customerName) || isBankPayment(cust.customerName);
         const totalColl = (cust.collectedFromSheet || 0) + (cust.collectedFromTreasury || 0);
         const ratePct = Math.min(100, Math.max(0, (cust.rate || 0) * 100));
+
+        // Treasury Breakdown (Only computed if money was ACTUALLY collected)
+        let custCash = 0;
+        let custBank = 0;
+        if (cust.collectedFromTreasury > 0) {
+          if (Array.isArray(cust.treasuryTransactions) && cust.treasuryTransactions.length > 0) {
+            for (const tx of cust.treasuryTransactions) {
+              if (isBankPayment(tx.type, tx.description)) {
+                custBank += tx.amount || 0;
+              } else {
+                custCash += tx.amount || 0;
+              }
+            }
+          } else {
+            if (isBankCustomer(cust.customerName, cust.notes)) {
+              custBank = cust.collectedFromTreasury;
+            } else {
+              custCash = cust.collectedFromTreasury;
+            }
+          }
+        }
 
         // Status badge configuration
         let statusBadge = (
@@ -102,20 +122,14 @@ export function CashFlowMobileCards({
                   </div>
 
                   {/* Customer Tags */}
-                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
-                    {isBank && (
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-sky-100 text-sky-800 dark:bg-sky-950/70 dark:text-sky-300 border border-sky-300 dark:border-sky-700">
-                        <Landmark className="w-3 h-3" />
-                        <span>تحويل بنكي</span>
-                      </span>
-                    )}
-                    {cust.isPinned && (
+                  {cust.isPinned && (
+                    <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border border-purple-300 dark:border-purple-700">
                         <Pin className="w-3 h-3 rotate-45" />
                         <span>قسط أسبوعي ثابت</span>
                       </span>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -149,10 +163,16 @@ export function CashFlowMobileCards({
                 <div className="text-sm sm:text-base font-black text-emerald-700 dark:text-emerald-300 tabular-nums mt-0.5">
                   {fmtMoney(totalColl)}
                 </div>
-                {cust.collectedFromTreasury > 0 && (
+                {custCash > 0 && (
                   <div className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-800 dark:text-emerald-200 mt-1 bg-emerald-100 dark:bg-emerald-900/50 px-1.5 py-0.5 rounded-md">
                     <Zap className="w-3 h-3 text-emerald-600 fill-emerald-500" />
-                    <span>خزينة: {fmtMoney(cust.collectedFromTreasury)}</span>
+                    <span>خزينة: {fmtMoney(custCash)}</span>
+                  </div>
+                )}
+                {custBank > 0 && (
+                  <div className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-800 dark:text-blue-200 mt-1 bg-blue-100 dark:bg-blue-900/50 px-1.5 py-0.5 rounded-md">
+                    <Landmark className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                    <span>بنك: {fmtMoney(custBank)}</span>
                   </div>
                 )}
               </div>
