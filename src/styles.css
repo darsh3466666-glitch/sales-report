@@ -600,4 +600,20 @@
   .shadow-focus {
     box-shadow: 0 0 0 4px rgba(43, 168, 162, 0.15);
   }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* iOS Safari Smooth momentum scrolling */
+  .smooth-touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
 }

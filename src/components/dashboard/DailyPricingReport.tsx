@@ -2,7 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Sparkles } from "lucide-react";
+import { Search, Sparkles, LayoutGrid, TableProperties } from "lucide-react";
 import {
   CustomerProductItem,
   DailyPricingProps,
@@ -15,6 +15,7 @@ import {
 import { PricingKpiStrip } from "./daily-pricing/PricingKpiStrip";
 import { PricingMatrixTable } from "./daily-pricing/PricingMatrixTable";
 import { PricingAnalyticsTables } from "./daily-pricing/PricingAnalyticsTables";
+import { PricingMobileCards } from "./daily-pricing/PricingMobileCards";
 
 export type { CustomerProductItem, DailyPricingProps };
 
@@ -24,6 +25,14 @@ export function DailyPricingReport({
   customersList = [],
 }: DailyPricingProps) {
   const [search, setSearch] = useState("");
+  const [viewMode, setViewMode] = useState<"cards" | "table">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("daily_pricing_view_mode");
+      if (saved === "cards" || saved === "table") return saved;
+      return window.innerWidth < 768 ? "cards" : "table";
+    }
+    return "cards";
+  });
 
   // Process products, customers, matrix, and statistics
   const data: ProcessedPricingData = useMemo(() => {
@@ -396,9 +405,46 @@ export function DailyPricingReport({
         }}
       />
 
-      {/* Search Toolbar (Hidden during print) */}
-      <div className="no-print w-full max-w-6xl mx-auto flex items-center justify-end bg-card p-2 sm:p-2.5 rounded-2xl border shadow-xs">
-        <div className="relative w-full max-w-sm">
+      {/* Search & View Mode Toolbar (Hidden during print) */}
+      <div className="no-print w-full max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-2.5 bg-card p-2 sm:p-2.5 rounded-2xl border shadow-xs">
+        {/* View Toggle on Mobile & Desktop */}
+        <div className="inline-flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode("cards");
+              localStorage.setItem("daily_pricing_view_mode", "cards");
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+              viewMode === "cards"
+                ? "bg-[#46634c] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+            title="عرض بطاقات الموبايل الذكية"
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>بطاقات</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setViewMode("table");
+              localStorage.setItem("daily_pricing_view_mode", "table");
+            }}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+              viewMode === "table"
+                ? "bg-[#46634c] text-white shadow-xs"
+                : "text-slate-600 hover:text-slate-900"
+            }`}
+            title="عرض مصفوفة الأسعار الأصلية"
+          >
+            <TableProperties className="w-3.5 h-3.5" />
+            <span>مصفوفة</span>
+          </button>
+        </div>
+
+        {/* Search Input */}
+        <div className="relative flex-1 min-w-[200px] max-w-sm mr-auto">
           <Search className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="بحث عن عميل في المصفوفة..."
@@ -412,7 +458,7 @@ export function DailyPricingReport({
             variant="ghost"
             size="sm"
             onClick={() => setSearch("")}
-            className="text-xs h-8 sm:h-9 px-2 text-muted-foreground mr-2"
+            className="text-xs h-8 sm:h-9 px-2 text-muted-foreground mr-1"
           >
             إلغاء
           </Button>
@@ -434,14 +480,23 @@ export function DailyPricingReport({
           أسعار البيع الفعلية لكل صنف لكل عميل خلال اليوم
         </div>
 
-        {/* 4. The Matrix Table */}
-        <PricingMatrixTable
-          products={data.products}
-          customers={filteredCustomers}
-          productStats={data.productStats}
-          dynamicCustColWidthPercent={dynamicCustColWidthPercent}
-          productSubColWidth={productSubColWidth}
-        />
+        {/* 4. The Matrix Table or Mobile Cards */}
+        <div className={viewMode === "cards" ? "block print:hidden" : "hidden"}>
+          <PricingMobileCards
+            products={data.products}
+            customers={filteredCustomers}
+            productStats={data.productStats}
+          />
+        </div>
+        <div className={viewMode === "table" ? "block" : "hidden print:block"}>
+          <PricingMatrixTable
+            products={data.products}
+            customers={filteredCustomers}
+            productStats={data.productStats}
+            dynamicCustColWidthPercent={dynamicCustColWidthPercent}
+            productSubColWidth={productSubColWidth}
+          />
+        </div>
 
         {/* 5. Bottom 3 Analytical Comparison Tables */}
         <PricingAnalyticsTables

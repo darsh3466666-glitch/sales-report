@@ -32,9 +32,12 @@ import {
   Trash2,
   Landmark,
   Calendar,
+  LayoutGrid,
+  TableProperties,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
+import { CashFlowMobileCards } from "./CashFlowMobileCards";
 
 interface CashFlowTableProps {
   summary: CashFlowSummary;
@@ -108,6 +111,14 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [viewMode, setViewMode] = useState<"cards" | "table">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("cashflow_view_mode");
+      if (saved === "cards" || saved === "table") return saved;
+      return window.innerWidth < 768 ? "cards" : "table";
+    }
+    return "cards";
+  });
 
   // Multi-select bulk deletion state
   const [selectedCustomers, setSelectedCustomers] = useState<Set<string>>(new Set());
@@ -567,8 +578,44 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           </div>
         )}
 
-        {/* Action buttons: Add Customer and Export */}
+        {/* Action buttons: View Switcher, Add Customer, and Export */}
         <div className="flex items-center gap-2 mr-auto flex-wrap">
+          {/* Mobile & Desktop View Switcher */}
+          <div className="inline-flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border">
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("cards");
+                localStorage.setItem("cashflow_view_mode", "cards");
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                viewMode === "cards"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="عرض بطاقات الموبايل الذكية"
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>بطاقات</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setViewMode("table");
+                localStorage.setItem("cashflow_view_mode", "table");
+              }}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
+                viewMode === "table"
+                  ? "bg-primary text-primary-foreground shadow-xs"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+              title="عرض الجدول الكامل"
+            >
+              <TableProperties className="w-3.5 h-3.5" />
+              <span>جدول</span>
+            </button>
+          </div>
+
           {onCustomerAdd && (
             <Button
               variant="default"
@@ -596,7 +643,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
       {/* Filter Chips & Active Summary Toolbar */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 no-print">
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto flex-nowrap -mx-1 px-1 touch-pan-x smooth-touch-scroll">
           <Button
             variant={statusFilter === "all" ? "default" : "outline"}
             size="sm"
@@ -743,10 +790,26 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         </div>
       )}
 
-      {/* Cash Flow Main Data Table */}
-      <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden cashflow-table-container">
-        <div className="overflow-x-auto">
-          <Table>
+      {/* 1. Mobile Cards View (Visible when viewMode === 'cards') */}
+      <div className={viewMode === "cards" ? "block print:hidden" : "hidden"}>
+        <CashFlowMobileCards
+          customers={filteredCustomers}
+          todayStr={todayStr}
+        />
+      </div>
+
+      {/* 2. Cash Flow Main Data Table (Visible when viewMode === 'table', and always in print) */}
+      <div className={viewMode === "table" ? "block" : "hidden print:block"}>
+        <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden cashflow-table-container">
+          {/* Mobile Swipe Hint */}
+          <div className="block md:hidden bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-b border-amber-200 dark:border-amber-800 text-[11px] font-bold py-1.5 px-3 text-center no-print">
+            👈 يمكنك سحب الجدول أفقياً لتصفح بقية الأعمدة
+          </div>
+          <div
+            className="overflow-x-auto w-full smooth-touch-scroll"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
+            <Table style={{ minWidth: "1050px" }}>
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
                 <TableHead className="w-12 text-center py-3.5 no-print col-select">
@@ -1155,6 +1218,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           </Table>
         </div>
       </div>
+    </div>
 
 
       {/* Add Customer Modal - Pure React Modal (Zero freeze, Zero lag, No Radix Focus Lock) */}
