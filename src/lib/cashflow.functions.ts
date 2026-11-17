@@ -326,11 +326,12 @@ export async function fetchLiveTreasuryIncoming(): Promise<TreasuryIncomingTx[]>
     const data = await res.json();
     const reportDate = String(data?.reportDate || "").trim();
     if (data?.transactions?.incoming && Array.isArray(data.transactions.incoming)) {
-      return data.transactions.incoming.map((tx: any) => ({
+      return data.transactions.incoming.map((tx: any, idx: number) => ({
         amount: Number(tx.amount) || 0,
         description: String(tx.description || ""),
         type: String(tx.type || ""),
         date: String(tx.date || reportDate || ""),
+        receipt: String(tx.receipt || tx.id || `live_${reportDate || "tx"}_${idx}`),
       }));
     }
     return [];
@@ -1776,16 +1777,22 @@ export async function getLiveCashFlowData(options?: {
 
     // 1a. From authentic sheet قبض / verified movements in cashflow_data.json
     if (Array.isArray(rawData?.weeklyTreasuryTransactions)) {
-      for (const tx of rawData.weeklyTreasuryTransactions) {
+      rawData.weeklyTreasuryTransactions.forEach((tx: any, idx: number) => {
+        if (!tx.receipt) {
+          tx.receipt = `raw_${tx.date || "tx"}_${idx}`;
+        }
         addTxToWeeklyPool(tx);
-      }
+      });
     }
 
     // 1b. From live incoming transactions fetched right now from Treasury dashboard (INCOMING ONLY!)
     if (Array.isArray(liveTreasuryTx)) {
-      for (const tx of liveTreasuryTx) {
+      liveTreasuryTx.forEach((tx: any, idx: number) => {
+        if (!tx.receipt) {
+          tx.receipt = `live_${tx.date || "tx"}_${idx}`;
+        }
         addTxToWeeklyPool(tx);
-      }
+      });
     }
 
     const cycleTreasuryTx = Array.from(weeklyTxMap.values());

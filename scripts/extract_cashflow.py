@@ -156,12 +156,14 @@ def extract_cashflow():
             with open(data_path, 'r', encoding='utf-8') as f:
                 prev_d = json.load(f)
                 if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
-                    for t in prev_d['weeklyTreasuryTransactions']:
+                    for idx, t in enumerate(prev_d['weeklyTreasuryTransactions']):
                         t_date = str(t.get('date', '')).strip()
                         t_desc = normalize_arabic(t.get('description', ''))
                         t_amt = float(t.get('amount', 0))
+                        t_rcpt = str(t.get('receipt', '')).strip()
                         if t_amt > 0 and t_desc:
-                            sig = f"{t_date}_{t_desc}_{t_amt}"
+                            # Preserve each legitimate transaction by receipt or sequence index
+                            sig = f"rcpt_{t_rcpt}" if t_rcpt else f"{t_date}_{t_desc}_{t_amt}_{idx}"
                             if sig not in seen_sigs:
                                 existing_weekly_tx.append(t)
                                 seen_sigs.add(sig)
@@ -179,16 +181,18 @@ def extract_cashflow():
             t_data = json.loads(resp.read().decode('utf-8'))
             t_rep_date = str(t_data.get('reportDate', '')).strip()
             incoming_list = t_data.get('transactions', {}).get('incoming', [])
-            for item in incoming_list:
+            for idx, item in enumerate(incoming_list):
                 i_amt = float(item.get('amount', 0))
                 i_desc = str(item.get('description', '')).strip()
                 i_type = str(item.get('type', 'خزينة')).strip()
                 i_date = str(item.get('date', t_rep_date)).strip()
+                i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
                 norm_i = normalize_arabic(i_desc)
                 if i_amt > 0 and norm_i:
-                    sig = f"{i_date}_{norm_i}_{i_amt}"
+                    sig = f"rcpt_{i_rcpt}"
                     if sig not in seen_sigs:
                         existing_weekly_tx.append({
+                            "receipt": i_rcpt,
                             "amount": i_amt,
                             "description": i_desc,
                             "type": i_type,
