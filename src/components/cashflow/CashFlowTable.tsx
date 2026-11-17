@@ -827,9 +827,9 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                     />
                   </div>
                 </TableHead>
-                {renderSortHeader("index", "م", "center", "w-14 col-index")}
-                {renderSortHeader("currentBalance", "الرصيد الحالي", "right", "min-w-[130px] col-balance")}
-                {renderSortHeader("customerName", "العميل", "right", "min-w-[220px] col-customer")}
+                {renderSortHeader("index", "م", "center", "w-[36px] min-w-[36px] max-w-[40px] col-index")}
+                {renderSortHeader("currentBalance", "الرصيد الحالي", "right", "min-w-[110px] col-balance")}
+                {renderSortHeader("customerName", "العميل", "right", "w-[135px] min-w-[125px] max-w-[145px] md:w-auto md:min-w-[180px] col-customer")}
                 {renderSortHeader("expectedAmount", "المتوقع", "right", "min-w-[140px] col-expected")}
                 {renderSortHeader("totalCollected", "المحصل", "right", "min-w-[130px] col-collected")}
                 {renderSortHeader("dueDate", "موعد السداد", "right", "min-w-[120px] col-due")}
@@ -941,10 +941,10 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                         ) : (
                           <div
                             onClick={() => handleStartEdit(cust)}
-                            className="flex flex-col cursor-pointer group"
+                            className="flex flex-col cursor-pointer group max-w-[145px] md:max-w-none overflow-hidden"
                             title="انقر لتعديل بيانات العميل"
                           >
-                            <span className={`${FONT.name} group-hover:text-primary`}>
+                            <span className={`${FONT.name} group-hover:text-primary line-clamp-2 leading-tight break-words`}>
                               {cust.customerName}
                             </span>
                             {cust.isPinned && (

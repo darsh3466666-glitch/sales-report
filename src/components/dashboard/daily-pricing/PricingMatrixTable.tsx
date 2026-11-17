@@ -14,17 +14,15 @@ export function PricingMatrixTable({
   products,
   customers,
   productStats,
-  dynamicCustColWidthPercent,
-  productSubColWidth,
 }: PricingMatrixTableProps) {
-  // Ensure table has adequate minimum width so columns never overlap on mobile
-  const minTableWidth = Math.max(760, 220 + products.length * 130);
+  // Mobile-optimized minimum table width: 36px (sequence) + 135px (customer) + (120px per product)
+  const minTableWidth = Math.max(520, 171 + products.length * 120);
 
   return (
     <div className="relative w-full overflow-hidden">
-      {/* Mobile Swipe Hint (visible on small screens) */}
+      {/* Mobile Swipe Hint */}
       <div className="block md:hidden bg-amber-50/90 text-amber-900 border-b border-amber-200 text-[11px] font-bold py-1.5 px-3 text-center no-print">
-        👈 يمكنك سحب الجدول أفقياً لتصفح بقية الأصناف والأسعار
+        👈 اسحب الجدول أفقياً لتصفح بقية الأصناف والأسعار
       </div>
 
       <div
@@ -39,12 +37,15 @@ export function PricingMatrixTable({
           }}
         >
           <colgroup>
-            <col style={{ width: "42px" }} />
-            <col style={{ width: `${Math.max(160, dynamicCustColWidthPercent * 10)}px` }} />
+            {/* 1. Sequence Number: strictly 36px */}
+            <col style={{ width: "36px" }} />
+            {/* 2. Customer Name: strictly 135px on mobile, fluid on desktop */}
+            <col className="w-[135px] min-w-[125px] max-w-[145px] md:w-[220px]" style={{ width: "135px" }} />
+            {/* 3. Product Subcolumns: Quantity 55px, Price 65px */}
             {products.map((p) => (
               <React.Fragment key={`col-${p}`}>
+                <col style={{ width: "55px" }} />
                 <col style={{ width: "65px" }} />
-                <col style={{ width: "70px" }} />
               </React.Fragment>
             ))}
           </colgroup>
@@ -53,13 +54,13 @@ export function PricingMatrixTable({
             <tr className="bg-slate-100 text-slate-800 font-bold border-b-2 border-slate-400">
               <th
                 rowSpan={2}
-                className="sticky right-0 z-20 border-l-2 border-r-2 border-slate-400 py-2 px-1 bg-slate-200 text-slate-900 font-bold text-center text-xs sm:text-base w-[42px]"
+                className="sticky right-0 z-20 border-l-2 border-r-2 border-slate-400 py-2 px-1 bg-slate-200 text-slate-900 font-bold text-center text-xs sm:text-base w-[36px] min-w-[36px] max-w-[36px]"
               >
                 م
               </th>
               <th
                 rowSpan={2}
-                className="sticky right-[42px] z-20 border-l-2 border-slate-400 py-2 px-2 text-right font-black bg-slate-200 text-slate-900 text-xs sm:text-base whitespace-nowrap shadow-[-3px_0_5px_-1px_rgba(0,0,0,0.12)]"
+                className="sticky right-[36px] z-20 border-l-2 border-slate-400 py-2 px-2 text-right font-black bg-slate-200 text-slate-900 text-xs sm:text-base shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] w-[135px] min-w-[125px] max-w-[145px] md:w-[220px]"
               >
                 العميل
               </th>
@@ -106,16 +107,18 @@ export function PricingMatrixTable({
                 className="group hover:bg-slate-100/60 transition-colors odd:bg-white even:bg-slate-50/50"
               >
                 {/* Sequence Number - Sticky */}
-                <td className="sticky right-0 z-10 border-l-2 border-r-2 border-slate-400 py-2 px-1 font-bold text-slate-700 bg-slate-100 text-center text-xs sm:text-base w-[42px]">
+                <td className="sticky right-0 z-10 border-l-2 border-r-2 border-slate-400 py-1.5 px-1 font-bold text-slate-700 bg-slate-100 text-center text-xs sm:text-base w-[36px] min-w-[36px] max-w-[36px]">
                   {idx + 1}
                 </td>
 
-                {/* Customer Name - Sticky with solid background and shadow */}
-                <td
-                  className="sticky right-[42px] z-10 border-l-2 border-slate-400 py-2 px-2.5 text-right font-bold text-slate-900 whitespace-nowrap text-xs sm:text-base bg-white group-hover:bg-slate-50 shadow-[-3px_0_5px_-1px_rgba(0,0,0,0.12)]"
-                  title={cust.name}
-                >
-                  {cust.name}
+                {/* Customer Name - Sticky (125-145px width, 2-line clamp, no auto-expansion) */}
+                <td className="sticky right-[36px] z-10 border-l-2 border-slate-400 py-1.5 px-2 text-right bg-white group-hover:bg-slate-50 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] w-[135px] min-w-[125px] max-w-[145px] md:w-[220px] overflow-hidden">
+                  <div
+                    className="line-clamp-2 leading-tight break-words text-xs md:text-sm font-bold text-slate-900"
+                    title={cust.name}
+                  >
+                    {cust.name}
+                  </div>
                 </td>
 
                 {/* Product Columns (Qty & Price) */}
@@ -128,12 +131,12 @@ export function PricingMatrixTable({
                     return (
                       <React.Fragment key={`${cust.name}-${p}`}>
                         <td
-                          className={`border-l border-slate-200 py-2 px-1 text-slate-300 text-xs sm:text-base text-center ${colBg}`}
+                          className={`border-l border-slate-200 py-1.5 px-1 text-slate-300 text-xs sm:text-base text-center ${colBg}`}
                         >
                           -
                         </td>
                         <td
-                          className={`border-l-2 border-slate-400 py-2 px-1 text-slate-300 text-xs sm:text-base text-center ${colBg}`}
+                          className={`border-l-2 border-slate-400 py-1.5 px-1 text-slate-300 text-xs sm:text-base text-center ${colBg}`}
                         >
                           -
                         </td>
@@ -161,12 +164,12 @@ export function PricingMatrixTable({
                   return (
                     <React.Fragment key={`${cust.name}-${p}`}>
                       <td
-                        className={`border-l border-slate-200 py-2 px-1 text-slate-800 font-semibold text-xs sm:text-base tabular-nums text-center whitespace-nowrap ${colBg}`}
+                        className={`border-l border-slate-200 py-1.5 px-1 text-slate-800 font-semibold text-xs sm:text-base tabular-nums text-center whitespace-nowrap ${colBg}`}
                       >
                         {fmtNumber(prod.qty, prod.qty % 1 === 0 ? 0 : 1)}
                       </td>
                       <td
-                        className={`border-l-2 border-slate-400 py-2 px-1 text-xs sm:text-base tabular-nums text-center whitespace-nowrap ${priceCellClass}`}
+                        className={`border-l-2 border-slate-400 py-1.5 px-1 text-xs sm:text-base tabular-nums text-center whitespace-nowrap ${priceCellClass}`}
                         title={`السعر: ${prod.price.toFixed(2)}`}
                       >
                         {prod.price % 1 === 0

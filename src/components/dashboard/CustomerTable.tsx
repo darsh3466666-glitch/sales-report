@@ -247,57 +247,66 @@ export function CustomerTable({
         </div>
       </CardHeader>
       <CardContent className="p-0 sm:p-6">
-        {/* Table View (All Screens) */}
-        <div className="block overflow-x-auto w-full" dir="rtl">
-          <Table>
-            <TableHeader className="bg-muted/40">
+        {/* Mobile Swipe Hint */}
+        <div className="block md:hidden bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-b border-amber-200 dark:border-amber-800 text-[11px] font-bold py-1.5 px-3 text-center no-print">
+          👈 يمكنك سحب الجدول أفقياً لتصفح بقية البيانات
+        </div>
+
+        {/* Table View (All Screens with Mobile Sticky Customer Column) */}
+        <div
+          className="block overflow-x-auto w-full smooth-touch-scroll"
+          style={{ WebkitOverflowScrolling: "touch" }}
+          dir="rtl"
+        >
+          <Table style={{ minWidth: "900px" }}>
+            <TableHeader className="bg-muted/60">
               <TableRow>
-                <TableHead className="text-right w-12 font-bold text-foreground whitespace-nowrap">
+                <TableHead className="sticky right-0 z-20 w-[36px] min-w-[36px] max-w-[36px] text-center font-bold text-foreground bg-muted/95 border-l border-border/60 p-1">
                   #
                 </TableHead>
-                <TableHead className="text-right font-bold text-foreground whitespace-nowrap">
+                <TableHead className="sticky right-[36px] z-20 w-[135px] min-w-[125px] max-w-[145px] md:w-auto md:min-w-[180px] text-right font-black text-foreground bg-muted/95 border-l border-border/60 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] px-2 py-3">
                   العميل
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("sales_amount")}
-                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap min-w-[100px]"
                 >
                   المبيعات <ArrowUpDown className="inline h-3 w-3" />
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("collected_amount")}
-                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap min-w-[100px]"
                 >
                   المحصل
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("prev_balance")}
-                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap min-w-[100px]"
                 >
                   الرصيد السابق
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("outstanding_amount")}
-                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap min-w-[100px]"
                 >
                   الرصيد الحالي
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("total_qty")}
-                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap min-w-[85px]"
                 >
                   الكمية
                 </TableHead>
                 <TableHead
                   onClick={() => toggleSort("collection_ratio")}
-                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap"
+                  className="cursor-pointer text-right font-bold text-foreground whitespace-nowrap min-w-[110px]"
                 >
                   نسبة التحصيل
                 </TableHead>
-                <TableHead className="text-right font-bold text-foreground whitespace-nowrap">
+                <TableHead className="text-right font-bold text-foreground whitespace-nowrap min-w-[70px]">
                   الفواتير
                 </TableHead>
-                <TableHead className="text-right font-bold text-foreground whitespace-nowrap">
+                <TableHead className="text-right font-bold text-foreground whitespace-nowrap min-w-[80px]">
                   المخاطرة
                 </TableHead>
               </TableRow>
@@ -334,31 +343,39 @@ export function CustomerTable({
                   <TableRow
                     key={c.id || c.customer_name}
                     className={
-                      "cursor-pointer hover:bg-primary-bg transition-colors " +
+                      "group cursor-pointer hover:bg-primary-bg transition-colors " +
                       rowBorderClass
                     }
                     onClick={() => onSelect(c.customer_name)}
                   >
-                    <TableCell className="text-right tabular-nums font-semibold whitespace-nowrap">
+                    {/* Column 1: Sequence / Rank - Sticky */}
+                    <TableCell className="sticky right-0 z-10 w-[36px] min-w-[36px] max-w-[36px] text-center tabular-nums font-semibold bg-card group-hover:bg-primary-bg border-l border-border/60 p-1">
                       {idx === 0 ? (
-                        <span className="text-2xl">🥇</span>
+                        <span className="text-xl">🥇</span>
                       ) : idx === 1 ? (
-                        <span className="text-xl">🥈</span>
+                        <span className="text-lg">🥈</span>
                       ) : idx === 2 ? (
-                        <span className="text-lg">🥉</span>
+                        <span className="text-base">🥉</span>
                       ) : (
-                        <span className="text-muted-foreground">{idx + 1}</span>
+                        <span className="text-muted-foreground text-xs sm:text-sm">{idx + 1}</span>
                       )}
                     </TableCell>
-                    <TableCell className="font-bold text-right text-foreground whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <span>{c.customer_name}</span>
+
+                    {/* Column 2: Customer Name - Sticky 125-145px with 2-line clamp */}
+                    <TableCell className="sticky right-[36px] z-10 w-[135px] min-w-[125px] max-w-[145px] md:w-auto md:min-w-[180px] text-right bg-card group-hover:bg-primary-bg border-l border-border/60 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] p-2 overflow-hidden">
+                      <div className="flex flex-col gap-0.5">
+                        <span
+                          className="line-clamp-2 leading-tight break-words text-xs sm:text-sm font-bold text-foreground"
+                          title={c.customer_name}
+                        >
+                          {c.customer_name}
+                        </span>
                         {c.is_new && (
                           <span
                             title="عميل جديد: أول تعامل مع الشركة بدون رصيد سابق"
-                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 shadow-2xs"
+                            className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 w-fit"
                           >
-                            <UserPlus className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                            <UserPlus className="h-2.5 w-2.5 text-emerald-600 dark:text-emerald-400" />
                             <span>جديد</span>
                           </span>
                         )}
