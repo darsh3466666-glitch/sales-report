@@ -261,8 +261,8 @@ export function CustomerTable({
           <Table style={{ minWidth: "900px" }}>
             <TableHeader className="bg-muted/60">
               <TableRow>
-                <TableHead className="sticky right-0 z-20 w-[36px] min-w-[36px] max-w-[36px] text-center font-bold text-foreground bg-muted/95 border-l border-border/60 p-1">
-                  #
+                <TableHead className="sticky right-0 z-20 w-[36px] min-w-[36px] max-w-[36px] text-center font-bold text-foreground bg-muted/95 border-l border-border/60 p-1" title="مسلسل">
+                  م
                 </TableHead>
                 <TableHead className="sticky right-[36px] z-20 w-[135px] min-w-[125px] max-w-[145px] md:w-auto md:min-w-[180px] text-right font-black text-foreground bg-muted/95 border-l border-border/60 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] px-2 py-3">
                   العميل
@@ -330,14 +330,18 @@ export function CustomerTable({
                       ? "border-r-[6px] border-r-accent"
                       : "border-r-[6px] border-r-success";
 
-                if (idx === 0)
-                  rowBorderClass =
-                    "border-r-[8px] border-r-accent bg-accent/10 font-bold scale-[1.01] shadow-accent-glow z-10 relative";
-                else if (idx === 1)
-                  rowBorderClass =
-                    "border-r-[8px] border-r-slate-400 bg-slate-50 dark:bg-slate-800/50";
-                else if (idx === 2)
-                  rowBorderClass = "border-r-[8px] border-r-coral bg-coral/5";
+                let stickyCellBg = "bg-card";
+
+                if (idx === 0) {
+                  rowBorderClass = "border-r-[6px] border-r-amber-500 bg-amber-500/[0.08]";
+                  stickyCellBg = "bg-amber-50/95 dark:bg-amber-950/40";
+                } else if (idx === 1) {
+                  rowBorderClass = "border-r-[6px] border-r-slate-400 bg-slate-500/[0.06] dark:bg-slate-800/40";
+                  stickyCellBg = "bg-slate-100/95 dark:bg-slate-800/60";
+                } else if (idx === 2) {
+                  rowBorderClass = "border-r-[6px] border-r-amber-700 bg-amber-700/[0.05]";
+                  stickyCellBg = "bg-amber-50/50 dark:bg-amber-950/20";
+                }
 
                 return (
                   <TableRow
@@ -349,20 +353,24 @@ export function CustomerTable({
                     onClick={() => onSelect(c.customer_name)}
                   >
                     {/* Column 1: Sequence / Rank - Sticky */}
-                    <TableCell className="sticky right-0 z-10 w-[36px] min-w-[36px] max-w-[36px] text-center tabular-nums font-semibold bg-card group-hover:bg-primary-bg border-l border-border/60 p-1">
+                    <TableCell
+                      className={`sticky right-0 z-10 w-[36px] min-w-[36px] max-w-[36px] text-center tabular-nums font-semibold border-l border-border/60 p-1 ${stickyCellBg} group-hover:bg-primary-bg`}
+                    >
                       {idx === 0 ? (
-                        <span className="text-xl">🥇</span>
+                        <span className="text-base leading-none inline-block" title="المركز الأول">🥇</span>
                       ) : idx === 1 ? (
-                        <span className="text-lg">🥈</span>
+                        <span className="text-base leading-none inline-block" title="المركز الثاني">🥈</span>
                       ) : idx === 2 ? (
-                        <span className="text-base">🥉</span>
+                        <span className="text-base leading-none inline-block" title="المركز الثالث">🥉</span>
                       ) : (
                         <span className="text-muted-foreground text-xs sm:text-sm">{idx + 1}</span>
                       )}
                     </TableCell>
 
                     {/* Column 2: Customer Name - Sticky 125-145px with 2-line clamp */}
-                    <TableCell className="sticky right-[36px] z-10 w-[135px] min-w-[125px] max-w-[145px] md:w-auto md:min-w-[180px] text-right bg-card group-hover:bg-primary-bg border-l border-border/60 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] p-2 overflow-hidden">
+                    <TableCell
+                      className={`sticky right-[36px] z-10 w-[135px] min-w-[125px] max-w-[145px] md:w-auto md:min-w-[180px] text-right border-l border-border/60 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] p-2 overflow-hidden ${stickyCellBg} group-hover:bg-primary-bg`}
+                    >
                       <div className="flex flex-col gap-0.5">
                         <span
                           className="line-clamp-2 leading-tight break-words text-xs sm:text-sm font-bold text-foreground"
@@ -382,7 +390,15 @@ export function CustomerTable({
                       </div>
                     </TableCell>
                     <TableCell
-                      className={`text-right font-bold tabular-nums ${idx === 0 ? "text-xl text-accent-dark" : idx === 1 ? "text-lg" : idx === 2 ? "text-coral" : "text-info"}`}
+                      className={`text-right font-bold tabular-nums whitespace-nowrap text-sm sm:text-base ${
+                        idx === 0
+                          ? "text-accent-dark font-black"
+                          : idx === 1
+                            ? "text-slate-800 dark:text-slate-200 font-black"
+                            : idx === 2
+                              ? "text-coral font-bold"
+                              : "text-info"
+                      }`}
                     >
                       {fmtMoney(c.sales_amount)}
                     </TableCell>
