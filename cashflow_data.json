@@ -4851,6 +4851,55 @@
       "description": "نقدي",
       "type": "كاش",
       "date": "2026-11-17"
+    },
+    {
+      "receipt": "live_2026-11-18_0",
+      "amount": 1700.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_1",
+      "amount": 10000.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_2",
+      "amount": 50000.0,
+      "description": "النور نقديه",
+      "type": "ب مصر",
+      "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_3",
+      "amount": 10000.0,
+      "description": "جمال مختار",
+      "type": "ب مصر",
+      "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_4",
+      "amount": 40000.0,
+      "description": "جمال مختار",
+      "type": "كاش",
+      "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_5",
+      "amount": 29600.0,
+      "description": "نقدي",
+      "type": "ب مصر",
+      "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_6",
+      "amount": 1000.0,
+      "description": "نقدي",
+      "type": "ب مصر",
+      "date": "2026-11-18"
     }
   ],
   "customers": [
