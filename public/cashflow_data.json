@@ -4518,6 +4518,13 @@
       "description": "عبدالرحمن علي",
       "type": "كاش",
       "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_16",
+      "amount": 900.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-18"
     }
   ],
   "customers": [
