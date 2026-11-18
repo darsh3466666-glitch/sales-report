@@ -3,7 +3,6 @@ import { CashFlowCustomer, CashFlowSummary, isBankPayment, isBankCustomer } from
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -121,6 +120,8 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const [collectionFilter, setCollectionFilter] = useState<"all" | "has_collected" | "zero_collected" | "treasury_only" | "bank_only">("all");
   // Customer search inside the Excel filter popover
   const [custFilterSearch, setCustFilterSearch] = useState("");
+  // Active header filter dropdown (lightweight, zero freeze)
+  const [activeHeaderFilter, setActiveHeaderFilter] = useState<"customer" | "collected" | "due" | "status" | null>(null);
 
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
@@ -296,6 +297,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     setSelectedCustomerNames(new Set());
     setCollectionFilter("all");
     setCustFilterSearch("");
+    setActiveHeaderFilter(null);
     setSortKey("status");
     setSortDirection("asc");
   }, []);
@@ -646,65 +648,54 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     }
   }, []);
 
-  // 1. Customer Column Filter Popover (Excel style)
-  const renderCustomerFilterPopover = () => {
-    const isFiltered = selectedCustomerNames.size > 0;
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
-              isFiltered
-                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
-                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
-            )}
-            title="تصفية العملاء (Excel)"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
-            {isFiltered && (
-              <span className="mr-0.5 text-[10px] font-black">{selectedCustomerNames.size}</span>
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="start"
-          className="w-72 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="space-y-2.5">
+  // Render lightweight, zero-freeze dropdown for Excel-style column filters
+  const renderFilterDropdown = (type: "customer" | "collected" | "due" | "status") => {
+    switch (type) {
+      case "customer": {
+        const isFiltered = selectedCustomerNames.size > 0;
+        return (
+          <div className="w-72 p-3 bg-card text-card-foreground border-2 border-primary/20 shadow-2xl rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between border-b pb-2">
               <span className="text-xs font-black text-foreground flex items-center gap-1.5">
                 <Filter className="h-3.5 w-3.5 text-primary" />
                 تصفية العملاء ({filteredCustOptions.length})
               </span>
-              {isFiltered && (
+              <div className="flex items-center gap-2">
+                {isFiltered && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCustomerNames(new Set())}
+                    className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  >
+                    مسح
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => setSelectedCustomerNames(new Set())}
-                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  onClick={() => setActiveHeaderFilter(null)}
+                  className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="إغلاق"
                 >
-                  مسح الفلتر
+                  <X className="h-3.5 w-3.5" />
                 </button>
-              )}
+              </div>
             </div>
 
             <div className="relative">
-              <Search className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+              <Search className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <input
                 type="text"
                 placeholder="ابحث في العملاء..."
                 value={custFilterSearch}
                 onChange={(e) => setCustFilterSearch(e.target.value)}
                 className="w-full pr-8 pl-2 py-1.5 text-xs font-bold rounded-lg border bg-background text-foreground focus:outline-none focus:border-primary"
+                autoFocus
               />
               {custFilterSearch && (
                 <button
                   type="button"
                   onClick={() => setCustFilterSearch("")}
-                  className="absolute left-2 top-2 text-muted-foreground hover:text-foreground"
+                  className="absolute left-2 top-2 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
@@ -768,51 +759,37 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               })}
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-    );
-  };
+        );
+      }
 
-  // 2. Total Collected Column Filter Popover (Excel style)
-  const renderCollectedFilterPopover = () => {
-    const isFiltered = collectionFilter !== "all";
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
-              isFiltered
-                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
-                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
-            )}
-            title="تصفية التحصيلات (Excel)"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="center"
-          className="w-64 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="space-y-2">
+      case "collected": {
+        const isFiltered = collectionFilter !== "all";
+        return (
+          <div className="w-64 p-3 bg-card text-card-foreground border-2 border-primary/20 shadow-2xl rounded-2xl space-y-2">
             <div className="flex items-center justify-between border-b pb-2">
               <span className="text-xs font-black text-foreground flex items-center gap-1.5">
                 <Filter className="h-3.5 w-3.5 text-primary" />
                 تصفية التحصيل
               </span>
-              {isFiltered && (
+              <div className="flex items-center gap-2">
+                {isFiltered && (
+                  <button
+                    type="button"
+                    onClick={() => setCollectionFilter("all")}
+                    className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  >
+                    مسح
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => setCollectionFilter("all")}
-                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  onClick={() => setActiveHeaderFilter(null)}
+                  className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="إغلاق"
                 >
-                  مسح الفلتر
+                  <X className="h-3.5 w-3.5" />
                 </button>
-              )}
+              </div>
             </div>
 
             <div className="space-y-1">
@@ -826,7 +803,10 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                 <button
                   key={opt.id}
                   type="button"
-                  onClick={() => setCollectionFilter(opt.id as any)}
+                  onClick={() => {
+                    setCollectionFilter(opt.id as any);
+                    setActiveHeaderFilter(null);
+                  }}
                   className={cn(
                     "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer text-right",
                     collectionFilter === opt.id
@@ -840,54 +820,37 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               ))}
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-    );
-  };
+        );
+      }
 
-  // 3. Due Date Column Filter Popover (Excel style)
-  const renderDueDateFilterPopover = () => {
-    const isFiltered = selectedDueDates.size > 0;
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
-              isFiltered
-                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
-                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
-            )}
-            title="تصفية مواعيد السداد (Excel)"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
-            {isFiltered && (
-              <span className="mr-0.5 text-[10px] font-black">{selectedDueDates.size}</span>
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="center"
-          className="w-72 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="space-y-2.5">
+      case "due": {
+        const isFiltered = selectedDueDates.size > 0;
+        return (
+          <div className="w-72 p-3 bg-card text-card-foreground border-2 border-primary/20 shadow-2xl rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between border-b pb-2">
               <span className="text-xs font-black text-foreground flex items-center gap-1.5">
                 <Calendar className="h-3.5 w-3.5 text-primary" />
                 مواعيد السداد ({distinctDueDates.length})
               </span>
-              {isFiltered && (
+              <div className="flex items-center gap-2">
+                {isFiltered && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDueDates(new Set())}
+                    className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  >
+                    مسح
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => setSelectedDueDates(new Set())}
-                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  onClick={() => setActiveHeaderFilter(null)}
+                  className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="إغلاق"
                 >
-                  مسح الفلتر
+                  <X className="h-3.5 w-3.5" />
                 </button>
-              )}
+              </div>
             </div>
 
             <div className="flex items-center justify-between text-[11px] text-muted-foreground font-bold px-1">
@@ -949,68 +912,51 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               })}
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-    );
-  };
+        );
+      }
 
-  // 4. Status Column Filter Popover (Excel style with multi-select)
-  const renderStatusFilterPopover = () => {
-    const isFiltered = selectedStatusFilters.size > 0;
-    const statusOptions: Array<{ id: FilterStatus; label: string; count: number; colorClass: string }> = [
-      { id: "overdue", label: "متأخرون", count: counts.overdue, colorClass: "text-rose-600 font-bold" },
-      { id: "due_today", label: "مستحق اليوم", count: counts.dueToday, colorClass: "text-blue-600 font-bold" },
-      { id: "unpaid", label: "لم يسدد", count: counts.unpaid, colorClass: "text-rose-500 font-bold" },
-      { id: "partial", label: "جزئي", count: counts.partial, colorClass: "text-amber-600 font-bold" },
-      { id: "completed", label: "مكتمل", count: counts.completed, colorClass: "text-emerald-600 font-bold" },
-      { id: "pinned", label: "المثبت أسبوعياً", count: counts.pinned, colorClass: "text-purple-600 font-bold" },
-      { id: "has_treasury", label: "تحصيلات خزينة", count: counts.hasTreasury, colorClass: "text-teal-600 font-bold" },
-    ];
+      case "status": {
+        const isFiltered = selectedStatusFilters.size > 0;
+        const statusOptions: Array<{ id: FilterStatus; label: string; count: number; colorClass: string }> = [
+          { id: "overdue", label: "متأخرون", count: counts.overdue, colorClass: "text-rose-600 font-bold" },
+          { id: "due_today", label: "مستحق اليوم", count: counts.dueToday, colorClass: "text-blue-600 font-bold" },
+          { id: "unpaid", label: "لم يسدد", count: counts.unpaid, colorClass: "text-rose-500 font-bold" },
+          { id: "partial", label: "جزئي", count: counts.partial, colorClass: "text-amber-600 font-bold" },
+          { id: "completed", label: "مكتمل", count: counts.completed, colorClass: "text-emerald-600 font-bold" },
+          { id: "pinned", label: "المثبت أسبوعياً", count: counts.pinned, colorClass: "text-purple-600 font-bold" },
+          { id: "has_treasury", label: "تحصيلات خزينة", count: counts.hasTreasury, colorClass: "text-teal-600 font-bold" },
+        ];
 
-    return (
-      <Popover>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
-              isFiltered
-                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
-                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
-            )}
-            title="تصفية حالة السداد (Excel)"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
-            {isFiltered && (
-              <span className="mr-0.5 text-[10px] font-black">{selectedStatusFilters.size}</span>
-            )}
-          </button>
-        </PopoverTrigger>
-        <PopoverContent
-          align="center"
-          className="w-72 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <div className="space-y-2.5">
+        return (
+          <div className="w-72 p-3 bg-card text-card-foreground border-2 border-primary/20 shadow-2xl rounded-2xl space-y-2.5">
             <div className="flex items-center justify-between border-b pb-2">
               <span className="text-xs font-black text-foreground flex items-center gap-1.5">
                 <Filter className="h-3.5 w-3.5 text-primary" />
                 حالة السداد (تحديد متعدد)
               </span>
-              {isFiltered && (
+              <div className="flex items-center gap-2">
+                {isFiltered && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedStatusFilters(new Set())}
+                    className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  >
+                    مسح
+                  </button>
+                )}
                 <button
                   type="button"
-                  onClick={() => setSelectedStatusFilters(new Set())}
-                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                  onClick={() => setActiveHeaderFilter(null)}
+                  className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground cursor-pointer"
+                  title="إغلاق"
                 >
-                  مسح الفلتر
+                  <X className="h-3.5 w-3.5" />
                 </button>
-              )}
+              </div>
             </div>
 
             <p className="text-[11px] text-muted-foreground leading-relaxed">
-              💡 يمكنك اختيار أكثر من حالة معاً كالإكسيل (مثل المتأخرين والمستحق اليوم)
+              💡 يمكنك اختيار أكثر من حالة معاً (مثل المتأخرين والمستحق اليوم)
             </p>
 
             <div className="flex items-center justify-between text-[11px] text-muted-foreground font-bold px-1">
@@ -1069,50 +1015,106 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               })}
             </div>
           </div>
-        </PopoverContent>
-      </Popover>
-    );
+        );
+      }
+    }
   };
 
   const renderSortHeader = (
     key: SortKey,
     label: string,
-    align: "right" | "center" = "right",
+    align: "right" | "center" = "center",
     extraClass: string = "",
-    filterSlot?: React.ReactNode
+    filterType?: "customer" | "collected" | "due" | "status"
   ) => {
     const isActive = sortKey === key;
+    const isFiltered =
+      filterType === "customer"
+        ? selectedCustomerNames.size > 0
+        : filterType === "collected"
+        ? collectionFilter !== "all"
+        : filterType === "due"
+        ? selectedDueDates.size > 0
+        : filterType === "status"
+        ? selectedStatusFilters.size > 0
+        : false;
+
+    const filterCount =
+      filterType === "customer"
+        ? selectedCustomerNames.size
+        : filterType === "due"
+        ? selectedDueDates.size
+        : filterType === "status"
+        ? selectedStatusFilters.size
+        : 0;
+
+    const isDropdownOpen = activeHeaderFilter === filterType;
+
     return (
       <TableHead
-        className={`${FONT.headerCell} ${extraClass} select-none py-3.5`}
+        className={`${FONT.headerCell} ${extraClass} relative select-none py-3.5`}
       >
         <div
           className={`flex items-center gap-1.5 ${
-            align === "center" ? "justify-center" : "justify-between"
+            align === "center" ? "justify-center text-center" : "justify-start text-right"
           }`}
         >
+          {/* Column Sort Trigger */}
           <div
             onClick={() => handleSort(key)}
-            className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors flex-1"
+            className="inline-flex items-center gap-1 cursor-pointer hover:text-primary transition-colors select-none"
             title={`ترتيب حسب ${label} (${isActive && sortDirection === "asc" ? "تنازلياً" : "تصاعدياً"})`}
           >
             <span className={isActive ? "text-primary font-black" : ""}>{label}</span>
             {isActive ? (
               sortDirection === "asc" ? (
-                <ArrowUp className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+                <ArrowUp className="h-3.5 w-3.5 text-primary shrink-0 stroke-[2.5]" />
               ) : (
-                <ArrowDown className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+                <ArrowDown className="h-3.5 w-3.5 text-primary shrink-0 stroke-[2.5]" />
               )
             ) : (
-              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 hover:text-muted-foreground" />
+              <ArrowUpDown className="h-3 w-3 text-muted-foreground/40 shrink-0 hover:text-muted-foreground" />
             )}
           </div>
-          {filterSlot && (
-            <div className="no-print mr-1" onClick={(e) => e.stopPropagation()}>
-              {filterSlot}
-            </div>
+
+          {/* Column Filter Icon Button */}
+          {filterType && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveHeaderFilter((prev) => (prev === filterType ? null : filterType));
+              }}
+              className={cn(
+                "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center no-print shrink-0",
+                isFiltered
+                  ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
+                  : isDropdownOpen
+                  ? "bg-muted text-foreground"
+                  : "text-muted-foreground/50 hover:text-foreground hover:bg-muted"
+              )}
+              title={`تصفية حسب ${label} (Excel)`}
+            >
+              <Filter className={cn("h-3.5 w-3.5", (isFiltered || isDropdownOpen) && "fill-current")} />
+              {filterCount > 0 && (
+                <span className="mr-0.5 text-[10px] font-black">{filterCount}</span>
+              )}
+            </button>
           )}
         </div>
+
+        {/* Dropdown Menu Popup rendered directly when open */}
+        {isDropdownOpen && filterType && (
+          <div
+            className={cn(
+              "absolute top-full mt-1.5 z-50 no-print text-right",
+              align === "center" ? "left-1/2 -translate-x-1/2" : "right-0"
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {renderFilterDropdown(filterType)}
+          </div>
+        )}
       </TableHead>
     );
   };
@@ -1538,6 +1540,13 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             className="overflow-x-auto w-full smooth-touch-scroll"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
+            {/* Click-away backdrop for header filter dropdowns */}
+            {activeHeaderFilter && (
+              <div
+                className="fixed inset-0 z-40 bg-black/5 no-print"
+                onClick={() => setActiveHeaderFilter(null)}
+              />
+            )}
             <Table className="min-w-[1050px] print:min-w-0">
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
@@ -1558,12 +1567,12 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                 </TableHead>
                 {renderSortHeader("index", "م", "center", "w-10 col-index")}
                 {renderSortHeader("currentBalance", "الرصيد الحالي", "center", "col-balance")}
-                {renderSortHeader("customerName", "العميل", "right", "col-customer", renderCustomerFilterPopover())}
+                {renderSortHeader("customerName", "العميل", "right", "col-customer", "customer")}
                 {renderSortHeader("expectedAmount", "المتوقع", "center", "col-expected")}
-                {renderSortHeader("totalCollected", "المحصل", "center", "col-collected", renderCollectedFilterPopover())}
-                {renderSortHeader("dueDate", "موعد السداد", "center", "col-due", renderDueDateFilterPopover())}
+                {renderSortHeader("totalCollected", "المحصل", "center", "col-collected", "collected")}
+                {renderSortHeader("dueDate", "موعد السداد", "center", "col-due", "due")}
                 {renderSortHeader("rate", "نسبة السداد", "center", "col-rate")}
-                {renderSortHeader("status", "حالة السداد", "center", "col-status", renderStatusFilterPopover())}
+                {renderSortHeader("status", "حالة السداد", "center", "col-status", "status")}
                 {renderSortHeader("remaining", "المتبقي", "center", "col-remaining")}
                 <TableHead className={`${FONT.headerCell} text-right py-3.5 col-notes`}>ملاحظات</TableHead>
                 <TableHead className={`w-24 text-center ${FONT.headerCell} py-3.5 no-print col-actions`}>إجراءات</TableHead>
