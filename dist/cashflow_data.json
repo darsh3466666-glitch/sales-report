@@ -4525,6 +4525,13 @@
       "description": "نقدي",
       "type": "كاش",
       "date": "2026-11-18"
+    },
+    {
+      "receipt": "live_2026-11-18_17",
+      "amount": 170.0,
+      "description": "نقدي",
+      "type": "اتصالات كاش",
+      "date": "2026-11-18"
     }
   ],
   "customers": [
