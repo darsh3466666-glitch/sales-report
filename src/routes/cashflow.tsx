@@ -220,29 +220,6 @@ function CashFlowPage() {
         </div>
       </header>
 
-      {/* Print-Only Professional Clean Header */}
-      <div className="print-only px-4 py-3 border-b mb-4" dir="rtl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold text-foreground">
-              تقرير التدفقات النقدية الأسبوعية (Cash Flow)
-            </h1>
-            {activeSummary && (
-              <p className="text-xs text-muted-foreground mt-0.5 font-semibold">
-                {activeSummary.weekLabel}
-              </p>
-            )}
-          </div>
-          <div className="text-xs text-muted-foreground font-semibold">
-            تاريخ الطباعة:{" "}
-            {new Date().toLocaleString("ar-EG-u-nu-latn", {
-              dateStyle: "full",
-              timeStyle: "short",
-            })}
-          </div>
-        </div>
-      </div>
-
       {/* Main Content Area */}
       <main className="container mx-auto px-3 sm:px-4 py-6 space-y-6">
         {isLoading && !activeSummary ? (

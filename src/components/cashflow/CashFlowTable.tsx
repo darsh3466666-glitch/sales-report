@@ -1086,7 +1086,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                 setActiveHeaderFilter((prev) => (prev === filterType ? null : filterType));
               }}
               className={cn(
-                "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center no-print shrink-0",
+                "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center no-print print:hidden shrink-0",
                 isFiltered
                   ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
                   : isDropdownOpen
