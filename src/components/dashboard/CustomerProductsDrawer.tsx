@@ -137,58 +137,80 @@ export function CustomerProductsDrawer({
 
             {/* Products Breakdown Table */}
             <div className="rounded-2xl border-2 border-primary/20 overflow-hidden bg-card shadow-sm">
-              <table className="w-full text-right border-collapse text-xs sm:text-sm">
-                <thead>
-                  <tr className="bg-muted/60 border-b-2 border-primary/20 text-muted-foreground font-black">
-                    <th className="py-2.5 px-3.5">الصنف</th>
-                    <th className="py-2.5 px-3 text-center">الكمية</th>
-                    <th className="py-2.5 px-3 text-left">القيمة</th>
-                    <th className="py-2.5 px-3 text-center w-16">%</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/40">
-                  {sortedProducts.map((p, i) => {
-                    const pct = totalAmt > 0 ? (p.total_amount / totalAmt) * 100 : 0;
-                    return (
-                      <tr
-                        key={i}
-                        className="hover:bg-primary/5 transition-colors font-medium"
-                      >
-                        <td className="py-2.5 px-3.5 font-bold text-foreground">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <span>{p.product_name}</span>
-                            {(p.product_name.includes("تصنيع") ||
-                              p.product_name.includes("تشغيل")) && (
-                              <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700/60 shadow-2xs">
-                                تشغيل تصنيع
+              <div className="overflow-x-auto">
+                <table className="w-full text-right border-collapse text-xs sm:text-sm">
+                  <thead>
+                    <tr className="bg-muted/60 border-b-2 border-primary/20 text-muted-foreground font-black">
+                      <th className="py-2.5 px-3.5">الصنف</th>
+                      <th className="py-2.5 px-2.5 text-center">الكمية</th>
+                      <th className="py-2.5 px-2.5 text-center">السعر</th>
+                      <th className="py-2.5 px-3 text-left">القيمة</th>
+                      <th className="py-2.5 px-2 text-center w-14">%</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40">
+                    {sortedProducts.map((p, i) => {
+                      const pct = totalAmt > 0 ? (p.total_amount / totalAmt) * 100 : 0;
+                      const unitPrice =
+                        p.unit_price && p.unit_price > 0
+                          ? p.unit_price
+                          : p.quantity > 0
+                            ? p.total_amount / p.quantity
+                            : 0;
+
+                      return (
+                        <tr
+                          key={i}
+                          className="hover:bg-primary/5 transition-colors font-medium"
+                        >
+                          <td className="py-2.5 px-3.5 font-bold text-foreground">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span>{p.product_name}</span>
+                              {(p.product_name.includes("تصنيع") ||
+                                p.product_name.includes("تشغيل")) && (
+                                <span className="text-[10px] font-black px-1.5 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 dark:bg-amber-950/80 dark:text-amber-300 dark:border-amber-700/60 shadow-2xs">
+                                  تشغيل تصنيع
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-2.5 px-2.5 text-center font-sans tabular-nums text-foreground/90 whitespace-nowrap">
+                            {fmtNumber(p.quantity, 2)}
+                          </td>
+                          <td className="py-2.5 px-2.5 text-center font-sans tabular-nums font-bold text-foreground/90 whitespace-nowrap">
+                            {unitPrice > 0 ? (
+                              <span>
+                                {fmtNumber(unitPrice, 2)}{" "}
+                                <span className="text-[10px] text-muted-foreground font-normal">
+                                  ج.م
+                                </span>
                               </span>
+                            ) : (
+                              <span className="text-muted-foreground/50">-</span>
                             )}
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-3 text-center font-sans tabular-nums text-foreground/90">
-                          {fmtNumber(p.quantity, 2)}
-                        </td>
-                        <td className="py-2.5 px-3 text-left font-sans tabular-nums font-bold text-primary">
-                          {fmtMoney(p.total_amount)}
-                        </td>
-                        <td className="py-2.5 px-3 text-center font-sans tabular-nums text-muted-foreground font-semibold">
-                          {pct.toFixed(1)}%
+                          </td>
+                          <td className="py-2.5 px-3 text-left font-sans tabular-nums font-bold text-primary whitespace-nowrap">
+                            {fmtMoney(p.total_amount)}
+                          </td>
+                          <td className="py-2.5 px-2 text-center font-sans tabular-nums text-muted-foreground font-semibold">
+                            {pct.toFixed(1)}%
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {sortedProducts.length === 0 && (
+                      <tr>
+                        <td
+                          colSpan={5}
+                          className="text-center py-8 text-muted-foreground font-bold"
+                        >
+                          لا توجد أصناف مسجلة لهذا العميل اليوم
                         </td>
                       </tr>
-                    );
-                  })}
-                  {sortedProducts.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={4}
-                        className="text-center py-8 text-muted-foreground font-bold"
-                      >
-                        لا توجد أصناف مسجلة لهذا العميل اليوم
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
