@@ -2711,8 +2711,8 @@
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
       "currentBalance": 346310.0,
-      "dueDate": "2026-11-17",
-      "notes": "الاثنين او الثلاثاء 17/11/2026",
+      "dueDate": "2026-11-22",
+      "notes": "الاحد من كل اسبوع",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4473,20 +4473,6 @@
   ],
   "customers": [
     {
-      "customerName": "المعلم/ عبد الفتاح ربيع",
-      "normalizedName": "المعلم عبدالفتاح ربيع",
-      "currentBalance": 346310.0,
-      "expectedAmount": 150000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-17",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 150000.0,
-      "notes": "الاثنين او الثلاثاء 17/11/2026",
-      "isPinned": true,
-      "index": 1
-    },
-    {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
       "normalizedName": "ايه بي ديري هشام فؤادطارق حسن وشركاه",
       "currentBalance": 1180038.5999999996,
@@ -4498,7 +4484,7 @@
       "remaining": 100000.0,
       "notes": "جهينة",
       "isPinned": true,
-      "index": 2
+      "index": 1
     },
     {
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
@@ -4511,6 +4497,20 @@
       "status": "لم يسدد",
       "remaining": 150000.0,
       "notes": "الاحد 22/11/2026",
+      "isPinned": true,
+      "index": 2
+    },
+    {
+      "customerName": "المعلم/ عبد الفتاح ربيع",
+      "normalizedName": "المعلم عبدالفتاح ربيع",
+      "currentBalance": 346310.0,
+      "expectedAmount": 150000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-22",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 150000.0,
+      "notes": "الاحد من كل اسبوع",
       "isPinned": true,
       "index": 3
     },
