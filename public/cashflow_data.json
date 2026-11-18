@@ -2808,7 +2808,7 @@
       "customerName": "عيد ادريس (ابو بساط)",
       "currentBalance": 66810.0,
       "dueDate": "2026-11-19",
-      "notes": "فاتورة 8325 خلال 25 يوم 19/11/2026  فاتورة ابن عمه",
+      "notes": "بكرا",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4280,7 +4280,7 @@
       "customerName": "سعداوي عبدالجواد (صالح مسعود)",
       "currentBalance": 5950.0,
       "dueDate": "2026-11-28",
-      "notes": "",
+      "notes": "الاربيعاء 18/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4923,7 +4923,7 @@
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 66810.0,
-      "notes": "فاتورة 8325 خلال 25 يوم 19/11/2026  فاتورة ابن عمه",
+      "notes": "بكرا",
       "isPinned": false,
       "index": 29
     },
