@@ -145,6 +145,7 @@ def extract_cashflow():
     # 1. Load active week treasury transactions dynamically:
     # A) From public/cashflow_data.json to retain all days of active cycle
     # B) From live Treasury URL (https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json) - INCOMING ONLY!
+    week_start, week_end = get_current_week_window()
     data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
     existing_weekly_tx = []
     seen_sigs = set()
@@ -161,6 +162,9 @@ def extract_cashflow():
                         t_amt = float(t.get('amount', 0))
                         t_rcpt = str(t.get('receipt', '')).strip()
                         if t_amt > 0 and t_desc:
+                            # Strictly filter out transactions from past archived weeks
+                            if t_date and (t_date < week_start or t_date > week_end):
+                                continue
                             # Preserve each legitimate transaction by receipt or sequence index
                             sig = f"rcpt_{t_rcpt}" if t_rcpt else f"{t_date}_{t_desc}_{t_amt}_{idx}"
                             if sig not in seen_sigs:
