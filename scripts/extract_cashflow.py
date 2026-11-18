@@ -87,15 +87,14 @@ def get_current_week_window(ref_date=None):
     day = ref_date.weekday() # 0: Mon, 1: Tue, 2: Wed, 3: Thu, 4: Fri, 5: Sat, 6: Sun
     hour = ref_date.hour
     
-    # Automatic cycle transition: Week ends Tuesday at 7:00 PM (19:00)
-    if day == 1 and hour >= 19:
-        # Tuesday after 7 PM -> transitions to new cycle starting tomorrow Wednesday!
-        days_to_wed = -1
-    elif day >= 2:
+    # Weekly cycle: Wednesday to Tuesday.
+    # Note: Automatic 7:00 PM Tuesday transition has been completely disabled per user requirement.
+    # Weekly rollover is exclusively controlled manually via the "إنهاء الأسبوع ودخول أسبوع جديد" button.
+    if day >= 2:
         # Wed(2), Thu(3), Fri(4), Sat(5), Sun(6)
         days_to_wed = day - 2
     else:
-        # Mon(0), Tue(1) before 7 PM
+        # Mon(0), Tue(1) -> started previous Wednesday
         days_to_wed = day + 5
         
     start_date = ref_date.date() - datetime.timedelta(days=days_to_wed)

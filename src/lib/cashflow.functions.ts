@@ -127,14 +127,11 @@ export function getCurrentCashFlowWeekWindow(refDate: Date | string = new Date()
   const hours = d.getHours();
 
   let daysToWed = 0;
-  if (day === 2 && hours >= 19) {
-    // Tuesday after 7:00 PM -> automatically transition to the new week cycle starting tomorrow Wednesday!
-    daysToWed = -1;
-  } else if (day >= 3) {
+  if (day >= 3) {
     // Wed (3), Thu (4), Fri (5), Sat (6) -> started this week's Wednesday
     daysToWed = day - 3;
   } else {
-    // Sun (0), Mon (1), Tue (2) before 7 PM -> started last week's Wednesday
+    // Sun (0), Mon (1), Tue (2) -> started previous Wednesday (No automatic 7 PM shift - manual button only)
     daysToWed = day + 4;
   }
 
