@@ -165,6 +165,9 @@ def extract_cashflow():
                             # Strictly filter out transactions from past archived weeks
                             if t_date and (t_date < week_start or t_date > week_end):
                                 continue
+                            # Exclude internal non-customer movements like "النور نقدية"
+                            if 'النور نقد' in t_desc or 'نقديه النور' in t_desc or 'نقدية النور' in t_desc or 'نقدي النور' in t_desc or t_desc in ('النور', 'معلف النور'):
+                                continue
                             # Preserve each legitimate transaction by receipt or sequence index
                             sig = f"rcpt_{t_rcpt}" if t_rcpt else f"{t_date}_{t_desc}_{t_amt}_{idx}"
                             if sig not in seen_sigs:
@@ -192,6 +195,9 @@ def extract_cashflow():
                 i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
                 norm_i = normalize_arabic(i_desc)
                 if i_amt > 0 and norm_i:
+                    # Exclude internal non-customer movements like "النور نقدية"
+                    if 'النور نقد' in norm_i or 'نقديه النور' in norm_i or 'نقدية النور' in norm_i or 'نقدي النور' in norm_i or norm_i in ('النور', 'معلف النور'):
+                        continue
                     sig = f"rcpt_{i_rcpt}"
                     if sig not in seen_sigs:
                         existing_weekly_tx.append({

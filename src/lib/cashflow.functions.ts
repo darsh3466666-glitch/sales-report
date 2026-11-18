@@ -223,11 +223,13 @@ export function cleanCustomerMatchingName(s: string): string {
  */
 export const isCashNorm = (s: string) => {
   if (!s) return false;
+  // If description mentions "النور" and cash (e.g. "النور نقديه", "النور نقدية"), it is company internal treasury, NOT a customer!
+  if (/النور\s*نقد|نقد.*النور/.test(s)) return false;
   const noSpace = s.replace(/\s+/g, "");
   return (
     /^(نقدي|نقدى|كاش|نقديكاش|عميلنقدي|عميلنقدى|عميلكاش|عميلنقديكاش)$/.test(noSpace) ||
     /^(عميلنقدي|نقديكاش)/.test(noSpace) ||
-    (/نقدي|كاش/.test(s) && !/(ابو|احمد|محمد|علي|محمود|حمزة|مرسي|اسامه|يونس)/.test(s))
+    (/نقدي|كاش/.test(s) && !/(ابو|احمد|محمد|علي|محمود|حمزة|مرسي|اسامه|يونس|النور)/.test(s))
   );
 };
 
@@ -1725,6 +1727,18 @@ export async function getLiveCashFlowData(options?: {
       const receiptNo = String(tx.receipt || "").trim();
       const isNormCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc);
       const normDesc = isNormCash ? "نقدي" : normalizeArabicName(desc);
+
+      // Strictly exclude non-customer internal transactions like "النور نقدية" / "النور نقديه"
+      if (
+        normDesc.includes("النور نقد") ||
+        normDesc.includes("نقديه النور") ||
+        normDesc.includes("نقدية النور") ||
+        normDesc.includes("نقدي النور") ||
+        normDesc === "النور" ||
+        normDesc === "معلف النور"
+      ) {
+        return;
+      }
 
       // Check if an existing transaction in the pool already represents this payment
       for (const existing of weeklyTxMap.values()) {
