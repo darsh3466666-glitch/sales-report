@@ -39,10 +39,10 @@ export function PrintDialog({
     }
     if (layout === "mobile") {
       styleEl.textContent =
-        "@media print { @page { size: A4 portrait !important; margin: 10mm 10mm !important; } }";
+        "@media print { @page { size: A4 portrait !important; margin: 6mm 7mm !important; } }";
     } else {
       styleEl.textContent =
-        "@media print { @page { size: A4 landscape !important; margin: 6mm 10mm !important; } }";
+        "@media print { @page { size: A4 landscape !important; margin: 6mm 8mm !important; } }";
     }
 
     // 4. Immediately ensure clean body/HTML styles so nothing ever freezes

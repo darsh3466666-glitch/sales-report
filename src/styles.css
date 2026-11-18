@@ -382,12 +382,12 @@
   }
   .print-layout-mobile table {
     width: 100% !important;
-    font-size: 7.2pt !important;
+    font-size: 8.8pt !important;
     table-layout: auto !important;
   }
   .print-layout-mobile th,
   .print-layout-mobile td {
-    padding: 2.5pt 2pt !important;
+    padding: 3.5pt 3pt !important;
     min-width: 0 !important;
   }
   .print-layout-mobile .recharts-responsive-container {
@@ -395,13 +395,13 @@
     height: 140px !important;
   }
 
-  /* Text adjustments to make it clear and tidy */
+  /* Text adjustments to make it clear, bold, and readable */
   .print-layout-mobile .text-xs,
   .print-layout-mobile .text-muted-foreground {
-    font-size: 7.5pt !important;
+    font-size: 8pt !important;
   }
   .print-layout-mobile .text-sm {
-    font-size: 8.5pt !important;
+    font-size: 9pt !important;
   }
   .print-layout-mobile .text-xl,
   .print-layout-mobile .text-2xl {
@@ -452,14 +452,14 @@
     background: transparent !important;
   }
 
-  /* Table must fit 100% within the printable page without forced min-width */
+  /* Table must fit 100% within the printable page without artificial gaps */
   .cashflow-table-container table {
     min-width: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    table-layout: fixed !important;
+    table-layout: auto !important;
     border-collapse: collapse !important;
-    font-size: 7.2pt !important;
+    font-size: 8.8pt !important;
     break-inside: auto !important;
     page-break-inside: auto !important;
   }
@@ -483,7 +483,7 @@
   .cashflow-table-container td {
     min-width: 0 !important;
     max-width: none !important;
-    padding: 2pt 1.5pt !important;
+    padding: 3.5pt 3pt !important;
     vertical-align: middle !important;
     box-sizing: border-box !important;
     border-bottom: 1px solid #cbd5e1 !important;
@@ -502,7 +502,7 @@
     overflow-wrap: normal !important;
   }
 
-  /* Customer name is allowed to wrap onto two lines gracefully with NO borders */
+  /* Customer name wraps gracefully */
   .cashflow-table-container .col-customer {
     white-space: normal !important;
     word-break: normal !important;
@@ -518,26 +518,39 @@
     background: transparent !important;
   }
 
-  /* Hide sort arrows and icons in print to maximize readable area */
-  .cashflow-table-container th svg,
-  .cashflow-table-container td svg {
+  /* Only hide sort arrows in header; KEEP all badge icons visible! */
+  .cashflow-table-container th svg.lucide-arrow-up,
+  .cashflow-table-container th svg.lucide-arrow-down {
     display: none !important;
   }
+  .cashflow-table-container td svg {
+    display: inline-block !important;
+    width: 11px !important;
+    height: 11px !important;
+    vertical-align: middle !important;
+    flex-shrink: 0 !important;
+  }
 
-  /* Reset font sizes inside table during print so everything scales harmoniously */
+  /* Font sizes inside table in print: bold, clear, readable */
   .cashflow-table-container [class*="text-"],
   .cashflow-table-container th span,
   .cashflow-table-container td span,
   .cashflow-table-container th div,
   .cashflow-table-container td div {
-    font-size: 7.2pt !important;
-    line-height: 1.15 !important;
+    font-size: 8.8pt !important;
+    line-height: 1.25 !important;
   }
 
   .cashflow-table-container th span {
     font-weight: 800 !important;
     color: #0f172a !important;
-    font-size: 7.5pt !important;
+    font-size: 9pt !important;
+  }
+
+  .cashflow-table-container td .font-mono,
+  .cashflow-table-container td [class*="money"] {
+    font-size: 9.2pt !important;
+    font-weight: 800 !important;
   }
 
   /* Hide selection checkbox and action buttons in all print modes */
@@ -548,7 +561,7 @@
     display: none !important;
   }
 
-  /* Align inner text containers according to their column */
+  /* Align inner text containers according to their column so values sit directly under headers */
   .cashflow-table-container th.col-index > div,
   .cashflow-table-container td.col-index {
     justify-content: center !important;
@@ -556,8 +569,8 @@
   }
   .cashflow-table-container th.col-balance > div,
   .cashflow-table-container td.col-balance {
-    justify-content: flex-start !important;
-    text-align: right !important;
+    justify-content: center !important;
+    text-align: center !important;
     white-space: nowrap !important;
   }
   .cashflow-table-container th.col-customer > div,
@@ -599,7 +612,7 @@
 
   /* ----------------------------------------------------
      📱 MOBILE & PORTRAIT A4 PRINT:
-     Show exactly from 'م' up to 'حالة السداد' with narrow spacing,
+     Show exactly from 'م' up to 'حالة السداد' with balanced spacing,
      and hide 'المتبقي' & 'ملاحظات' to completely prevent overflow
      ---------------------------------------------------- */
   .print-layout-mobile .cashflow-table-container .col-remaining {
@@ -614,17 +627,17 @@
 
   .print-layout-mobile .cashflow-table-container th,
   .print-layout-mobile .cashflow-table-container td {
-    padding: 2pt 1.5pt !important;
+    padding: 3.5pt 2.5pt !important;
   }
 
-  /* 8 columns total = 100% exactly (No gaps, no overflow, perfectly centered as in reference PDF) */
-  .print-layout-mobile .cashflow-table-container .col-index { width: 4% !important; text-align: center !important; }
-  .print-layout-mobile .cashflow-table-container .col-balance { width: 13% !important; text-align: right !important; white-space: nowrap !important; }
-  .print-layout-mobile .cashflow-table-container .col-customer { width: 25% !important; text-align: right !important; font-weight: 700 !important; }
-  .print-layout-mobile .cashflow-table-container .col-expected { width: 14% !important; text-align: center !important; white-space: nowrap !important; }
+  /* 8 columns total = 100% exactly (No gaps, no overflow, perfectly centered as in live website) */
+  .print-layout-mobile .cashflow-table-container .col-index { width: 5% !important; text-align: center !important; }
+  .print-layout-mobile .cashflow-table-container .col-balance { width: 14% !important; text-align: center !important; white-space: nowrap !important; }
+  .print-layout-mobile .cashflow-table-container .col-customer { width: 22% !important; text-align: right !important; font-weight: 800 !important; }
+  .print-layout-mobile .cashflow-table-container .col-expected { width: 13% !important; text-align: center !important; white-space: nowrap !important; }
   .print-layout-mobile .cashflow-table-container .col-collected { width: 14% !important; text-align: center !important; white-space: nowrap !important; }
-  .print-layout-mobile .cashflow-table-container .col-due { width: 13% !important; text-align: center !important; white-space: nowrap !important; }
-  .print-layout-mobile .cashflow-table-container .col-rate { width: 7% !important; text-align: center !important; white-space: nowrap !important; }
+  .print-layout-mobile .cashflow-table-container .col-due { width: 14% !important; text-align: center !important; white-space: nowrap !important; }
+  .print-layout-mobile .cashflow-table-container .col-rate { width: 8% !important; text-align: center !important; white-space: nowrap !important; }
   .print-layout-mobile .cashflow-table-container .col-status { width: 10% !important; text-align: center !important; white-space: nowrap !important; }
 
   /* ----------------------------------------------------
@@ -632,64 +645,111 @@
      Full widescreen landscape display of all 10 columns
      ---------------------------------------------------- */
   .print-layout-pc .cashflow-table-container .col-index { width: 4% !important; text-align: center !important; }
-  .print-layout-pc .cashflow-table-container .col-balance { width: 11% !important; text-align: right !important; }
-  .print-layout-pc .cashflow-table-container .col-customer { width: 20% !important; text-align: right !important; font-weight: 700 !important; }
+  .print-layout-pc .cashflow-table-container .col-balance { width: 11% !important; text-align: center !important; }
+  .print-layout-pc .cashflow-table-container .col-customer { width: 20% !important; text-align: right !important; font-weight: 800 !important; }
   .print-layout-pc .cashflow-table-container .col-expected { width: 10% !important; text-align: center !important; }
   .print-layout-pc .cashflow-table-container .col-collected { width: 11% !important; text-align: center !important; }
   .print-layout-pc .cashflow-table-container .col-due { width: 10% !important; text-align: center !important; }
   .print-layout-pc .cashflow-table-container .col-rate { width: 7% !important; text-align: center !important; }
   .print-layout-pc .cashflow-table-container .col-status { width: 9% !important; text-align: center !important; }
-  .print-layout-pc .cashflow-table-container .col-remaining { width: 9% !important; text-align: right !important; }
+  .print-layout-pc .cashflow-table-container .col-remaining { width: 9% !important; text-align: center !important; }
   .print-layout-pc .cashflow-table-container .col-notes { width: 9% !important; text-align: right !important; }
   .print-layout-pc .cashflow-table-container .col-actions { display: none !important; }
 
-  /* Compact status badge inside table (identical to reference PDF) */
+  /* Live-identical status badge inside table */
   .cashflow-table-container .col-status [class*="badge"],
-  .cashflow-table-container .col-status [class*="Badge"] {
-    padding: 1.5px 5px !important;
+  .cashflow-table-container .col-status [class*="Badge"],
+  .cashflow-table-container .col-status span[class*="rounded-full"] {
+    padding: 2px 7px !important;
     border-width: 1px !important;
     border-style: solid !important;
-    font-size: 6.8pt !important;
+    font-size: 7.8pt !important;
+    font-weight: 800 !important;
     white-space: nowrap !important;
-    display: inline-block !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
     border-radius: 9999px !important;
     line-height: 1.2 !important;
   }
+  .cashflow-table-container .col-status span[class*="bg-emerald"],
+  .cashflow-table-container .col-status [class*="text-emerald"] {
+    background-color: #d1fae5 !important;
+    color: #065f46 !important;
+    border-color: #34d399 !important;
+  }
+  .cashflow-table-container .col-status span[class*="bg-amber"],
+  .cashflow-table-container .col-status [class*="text-amber"] {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border-color: #fbbf24 !important;
+  }
+  .cashflow-table-container .col-status span[class*="bg-rose"],
+  .cashflow-table-container .col-status [class*="text-rose"] {
+    background-color: #ffe4e6 !important;
+    color: #9f1239 !important;
+    border-color: #fb7185 !important;
+  }
 
-  /* Compact pill in expected column (plain text, centered, single line) */
+  /* Live-identical pill badge in expected column */
   .cashflow-table-container .col-expected span[class*="rounded-xl"] {
-    background: transparent !important;
-    border: none !important;
-    padding: 0 !important;
+    background-color: #f0fdfa !important;
+    border: 1.5px solid #2ba8a2 !important;
+    color: #0f766e !important;
+    padding: 2px 7px !important;
+    border-radius: 8px !important;
+    font-weight: 800 !important;
+    font-size: 8.8pt !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
     white-space: nowrap !important;
-    display: inline !important;
+  }
+
+  /* Live-identical due date badges */
+  .cashflow-table-container .col-due span[class*="rounded"] {
+    font-size: 7.8pt !important;
+    padding: 1.5px 5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 3px !important;
+    border-radius: 6px !important;
+    font-weight: 800 !important;
+  }
+
+  /* Live-identical treasury badges under collected amount */
+  .cashflow-table-container .col-collected [class*="rounded-md"] {
+    padding: 1px 4px !important;
+    font-size: 7.2pt !important;
+    border: 1px solid currentColor !important;
+    border-radius: 4px !important;
+    margin-top: 1.5px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    white-space: nowrap !important;
     font-weight: 700 !important;
   }
 
-  /* Compact treasury badges under collected amount */
-  .cashflow-table-container .col-collected [class*="rounded-md"] {
-    padding: 0.5px 3px !important;
-    font-size: 6.2pt !important;
-    border: 1px solid currentColor !important;
-    border-radius: 3px !important;
-    margin-top: 1px !important;
-    display: inline-flex !important;
-    white-space: nowrap !important;
-  }
-
-  /* Compact pinned badge under customer name */
+  /* Live-identical pinned badge under customer name */
   .cashflow-table-container .col-customer span[class*="rounded-md"] {
-    font-size: 5.8pt !important;
-    padding: 0.5px 2px !important;
-    background-color: #f1f5f9 !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 3px !important;
-    display: inline-block !important;
-    margin-top: 1px !important;
+    font-size: 7.2pt !important;
+    padding: 1px 5px !important;
+    background-color: #f3e8ff !important;
+    color: #7e22ce !important;
+    border: 1px solid #d8b4fe !important;
+    border-radius: 4px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 2px !important;
+    margin-top: 2px !important;
     white-space: nowrap !important;
+    font-weight: 700 !important;
   }
 
-  /* Compact header cards in Mobile Print so table starts on page 1 without awkward page gap */
+  /* Compact header cards in Mobile Print */
   .print-layout-mobile .cashflow-header-container > div {
     padding: 6pt !important;
     margin-bottom: 6pt !important;
