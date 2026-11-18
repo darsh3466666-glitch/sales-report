@@ -809,7 +809,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             className="overflow-x-auto w-full smooth-touch-scroll"
             style={{ WebkitOverflowScrolling: "touch" }}
           >
-            <Table style={{ minWidth: "1050px" }}>
+            <Table className="min-w-[1050px] print:min-w-0">
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
                 <TableHead className="w-12 text-center py-3.5 no-print col-select">
