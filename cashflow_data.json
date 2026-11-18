@@ -3407,8 +3407,8 @@
     {
       "customerName": "طارق ايوب (باديه فارم)",
       "currentBalance": 32105.0,
-      "dueDate": "2026-11-19",
-      "notes": "",
+      "dueDate": "2026-11-21",
+      "notes": "السسبت 21/11 بلاغ طارق",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4949,20 +4949,6 @@
       "index": 34
     },
     {
-      "customerName": "طارق ايوب (باديه فارم)",
-      "normalizedName": "طارق ايوب باديه فارم",
-      "currentBalance": 32105.0,
-      "expectedAmount": 32105.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-19",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 32105.0,
-      "notes": "",
-      "isPinned": false,
-      "index": 35
-    },
-    {
       "customerName": "جمعه قاياتي(الدالي)",
       "normalizedName": "جمعه قاياتي الدالي",
       "currentBalance": 7010.0,
@@ -4974,7 +4960,7 @@
       "remaining": 7010.0,
       "notes": "الخميس 19/11/2026",
       "isPinned": false,
-      "index": 36
+      "index": 35
     },
     {
       "customerName": "جمعه محمود رضوان (ادريس)",
@@ -4988,7 +4974,7 @@
       "remaining": 5100.0,
       "notes": "الخميس 19/11/2026",
       "isPinned": false,
-      "index": 37
+      "index": 36
     },
     {
       "customerName": "رجب الدريني سيلا",
@@ -5002,7 +4988,7 @@
       "remaining": 133180.0,
       "notes": "دورة 3شهور دفعات",
       "isPinned": false,
-      "index": 38
+      "index": 37
     },
     {
       "customerName": "عبدالرحمن محمد فراج (مدحت محمد)",
@@ -5016,7 +5002,7 @@
       "remaining": 10125.0,
       "notes": "جي واحده  هياخد علف ويدفع",
       "isPinned": false,
-      "index": 39
+      "index": 38
     },
     {
       "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
@@ -5029,6 +5015,20 @@
       "status": "لم يسدد",
       "remaining": 4005645.0,
       "notes": "السبت 21/11/2026 بلاغ علي",
+      "isPinned": false,
+      "index": 39
+    },
+    {
+      "customerName": "طارق ايوب (باديه فارم)",
+      "normalizedName": "طارق ايوب باديه فارم",
+      "currentBalance": 32105.0,
+      "expectedAmount": 32105.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-21",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 32105.0,
+      "notes": "السسبت 21/11 بلاغ طارق",
       "isPinned": false,
       "index": 40
     },
