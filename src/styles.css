@@ -473,24 +473,127 @@
     print-color-adjust: exact !important;
   }
 
-  /* Status-tinted row backgrounds matching live website */
-  .cashflow-table-container tr[class*="bg-emerald"] {
+  /* ----------------------------------------------------
+     Status-tinted row backgrounds in print:
+     - Unpaid (لم يسدد): Soft, clear, eye-friendly light red (#fee2e2) replacing dull grey
+     - Partial (جزئي): Soft warm amber (#fefce8)
+     - Completed (مكتمل): Soft serene emerald (#f0fdf4)
+     ---------------------------------------------------- */
+  .cashflow-table-container tr.row-unpaid,
+  .cashflow-table-container tr.row-unpaid td,
+  .cashflow-table-container tr[class*="bg-rose"],
+  .cashflow-table-container tr[class*="bg-rose"] td {
+    background-color: #fee2e2 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .cashflow-table-container tr.row-partial,
+  .cashflow-table-container tr.row-partial td,
+  .cashflow-table-container tr[class*="bg-amber"],
+  .cashflow-table-container tr[class*="bg-amber"] td {
+    background-color: #fefce8 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .cashflow-table-container tr.row-completed,
+  .cashflow-table-container tr.row-completed td,
+  .cashflow-table-container tr[class*="bg-emerald"],
+  .cashflow-table-container tr[class*="bg-emerald"] td {
     background-color: #f0fdf4 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  .cashflow-table-container tr[class*="bg-amber"] {
-    background-color: #fffbeb !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+
+  /* Remove discordant thick right borders in print for harmonious table flow */
+  .cashflow-table-container tr[class*="border-r-"] {
+    border-right: none !important;
   }
-  .cashflow-table-container tr[class*="bg-rose"] {
-    background-color: #fff1f2 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+
+  /* ----------------------------------------------------
+     Harmonious, Soothing Badges & Pills in Print:
+     Clean white elevated badges with crisp borders on tinted rows
+     ---------------------------------------------------- */
+  /* Expected Amount Pill */
+  .cashflow-table-container td.col-expected span {
+    background-color: #ffffff !important;
+    border: 1.5px solid #2ba8a2 !important;
+    color: #0f766e !important;
+    border-radius: 8px !important;
+    font-weight: 800 !important;
+    padding: 2pt 5pt !important;
+    display: inline-block !important;
   }
-  .cashflow-table-container tr[class*="border-r-blue-500"] {
-    border-right: 4px solid #3b82f6 !important;
+
+  /* Due Date "Today" Badge */
+  .cashflow-table-container td.col-due span[class*="bg-blue-100"] {
+    background-color: #ffffff !important;
+    border: 1.5px solid #93c5fd !important;
+    color: #1e40af !important;
+    box-shadow: none !important;
+    padding: 1.5pt 4pt !important;
+  }
+  .cashflow-table-container td.col-due span[class*="bg-blue-600"] {
+    background-color: #3b82f6 !important;
+    color: #ffffff !important;
+    border-radius: 4px !important;
+    font-weight: 800 !important;
+  }
+
+  /* Due Date "Overdue" Badge */
+  .cashflow-table-container td.col-due span[class*="text-rose-600"] {
+    background-color: #ffffff !important;
+    border: 1.5px solid #fca5a5 !important;
+    color: #b91c1c !important;
+    font-weight: 800 !important;
+    padding: 1.5pt 4pt !important;
+  }
+
+  /* Status Pills in Print */
+  .cashflow-table-container td.col-status [class*="bg-rose-100"] {
+    background-color: #ffffff !important;
+    border: 1.5px solid #f87171 !important;
+    color: #991b1b !important;
+    border-radius: 9999px !important;
+    font-weight: 800 !important;
+  }
+  .cashflow-table-container td.col-status [class*="bg-amber-100"] {
+    background-color: #ffffff !important;
+    border: 1.5px solid #fbbf24 !important;
+    color: #92400e !important;
+    border-radius: 9999px !important;
+    font-weight: 800 !important;
+  }
+  .cashflow-table-container td.col-status [class*="bg-emerald-100"] {
+    background-color: #ffffff !important;
+    border: 1.5px solid #4ade80 !important;
+    color: #166534 !important;
+    border-radius: 9999px !important;
+    font-weight: 800 !important;
+  }
+
+  /* Customer Name & Fixed Installment Badge in Print */
+  .cashflow-table-container td.col-customer span {
+    color: #0f172a !important;
+    font-weight: 800 !important;
+  }
+  .cashflow-table-container td.col-customer span[class*="bg-primary/15"] {
+    background-color: #ffffff !important;
+    border: 1px solid #c084fc !important;
+    color: #7e22ce !important;
+  }
+
+  /* Treasury & Bank Sub-Badges in Print */
+  .cashflow-table-container td.col-collected span[class*="bg-emerald-50"] {
+    background-color: #ffffff !important;
+    border: 1px solid #86efac !important;
+    color: #166534 !important;
+  }
+  .cashflow-table-container td.col-collected span[class*="bg-blue-50"] {
+    background-color: #ffffff !important;
+    border: 1px solid #93c5fd !important;
+    color: #1e40af !important;
   }
 
   .cashflow-table-container th {

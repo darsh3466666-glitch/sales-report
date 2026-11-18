@@ -1596,7 +1596,14 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                   // 4. Completed (مكتمل / فائض): Subtle emerald background (0.04 opacity)
                   // 5. Partial (جزئي): Subtle amber background (0.04 opacity)
                   // 6. Unpaid (لم يسدد): Subtle rose background (0.04 opacity - exact match with completed)
-                  const rowClass = isEditingThisRow
+                  const statusClass =
+                    cust.status === "لم يسدد"
+                      ? "row-unpaid"
+                      : cust.status === "جزئي"
+                      ? "row-partial"
+                      : "row-completed";
+
+                  const rowClass = `${isEditingThisRow
                     ? "bg-primary/10 border-2 border-primary"
                     : isSelected
                     ? "bg-rose-500/[0.08] dark:bg-rose-950/30 border-b border-border/80 border-r-4 border-r-rose-600 dark:border-r-rose-500 transition-colors"
@@ -1610,7 +1617,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                     ? "bg-amber-500/[0.04] dark:bg-amber-950/20 border-b border-border/80 hover:bg-amber-500/[0.08] dark:hover:bg-amber-950/30 transition-colors"
                     : cust.status === "لم يسدد"
                     ? "bg-rose-500/[0.04] dark:bg-rose-950/20 border-b border-border/80 hover:bg-rose-500/[0.08] dark:hover:bg-rose-950/30 transition-colors"
-                    : "border-b border-border/80 hover:bg-muted/40 transition-colors";
+                    : "border-b border-border/80 hover:bg-muted/40 transition-colors"} ${statusClass}`;
 
                   return (
                     <TableRow key={cust.customerName} className={rowClass}>
