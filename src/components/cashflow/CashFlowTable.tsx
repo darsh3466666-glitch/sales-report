@@ -2,6 +2,8 @@ import React, { useState, useMemo, useCallback } from "react";
 import { CashFlowCustomer, CashFlowSummary, isBankPayment, isBankCustomer } from "@/lib/cashflow.functions";
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -34,6 +36,7 @@ import {
   Calendar,
   LayoutGrid,
   TableProperties,
+  Filter,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
@@ -108,7 +111,17 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   onCustomerAdd,
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
+  // Multi-select status / category filters (Excel style)
+  const [selectedStatusFilters, setSelectedStatusFilters] = useState<Set<FilterStatus>>(new Set());
+  // Specific due dates filter (Excel checklist)
+  const [selectedDueDates, setSelectedDueDates] = useState<Set<string>>(new Set());
+  // Specific customer names filter (Excel checklist)
+  const [selectedCustomerNames, setSelectedCustomerNames] = useState<Set<string>>(new Set());
+  // Collection status filter (Excel checklist)
+  const [collectionFilter, setCollectionFilter] = useState<"all" | "has_collected" | "zero_collected" | "treasury_only" | "bank_only">("all");
+  // Customer search inside the Excel filter popover
+  const [custFilterSearch, setCustFilterSearch] = useState("");
+
   const [sortKey, setSortKey] = useState<SortKey>("status");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [viewMode, setViewMode] = useState<"cards" | "table">(() => {
@@ -261,9 +274,28 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     });
   }, []);
 
+  const handleToggleStatusFilter = useCallback((filter: FilterStatus) => {
+    setSelectedStatusFilters((prev) => {
+      const next = new Set(prev);
+      if (filter === "all") {
+        return new Set();
+      }
+      if (next.has(filter)) {
+        next.delete(filter);
+      } else {
+        next.add(filter);
+      }
+      return next;
+    });
+  }, []);
+
   const handleResetFilters = useCallback(() => {
     setSearchTerm("");
-    setStatusFilter("all");
+    setSelectedStatusFilters(new Set());
+    setSelectedDueDates(new Set());
+    setSelectedCustomerNames(new Set());
+    setCollectionFilter("all");
+    setCustFilterSearch("");
     setSortKey("status");
     setSortDirection("asc");
   }, []);
@@ -308,6 +340,73 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     };
   }, [summary.customers, todayStr]);
 
+  // Distinct due dates with counts for Excel date filter
+  const distinctDueDates = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const c of summary.customers) {
+      const d = c.dueDate || "none";
+      map.set(d, (map.get(d) || 0) + 1);
+    }
+    const dates: Array<{ date: string; label: string; count: number }> = [];
+    for (const [date, count] of map.entries()) {
+      let label = date;
+      if (date === "none") {
+        label = "بدون موعد سداد محدد";
+      } else if (date === todayStr) {
+        label = `${date} (اليوم)`;
+      } else if (date < todayStr) {
+        label = `${date} (متأخر)`;
+      }
+      dates.push({ date, label, count });
+    }
+    dates.sort((a, b) => {
+      if (a.date === "none") return 1;
+      if (b.date === "none") return -1;
+      return a.date.localeCompare(b.date);
+    });
+    return dates;
+  }, [summary.customers, todayStr]);
+
+  // Master customer list for Excel customer filter
+  const allCustomerList = useMemo(() => {
+    return summary.customers
+      .map((c) => ({
+        name: c.customerName,
+        balance: c.currentBalance,
+        status: c.status,
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name, "ar"));
+  }, [summary.customers]);
+
+  // Search filter inside Customer Popover
+  const filteredCustOptions = useMemo(() => {
+    const q = custFilterSearch.trim().toLowerCase();
+    if (!q) return allCustomerList;
+    const normQ = normalizeArabicName(q);
+    return allCustomerList.filter(
+      (c) =>
+        c.name.toLowerCase().includes(q) ||
+        normalizeArabicName(c.name).includes(normQ)
+    );
+  }, [allCustomerList, custFilterSearch]);
+
+  // Total active filters count across all Excel columns
+  const totalActiveFiltersCount = useMemo(() => {
+    let count = 0;
+    if (selectedStatusFilters.size > 0) count += selectedStatusFilters.size;
+    if (selectedDueDates.size > 0) count += selectedDueDates.size;
+    if (selectedCustomerNames.size > 0) count += selectedCustomerNames.size;
+    if (collectionFilter !== "all") count += 1;
+    if (searchTerm.trim()) count += 1;
+    return count;
+  }, [
+    selectedStatusFilters,
+    selectedDueDates,
+    selectedCustomerNames,
+    collectionFilter,
+    searchTerm,
+  ]);
+
   // Filtered and sorted customers
   const filteredCustomers = useMemo(() => {
     const list = summary.customers.filter((c) => {
@@ -320,15 +419,49 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
         if (!matchesName && !matchesNotes) return false;
       }
 
-      if (statusFilter === "completed") return c.status === "مكتمل" || (c as any).status === "فائض";
-      if (statusFilter === "partial") return c.status === "جزئي";
-      if (statusFilter === "unpaid") return c.status === "لم يسدد";
-      if (statusFilter === "overdue") {
-        return Boolean(c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9);
+      // 2. Specific Customer Checklist Filter (Excel Customer column filter)
+      if (selectedCustomerNames.size > 0 && !selectedCustomerNames.has(c.customerName)) {
+        return false;
       }
-      if (statusFilter === "due_today") return c.dueDate === todayStr;
-      if (statusFilter === "pinned") return Boolean(c.isPinned);
-      if (statusFilter === "has_treasury") return c.collectedFromTreasury > 0;
+
+      // 3. Specific Due Date Checklist Filter (Excel Due Date column filter)
+      if (selectedDueDates.size > 0) {
+        const dKey = c.dueDate || "none";
+        if (!selectedDueDates.has(dKey)) return false;
+      }
+
+      // 4. Collection Filter (Excel Collected column filter)
+      if (collectionFilter === "has_collected" && !(c.totalCollected > 0)) return false;
+      if (collectionFilter === "zero_collected" && c.totalCollected > 0) return false;
+      if (collectionFilter === "treasury_only" && !(c.collectedFromTreasury > 0)) return false;
+      if (collectionFilter === "bank_only") {
+        const hasBank =
+          c.totalCollected > c.collectedFromTreasury ||
+          c.treasuryTransactions?.some((t) => isBankPayment(t.type, t.description));
+        if (!hasBank) return false;
+      }
+
+      // 5. Multi-Select Status / Category Filter (Excel Status column filter OR Top Chips)
+      if (selectedStatusFilters.size > 0) {
+        const isOverdue = Boolean(c.dueDate && c.dueDate < todayStr && c.remaining > 0 && (c.rate || 0) < 0.9);
+        const isDueToday = c.dueDate === todayStr;
+        const isCompleted = c.status === "مكتمل" || (c as any).status === "فائض";
+        const isPartial = c.status === "جزئي";
+        const isUnpaid = c.status === "لم يسدد";
+        const isPinned = Boolean(c.isPinned);
+        const hasTreasury = c.collectedFromTreasury > 0;
+
+        let matchesAny = false;
+        if (selectedStatusFilters.has("overdue") && isOverdue) matchesAny = true;
+        if (selectedStatusFilters.has("due_today") && isDueToday) matchesAny = true;
+        if (selectedStatusFilters.has("unpaid") && isUnpaid) matchesAny = true;
+        if (selectedStatusFilters.has("partial") && isPartial) matchesAny = true;
+        if (selectedStatusFilters.has("completed") && isCompleted) matchesAny = true;
+        if (selectedStatusFilters.has("pinned") && isPinned) matchesAny = true;
+        if (selectedStatusFilters.has("has_treasury") && hasTreasury) matchesAny = true;
+
+        if (!matchesAny) return false;
+      }
 
       return true;
     });
@@ -404,7 +537,17 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     });
 
     return list;
-  }, [summary.customers, searchTerm, statusFilter, todayStr, sortKey, sortDirection]);
+  }, [
+    summary.customers,
+    searchTerm,
+    selectedStatusFilters,
+    selectedDueDates,
+    selectedCustomerNames,
+    collectionFilter,
+    todayStr,
+    sortKey,
+    sortDirection,
+  ]);
 
   // Multi-select bulk deletion logic
   const deletableFilteredCustomers = useMemo(() => {
@@ -503,33 +646,471 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     }
   }, []);
 
+  // 1. Customer Column Filter Popover (Excel style)
+  const renderCustomerFilterPopover = () => {
+    const isFiltered = selectedCustomerNames.size > 0;
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
+              isFiltered
+                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
+                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
+            )}
+            title="تصفية العملاء (Excel)"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
+            {isFiltered && (
+              <span className="mr-0.5 text-[10px] font-black">{selectedCustomerNames.size}</span>
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="start"
+          className="w-72 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between border-b pb-2">
+              <span className="text-xs font-black text-foreground flex items-center gap-1.5">
+                <Filter className="h-3.5 w-3.5 text-primary" />
+                تصفية العملاء ({filteredCustOptions.length})
+              </span>
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedCustomerNames(new Set())}
+                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                >
+                  مسح الفلتر
+                </button>
+              )}
+            </div>
+
+            <div className="relative">
+              <Search className="absolute right-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="ابحث في العملاء..."
+                value={custFilterSearch}
+                onChange={(e) => setCustFilterSearch(e.target.value)}
+                className="w-full pr-8 pl-2 py-1.5 text-xs font-bold rounded-lg border bg-background text-foreground focus:outline-none focus:border-primary"
+              />
+              {custFilterSearch && (
+                <button
+                  type="button"
+                  onClick={() => setCustFilterSearch("")}
+                  className="absolute left-2 top-2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-bold px-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const allNames = new Set(filteredCustOptions.map((c) => c.name));
+                  setSelectedCustomerNames(allNames);
+                }}
+                className="text-primary hover:underline cursor-pointer"
+              >
+                تحديد الكل
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedCustomerNames(new Set())}
+                className="hover:underline cursor-pointer"
+              >
+                إلغاء التحديد
+              </button>
+            </div>
+
+            <div className="max-h-56 overflow-y-auto space-y-1 pr-0.5 pl-1 smooth-touch-scroll">
+              {filteredCustOptions.map((cust) => {
+                const checked = selectedCustomerNames.has(cust.name);
+                return (
+                  <label
+                    key={cust.name}
+                    className={cn(
+                      "flex items-center justify-between gap-2 p-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors",
+                      checked ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted/70 text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-2 overflow-hidden">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          setSelectedCustomerNames((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(cust.name)) next.delete(cust.name);
+                            else next.add(cust.name);
+                            return next;
+                          });
+                        }}
+                        className="h-3.5 w-3.5 rounded border-primary/40 accent-primary cursor-pointer shrink-0"
+                      />
+                      <span className="truncate">{cust.name}</span>
+                    </div>
+                    {cust.balance > 0 && (
+                      <span className="text-[10px] font-mono text-muted-foreground shrink-0">
+                        {fmtMoney(cust.balance)}
+                      </span>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
+  // 2. Total Collected Column Filter Popover (Excel style)
+  const renderCollectedFilterPopover = () => {
+    const isFiltered = collectionFilter !== "all";
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
+              isFiltered
+                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
+                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
+            )}
+            title="تصفية التحصيلات (Excel)"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="center"
+          className="w-64 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="space-y-2">
+            <div className="flex items-center justify-between border-b pb-2">
+              <span className="text-xs font-black text-foreground flex items-center gap-1.5">
+                <Filter className="h-3.5 w-3.5 text-primary" />
+                تصفية التحصيل
+              </span>
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={() => setCollectionFilter("all")}
+                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                >
+                  مسح الفلتر
+                </button>
+              )}
+            </div>
+
+            <div className="space-y-1">
+              {[
+                { id: "all", label: "الكل (جميع العملاء)" },
+                { id: "has_collected", label: "تم تحصيل مبالغ (> 0 ج.م)" },
+                { id: "zero_collected", label: "لم يتم تحصيل شيء (0 ج.م)" },
+                { id: "treasury_only", label: "تحصيلات بالخزينة فقط ⚡" },
+                { id: "bank_only", label: "تحصيلات بنكية / كاش فقط 🏛️" },
+              ].map((opt) => (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setCollectionFilter(opt.id as any)}
+                  className={cn(
+                    "w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer text-right",
+                    collectionFilter === opt.id
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-foreground"
+                  )}
+                >
+                  <span>{opt.label}</span>
+                  {collectionFilter === opt.id && <Check className="h-3.5 w-3.5 shrink-0" />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
+  // 3. Due Date Column Filter Popover (Excel style)
+  const renderDueDateFilterPopover = () => {
+    const isFiltered = selectedDueDates.size > 0;
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
+              isFiltered
+                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
+                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
+            )}
+            title="تصفية مواعيد السداد (Excel)"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
+            {isFiltered && (
+              <span className="mr-0.5 text-[10px] font-black">{selectedDueDates.size}</span>
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="center"
+          className="w-72 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between border-b pb-2">
+              <span className="text-xs font-black text-foreground flex items-center gap-1.5">
+                <Calendar className="h-3.5 w-3.5 text-primary" />
+                مواعيد السداد ({distinctDueDates.length})
+              </span>
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedDueDates(new Set())}
+                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                >
+                  مسح الفلتر
+                </button>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-bold px-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const allDates = new Set(distinctDueDates.map((d) => d.date));
+                  setSelectedDueDates(allDates);
+                }}
+                className="text-primary hover:underline cursor-pointer"
+              >
+                تحديد الكل
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedDueDates(new Set())}
+                className="hover:underline cursor-pointer"
+              >
+                إلغاء التحديد
+              </button>
+            </div>
+
+            <div className="max-h-56 overflow-y-auto space-y-1 pr-0.5 pl-1 smooth-touch-scroll">
+              {distinctDueDates.map((d) => {
+                const checked = selectedDueDates.has(d.date);
+                const isOverdue = d.date !== "none" && d.date < todayStr;
+                const isToday = d.date === todayStr;
+                return (
+                  <label
+                    key={d.date}
+                    className={cn(
+                      "flex items-center justify-between gap-2 p-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors",
+                      checked ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted/70 text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => {
+                          setSelectedDueDates((prev) => {
+                            const next = new Set(prev);
+                            if (next.has(d.date)) next.delete(d.date);
+                            else next.add(d.date);
+                            return next;
+                          });
+                        }}
+                        className="h-3.5 w-3.5 rounded border-primary/40 accent-primary cursor-pointer shrink-0"
+                      />
+                      <span className={cn(isOverdue && "text-destructive font-bold", isToday && "text-blue-600 font-bold")}>
+                        {d.label}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">
+                      {d.count}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
+  // 4. Status Column Filter Popover (Excel style with multi-select)
+  const renderStatusFilterPopover = () => {
+    const isFiltered = selectedStatusFilters.size > 0;
+    const statusOptions: Array<{ id: FilterStatus; label: string; count: number; colorClass: string }> = [
+      { id: "overdue", label: "متأخرون", count: counts.overdue, colorClass: "text-rose-600 font-bold" },
+      { id: "due_today", label: "مستحق اليوم", count: counts.dueToday, colorClass: "text-blue-600 font-bold" },
+      { id: "unpaid", label: "لم يسدد", count: counts.unpaid, colorClass: "text-rose-500 font-bold" },
+      { id: "partial", label: "جزئي", count: counts.partial, colorClass: "text-amber-600 font-bold" },
+      { id: "completed", label: "مكتمل", count: counts.completed, colorClass: "text-emerald-600 font-bold" },
+      { id: "pinned", label: "المثبت أسبوعياً", count: counts.pinned, colorClass: "text-purple-600 font-bold" },
+      { id: "has_treasury", label: "تحصيلات خزينة", count: counts.hasTreasury, colorClass: "text-teal-600 font-bold" },
+    ];
+
+    return (
+      <Popover>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "p-1 rounded-md transition-all cursor-pointer inline-flex items-center justify-center",
+              isFiltered
+                ? "bg-primary text-primary-foreground shadow-xs ring-1 ring-primary"
+                : "text-muted-foreground/60 hover:text-foreground hover:bg-muted"
+            )}
+            title="تصفية حالة السداد (Excel)"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Filter className={cn("h-3.5 w-3.5", isFiltered && "fill-current")} />
+            {isFiltered && (
+              <span className="mr-0.5 text-[10px] font-black">{selectedStatusFilters.size}</span>
+            )}
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          align="center"
+          className="w-72 p-3 bg-popover border-2 border-primary/20 shadow-xl rounded-2xl z-50 text-right"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="space-y-2.5">
+            <div className="flex items-center justify-between border-b pb-2">
+              <span className="text-xs font-black text-foreground flex items-center gap-1.5">
+                <Filter className="h-3.5 w-3.5 text-primary" />
+                حالة السداد (تحديد متعدد)
+              </span>
+              {isFiltered && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedStatusFilters(new Set())}
+                  className="text-[11px] font-bold text-rose-600 hover:underline cursor-pointer"
+                >
+                  مسح الفلتر
+                </button>
+              )}
+            </div>
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              💡 يمكنك اختيار أكثر من حالة معاً كالإكسيل (مثل المتأخرين والمستحق اليوم)
+            </p>
+
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground font-bold px-1">
+              <button
+                type="button"
+                onClick={() => {
+                  const all = new Set<FilterStatus>([
+                    "overdue",
+                    "due_today",
+                    "unpaid",
+                    "partial",
+                    "completed",
+                    "pinned",
+                    "has_treasury",
+                  ]);
+                  setSelectedStatusFilters(all);
+                }}
+                className="text-primary hover:underline cursor-pointer"
+              >
+                تحديد الكل
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedStatusFilters(new Set())}
+                className="hover:underline cursor-pointer"
+              >
+                إلغاء التحديد
+              </button>
+            </div>
+
+            <div className="space-y-1">
+              {statusOptions.map((opt) => {
+                const checked = selectedStatusFilters.has(opt.id);
+                return (
+                  <label
+                    key={opt.id}
+                    className={cn(
+                      "flex items-center justify-between gap-2 p-1.5 rounded-lg text-xs font-medium cursor-pointer transition-colors",
+                      checked ? "bg-primary/10 text-primary font-bold" : "hover:bg-muted/70 text-foreground"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => handleToggleStatusFilter(opt.id)}
+                        className="h-3.5 w-3.5 rounded border-primary/40 accent-primary cursor-pointer shrink-0"
+                      />
+                      <span className={opt.colorClass}>{opt.label}</span>
+                    </div>
+                    <span className="text-[10px] font-bold bg-muted px-1.5 py-0.5 rounded-full text-muted-foreground">
+                      {opt.count}
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    );
+  };
+
   const renderSortHeader = (
     key: SortKey,
     label: string,
     align: "right" | "center" = "right",
-    extraClass: string = ""
+    extraClass: string = "",
+    filterSlot?: React.ReactNode
   ) => {
     const isActive = sortKey === key;
     return (
       <TableHead
-        className={`${FONT.headerCell} ${extraClass} cursor-pointer select-none transition-colors hover:bg-primary/15 py-3.5`}
-        onClick={() => handleSort(key)}
-        title={`ترتيب حسب ${label} (${isActive && sortDirection === "asc" ? "تنازلياً" : "تصاعدياً"})`}
+        className={`${FONT.headerCell} ${extraClass} select-none py-3.5`}
       >
         <div
           className={`flex items-center gap-1.5 ${
-            align === "center" ? "justify-center" : "justify-start"
+            align === "center" ? "justify-center" : "justify-between"
           }`}
         >
-          <span className={isActive ? "text-primary font-black" : ""}>{label}</span>
-          {isActive ? (
-            sortDirection === "asc" ? (
-              <ArrowUp className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+          <div
+            onClick={() => handleSort(key)}
+            className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors flex-1"
+            title={`ترتيب حسب ${label} (${isActive && sortDirection === "asc" ? "تنازلياً" : "تصاعدياً"})`}
+          >
+            <span className={isActive ? "text-primary font-black" : ""}>{label}</span>
+            {isActive ? (
+              sortDirection === "asc" ? (
+                <ArrowUp className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+              ) : (
+                <ArrowDown className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
+              )
             ) : (
-              <ArrowDown className="h-4 w-4 text-primary shrink-0 stroke-[2.5]" />
-            )
-          ) : (
-            <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 hover:text-muted-foreground" />
+              <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0 hover:text-muted-foreground" />
+            )}
+          </div>
+          {filterSlot && (
+            <div className="no-print mr-1" onClick={(e) => e.stopPropagation()}>
+              {filterSlot}
+            </div>
           )}
         </div>
       </TableHead>
@@ -645,88 +1226,118 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2.5 no-print">
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto flex-nowrap -mx-1 px-1 touch-pan-x smooth-touch-scroll">
           <Button
-            variant={statusFilter === "all" ? "default" : "outline"}
+            variant={selectedStatusFilters.size === 0 ? "default" : "outline"}
             size="sm"
-            onClick={() => setStatusFilter("all")}
+            onClick={() => setSelectedStatusFilters(new Set())}
             className="rounded-full text-xs font-black h-9 px-4 cursor-pointer shadow-2xs"
           >
             الكل ({counts.all})
           </Button>
           <Button
-            variant={statusFilter === "completed" ? "default" : "outline"}
+            variant={selectedStatusFilters.has("completed") ? "default" : "outline"}
             size="sm"
-            onClick={() => setStatusFilter("completed")}
-            className="rounded-full text-xs font-black h-9 px-4 text-emerald-700 dark:text-emerald-300 border-2 border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer shadow-2xs"
+            onClick={() => handleToggleStatusFilter("completed")}
+            className={cn(
+              "rounded-full text-xs font-black h-9 px-4 cursor-pointer shadow-2xs transition-all",
+              selectedStatusFilters.has("completed")
+                ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm"
+                : "text-emerald-700 dark:text-emerald-300 border-2 border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+            )}
           >
+            {selectedStatusFilters.has("completed") && <Check className="h-3.5 w-3.5 inline ml-1" />}
             مكتمل ({counts.completed})
           </Button>
           <Button
-            variant={statusFilter === "partial" ? "default" : "outline"}
+            variant={selectedStatusFilters.has("partial") ? "default" : "outline"}
             size="sm"
-            onClick={() => setStatusFilter("partial")}
-            className="rounded-full text-xs font-black h-9 px-4 text-amber-700 dark:text-amber-300 border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 cursor-pointer shadow-2xs"
+            onClick={() => handleToggleStatusFilter("partial")}
+            className={cn(
+              "rounded-full text-xs font-black h-9 px-4 cursor-pointer shadow-2xs transition-all",
+              selectedStatusFilters.has("partial")
+                ? "bg-amber-600 text-white hover:bg-amber-700 shadow-sm"
+                : "text-amber-700 dark:text-amber-300 border-2 border-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+            )}
           >
+            {selectedStatusFilters.has("partial") && <Check className="h-3.5 w-3.5 inline ml-1" />}
             جزئي ({counts.partial})
           </Button>
           <Button
-            variant={statusFilter === "unpaid" ? "default" : "outline"}
+            variant={selectedStatusFilters.has("unpaid") ? "default" : "outline"}
             size="sm"
-            onClick={() => setStatusFilter("unpaid")}
-            className={`rounded-full text-xs font-black h-9 px-4 cursor-pointer shadow-2xs ${
-              statusFilter === "unpaid"
-                ? "bg-rose-600 text-white border-2 border-rose-600 hover:bg-rose-700"
+            onClick={() => handleToggleStatusFilter("unpaid")}
+            className={cn(
+              "rounded-full text-xs font-black h-9 px-4 cursor-pointer shadow-2xs transition-all",
+              selectedStatusFilters.has("unpaid")
+                ? "bg-rose-600 text-white hover:bg-rose-700 shadow-sm"
                 : "text-rose-700 dark:text-rose-300 border-2 border-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
-            }`}
+            )}
           >
+            {selectedStatusFilters.has("unpaid") && <Check className="h-3.5 w-3.5 inline ml-1" />}
             لم يسدد ({counts.unpaid})
           </Button>
           <Button
-            variant={statusFilter === "overdue" ? "default" : "outline"}
+            variant={selectedStatusFilters.has("overdue") ? "default" : "outline"}
             size="sm"
-            onClick={() => setStatusFilter("overdue")}
-            className={`rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs ${
-              statusFilter === "overdue"
-                ? "bg-destructive text-destructive-foreground border-2 border-destructive hover:bg-destructive/90"
+            onClick={() => handleToggleStatusFilter("overdue")}
+            className={cn(
+              "rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs transition-all",
+              selectedStatusFilters.has("overdue")
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm"
                 : "text-destructive border-2 border-destructive hover:bg-rose-50 dark:hover:bg-rose-950/40"
-            }`}
+            )}
           >
             <AlertTriangle className="h-4 w-4" />
+            {selectedStatusFilters.has("overdue") && <Check className="h-3.5 w-3.5" />}
             <span>متأخرون ({counts.overdue})</span>
           </Button>
           {counts.dueToday > 0 && (
             <Button
-              variant={statusFilter === "due_today" ? "default" : "outline"}
+              variant={selectedStatusFilters.has("due_today") ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter("due_today")}
-              className={`rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs ${
-                statusFilter === "due_today"
-                  ? "bg-blue-600 text-white border-2 border-blue-600 hover:bg-blue-700"
+              onClick={() => handleToggleStatusFilter("due_today")}
+              className={cn(
+                "rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs transition-all",
+                selectedStatusFilters.has("due_today")
+                  ? "bg-blue-600 text-white hover:bg-blue-700 shadow-sm"
                   : "text-blue-700 dark:text-blue-300 border-2 border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/40"
-              }`}
+              )}
             >
-              <Calendar className="h-3.5 w-3.5 text-blue-600 dark:text-blue-300" />
+              <Calendar className="h-3.5 w-3.5" />
+              {selectedStatusFilters.has("due_today") && <Check className="h-3.5 w-3.5" />}
               <span>مستحق اليوم ({counts.dueToday})</span>
             </Button>
           )}
           {counts.pinned > 0 && (
             <Button
-              variant={statusFilter === "pinned" ? "default" : "outline"}
+              variant={selectedStatusFilters.has("pinned") ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter("pinned")}
-              className="rounded-full text-xs font-black h-9 px-4 text-purple-700 dark:text-purple-300 border-2 border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40 gap-1.5 cursor-pointer shadow-2xs"
+              onClick={() => handleToggleStatusFilter("pinned")}
+              className={cn(
+                "rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs transition-all",
+                selectedStatusFilters.has("pinned")
+                  ? "bg-purple-600 text-white hover:bg-purple-700 shadow-sm"
+                  : "text-purple-700 dark:text-purple-300 border-2 border-purple-400 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+              )}
             >
               <Pin className="h-3.5 w-3.5 rotate-45" />
+              {selectedStatusFilters.has("pinned") && <Check className="h-3.5 w-3.5" />}
               <span>المثبت أسبوعياً ({counts.pinned})</span>
             </Button>
           )}
           {counts.hasTreasury > 0 && (
             <Button
-              variant={statusFilter === "has_treasury" ? "default" : "outline"}
+              variant={selectedStatusFilters.has("has_treasury") ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter("has_treasury")}
-              className="rounded-full text-xs font-black h-9 px-4 text-teal-700 dark:text-teal-300 border-2 border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 gap-1.5 cursor-pointer shadow-2xs"
+              onClick={() => handleToggleStatusFilter("has_treasury")}
+              className={cn(
+                "rounded-full text-xs font-black h-9 px-4 gap-1.5 cursor-pointer shadow-2xs transition-all",
+                selectedStatusFilters.has("has_treasury")
+                  ? "bg-teal-600 text-white hover:bg-teal-700 shadow-sm"
+                  : "text-teal-700 dark:text-teal-300 border-2 border-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40"
+              )}
             >
-              <Zap className="h-3.5 w-3.5 fill-teal-500" />
+              <Zap className="h-3.5 w-3.5 fill-current" />
+              {selectedStatusFilters.has("has_treasury") && <Check className="h-3.5 w-3.5" />}
               <span>تحصيلات خزينة ({counts.hasTreasury})</span>
             </Button>
           )}
@@ -738,18 +1349,136 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
             عرض <strong className="text-foreground font-black">{filteredCustomers.length}</strong> من{" "}
             {summary.customers.length} عميل
           </span>
-          {(statusFilter !== "all" || searchTerm || sortKey !== "status" || sortDirection !== "asc") && (
+          {(totalActiveFiltersCount > 0 || sortKey !== "status" || sortDirection !== "asc") && (
             <button
               onClick={handleResetFilters}
               className="inline-flex items-center gap-1 text-xs text-primary font-black hover:underline cursor-pointer bg-primary/10 px-2.5 py-1 rounded-full border border-primary/20"
               title="إعادة ضبط البحث والتصفية والترتيب"
             >
               <RotateCcw className="h-3 w-3" />
-              <span>إعادة ضبط</span>
+              <span>إعادة ضبط {totalActiveFiltersCount > 0 ? `(${totalActiveFiltersCount})` : ""}</span>
             </button>
           )}
         </div>
       </div>
+
+      {/* Active Filters Pill Bar (Excel-like Active Criteria) */}
+      {totalActiveFiltersCount > 0 && (
+        <div className="flex flex-wrap items-center gap-2 px-3.5 py-2 bg-primary/5 rounded-2xl border-2 border-primary/20 text-xs no-print shadow-2xs">
+          <span className="font-black text-foreground flex items-center gap-1.5">
+            <Filter className="h-3.5 w-3.5 text-primary" />
+            فلاتر نشطة ({totalActiveFiltersCount}):
+          </span>
+
+          {selectedStatusFilters.has("overdue") && (
+            <span className="inline-flex items-center gap-1 bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 px-2.5 py-0.5 rounded-full font-bold">
+              متأخرون
+              <button onClick={() => handleToggleStatusFilter("overdue")} className="hover:text-rose-950 cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedStatusFilters.has("due_today") && (
+            <span className="inline-flex items-center gap-1 bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 px-2.5 py-0.5 rounded-full font-bold">
+              مستحق اليوم
+              <button onClick={() => handleToggleStatusFilter("due_today")} className="hover:text-blue-950 cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedStatusFilters.has("unpaid") && (
+            <span className="inline-flex items-center gap-1 bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300 px-2.5 py-0.5 rounded-full font-bold">
+              لم يسدد
+              <button onClick={() => handleToggleStatusFilter("unpaid")} className="hover:text-rose-950 cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedStatusFilters.has("partial") && (
+            <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 px-2.5 py-0.5 rounded-full font-bold">
+              جزئي
+              <button onClick={() => handleToggleStatusFilter("partial")} className="hover:text-amber-950 cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedStatusFilters.has("completed") && (
+            <span className="inline-flex items-center gap-1 bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2.5 py-0.5 rounded-full font-bold">
+              مكتمل
+              <button onClick={() => handleToggleStatusFilter("completed")} className="hover:text-emerald-950 cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedStatusFilters.has("pinned") && (
+            <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300 px-2.5 py-0.5 rounded-full font-bold">
+              المثبت أسبوعياً
+              <button onClick={() => handleToggleStatusFilter("pinned")} className="hover:text-purple-950 cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedStatusFilters.has("has_treasury") && (
+            <span className="inline-flex items-center gap-1 bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 px-2.5 py-0.5 rounded-full font-bold">
+              تحصيلات خزينة
+              <button onClick={() => handleToggleStatusFilter("has_treasury")} className="hover:text-teal-950 cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedCustomerNames.size > 0 && (
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-2.5 py-0.5 rounded-full font-bold">
+              العملاء ({selectedCustomerNames.size})
+              <button onClick={() => setSelectedCustomerNames(new Set())} className="hover:text-primary cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {selectedDueDates.size > 0 && (
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-2.5 py-0.5 rounded-full font-bold">
+              مواعيد السداد ({selectedDueDates.size})
+              <button onClick={() => setSelectedDueDates(new Set())} className="hover:text-primary cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {collectionFilter !== "all" && (
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-2.5 py-0.5 rounded-full font-bold">
+              {collectionFilter === "has_collected" ? "تم تحصيل مبالغ" : collectionFilter === "zero_collected" ? "0 ج.م" : collectionFilter === "treasury_only" ? "خزينة فقط" : "بنك فقط"}
+              <button onClick={() => setCollectionFilter("all")} className="hover:text-primary cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          {searchTerm && (
+            <span className="inline-flex items-center gap-1 bg-primary/15 text-primary px-2.5 py-0.5 rounded-full font-bold">
+              بحث: {searchTerm}
+              <button onClick={() => setSearchTerm("")} className="hover:text-primary cursor-pointer">
+                <X className="h-3 w-3" />
+              </button>
+            </span>
+          )}
+
+          <button
+            type="button"
+            onClick={handleResetFilters}
+            className="mr-auto text-xs font-black text-rose-600 hover:underline cursor-pointer flex items-center gap-1"
+          >
+            <RotateCcw className="h-3 w-3" />
+            مسح الكل
+          </button>
+        </div>
+      )}
 
       {/* Bulk Selection Action Bar */}
       {selectedCustomers.size > 0 && (
@@ -829,12 +1558,12 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                 </TableHead>
                 {renderSortHeader("index", "م", "center", "w-10 col-index")}
                 {renderSortHeader("currentBalance", "الرصيد الحالي", "center", "col-balance")}
-                {renderSortHeader("customerName", "العميل", "right", "col-customer")}
+                {renderSortHeader("customerName", "العميل", "right", "col-customer", renderCustomerFilterPopover())}
                 {renderSortHeader("expectedAmount", "المتوقع", "center", "col-expected")}
-                {renderSortHeader("totalCollected", "المحصل", "center", "col-collected")}
-                {renderSortHeader("dueDate", "موعد السداد", "center", "col-due")}
+                {renderSortHeader("totalCollected", "المحصل", "center", "col-collected", renderCollectedFilterPopover())}
+                {renderSortHeader("dueDate", "موعد السداد", "center", "col-due", renderDueDateFilterPopover())}
                 {renderSortHeader("rate", "نسبة السداد", "center", "col-rate")}
-                {renderSortHeader("status", "حالة السداد", "center", "col-status")}
+                {renderSortHeader("status", "حالة السداد", "center", "col-status", renderStatusFilterPopover())}
                 {renderSortHeader("remaining", "المتبقي", "center", "col-remaining")}
                 <TableHead className={`${FONT.headerCell} text-right py-3.5 col-notes`}>ملاحظات</TableHead>
                 <TableHead className={`w-24 text-center ${FONT.headerCell} py-3.5 no-print col-actions`}>إجراءات</TableHead>
