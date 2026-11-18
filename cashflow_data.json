@@ -1303,7 +1303,7 @@
     {
       "customerName": "ايمن محمود يوسف (طاميه)",
       "currentBalance": 1154266.0,
-      "dueDate": "2026-11-17",
+      "dueDate": "2026-11-23",
       "notes": "وزود 123 الف عن بداية السنة",
       "isActive2026": true,
       "isKhalis": false
@@ -3408,7 +3408,7 @@
       "customerName": "طارق ايوب (باديه فارم)",
       "currentBalance": 32105.0,
       "dueDate": "2026-11-19",
-      "notes": "اخر الشهر دقعة وشهر وهيبيع  15 يوم بلاغ م علي\\",
+      "notes": "",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4869,20 +4869,6 @@
       "index": 1
     },
     {
-      "customerName": "ايمن محمود يوسف (طاميه)",
-      "normalizedName": "ايمن محمود يوسف طاميه",
-      "currentBalance": 1154266.0,
-      "expectedAmount": 150000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-17",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 150000.0,
-      "notes": "وزود 123 الف عن بداية السنة",
-      "isPinned": true,
-      "index": 2
-    },
-    {
       "customerName": "المعلم/ عبد الفتاح ربيع",
       "normalizedName": "المعلم عبدالفتاح ربيع",
       "currentBalance": 346310.0,
@@ -4894,7 +4880,7 @@
       "remaining": 150000.0,
       "notes": "الاثنين او الثلاثاء 17/11/2026",
       "isPinned": true,
-      "index": 3
+      "index": 2
     },
     {
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
@@ -4908,7 +4894,7 @@
       "remaining": 150000.0,
       "notes": "الاربعاء 18/11/2026",
       "isPinned": true,
-      "index": 4
+      "index": 3
     },
     {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
@@ -4922,7 +4908,7 @@
       "remaining": 100000.0,
       "notes": "جهينة",
       "isPinned": true,
-      "index": 5
+      "index": 4
     },
     {
       "customerName": "ابو حمزة للأعلاف",
@@ -4935,6 +4921,20 @@
       "status": "لم يسدد",
       "remaining": 280000.0,
       "notes": "عميل كاش",
+      "isPinned": true,
+      "index": 5
+    },
+    {
+      "customerName": "ايمن محمود يوسف (طاميه)",
+      "normalizedName": "ايمن محمود يوسف طاميه",
+      "currentBalance": 1154266.0,
+      "expectedAmount": 150000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-23",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 150000.0,
+      "notes": "وزود 123 الف عن بداية السنة",
       "isPinned": true,
       "index": 6
     },
@@ -5340,7 +5340,7 @@
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 32105.0,
-      "notes": "اخر الشهر دقعة وشهر وهيبيع  15 يوم بلاغ م علي\\",
+      "notes": "",
       "isPinned": false,
       "index": 35
     },
