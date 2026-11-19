@@ -3,9 +3,9 @@
   "weekStart": "2026-11-18",
   "weekEnd": "2026-11-24",
   "weeklyGoal": 4000000,
-  "totalExpected": 9657549.277139,
+  "totalExpected": 9657844.277139,
   "totalCollected": 0.0,
-  "customerCount": 49,
+  "customerCount": 51,
   "remainingToTarget": 4000000.0,
   "collectionRate": 0.0,
   "masterCustomerNames": [
@@ -4597,6 +4597,34 @@
       "description": "حسام عدلي",
       "type": "م علي منير",
       "date": "2026-11-19"
+    },
+    {
+      "receipt": "live_2026-11-19_7",
+      "amount": 4600.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-19"
+    },
+    {
+      "receipt": "live_2026-11-19_8",
+      "amount": 400.0,
+      "description": "مرسي مدشه",
+      "type": "كاش",
+      "date": "2026-11-19"
+    },
+    {
+      "receipt": "live_2026-11-19_9",
+      "amount": 65000.0,
+      "description": "عبدالتواب",
+      "type": "ب مصر",
+      "date": "2026-11-19"
+    },
+    {
+      "receipt": "live_2026-11-19_10",
+      "amount": 1000.0,
+      "description": "جمال موسي",
+      "type": "كاش",
+      "date": "2026-11-19"
     }
   ],
   "customers": [
@@ -4769,6 +4797,20 @@
       "index": 12
     },
     {
+      "customerName": "جمعه عبد التواب (محمد علي)",
+      "normalizedName": "جمعه عبدالتواب محمد علي",
+      "currentBalance": 100.0,
+      "expectedAmount": 100.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-09-20",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 100.0,
+      "notes": "الاحد 20/9/2026",
+      "isPinned": false,
+      "index": 13
+    },
+    {
       "customerName": "احمد عيد (مزرعة الدولية) كوم ابور راضي",
       "normalizedName": "احمد عيد مزرعه الدوليه كوم ابور راضي",
       "currentBalance": 7720.0,
@@ -4780,7 +4822,7 @@
       "remaining": 7720.0,
       "notes": "",
       "isPinned": false,
-      "index": 13
+      "index": 14
     },
     {
       "customerName": "مفرح سيد فهيم",
@@ -4794,7 +4836,7 @@
       "remaining": 163500.0,
       "notes": "مفرح يوم الاثنين  10/11/2026",
       "isPinned": false,
-      "index": 14
+      "index": 15
     },
     {
       "customerName": "جمال مختار - قمن العروس",
@@ -4808,7 +4850,7 @@
       "remaining": 50425.0,
       "notes": "جمال مختار باقي حسابه يوم الخميس أو الجمعة",
       "isPinned": false,
-      "index": 15
+      "index": 16
     },
     {
       "customerName": "احمد سلامه (حلوان)",
@@ -4822,7 +4864,7 @@
       "remaining": 98370.0,
       "notes": "هيصفي الفترة الجاية",
       "isPinned": false,
-      "index": 16
+      "index": 17
     },
     {
       "customerName": "حمدي عبد الحميد(سيلا)",
@@ -4836,7 +4878,7 @@
       "remaining": 80210.0,
       "notes": "طالبه على القديم",
       "isPinned": false,
-      "index": 17
+      "index": 18
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -4850,7 +4892,7 @@
       "remaining": 179600.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 18
+      "index": 19
     },
     {
       "customerName": "محمود اسماعيل",
@@ -4864,7 +4906,7 @@
       "remaining": 60050.0,
       "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 19
+      "index": 20
     },
     {
       "customerName": "جمعه محمد عبد الحميد (سرسنا)",
@@ -4878,7 +4920,7 @@
       "remaining": 6200.0,
       "notes": "جمعه محمد سرسنا يوم الاثنين  17/11/2026",
       "isPinned": false,
-      "index": 20
+      "index": 21
     },
     {
       "customerName": "اشرف عدلي مصطفي",
@@ -4892,7 +4934,7 @@
       "remaining": 300.0,
       "notes": "وصل 1000 فاضل الباقي",
       "isPinned": false,
-      "index": 21
+      "index": 22
     },
     {
       "customerName": "احمد محمد مرداشي (وحيد كامل)",
@@ -4906,7 +4948,7 @@
       "remaining": 308394.5,
       "notes": "الاربعاء بعد السوق 18/11/2026",
       "isPinned": false,
-      "index": 22
+      "index": 23
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -4920,7 +4962,7 @@
       "remaining": 156275.0,
       "notes": "",
       "isPinned": false,
-      "index": 23
+      "index": 24
     },
     {
       "customerName": "بدوي حجازي البطل (الشوبك )",
@@ -4934,7 +4976,7 @@
       "remaining": 116200.0,
       "notes": "",
       "isPinned": false,
-      "index": 24
+      "index": 25
     },
     {
       "customerName": "ناصر سيد جبالي (مهدي بيه)",
@@ -4948,7 +4990,7 @@
       "remaining": 115435.0,
       "notes": "يوم 18/11/2026 50 الف وتصفية  رمضان",
       "isPinned": false,
-      "index": 25
+      "index": 26
     },
     {
       "customerName": "حسام عدلي عبود(قيصر)",
@@ -4962,7 +5004,7 @@
       "remaining": 86885.0,
       "notes": "بعد العصر",
       "isPinned": false,
-      "index": 26
+      "index": 27
     },
     {
       "customerName": "محمود سامي ابراهيم سيد(السحابه)",
@@ -4976,7 +5018,7 @@
       "remaining": 5890.0,
       "notes": "الاربيعاء 18/11",
       "isPinned": false,
-      "index": 27
+      "index": 28
     },
     {
       "customerName": "محمد حمدين الغنام",
@@ -4990,7 +5032,7 @@
       "remaining": 233045.0,
       "notes": "",
       "isPinned": false,
-      "index": 28
+      "index": 29
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -5004,7 +5046,7 @@
       "remaining": 66810.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 29
+      "index": 30
     },
     {
       "customerName": "محمد احمد (الوسطى)",
@@ -5018,7 +5060,7 @@
       "remaining": 32040.0,
       "notes": "مطالبة ب استمرار محمد ابو احمد بكره",
       "isPinned": false,
-      "index": 30
+      "index": 31
     },
     {
       "customerName": "جمعه قاياتي(الدالي)",
@@ -5032,7 +5074,7 @@
       "remaining": 7010.0,
       "notes": "الخميس 19/11/2026",
       "isPinned": false,
-      "index": 31
+      "index": 32
     },
     {
       "customerName": "جمعه محمود رضوان (ادريس)",
@@ -5046,7 +5088,7 @@
       "remaining": 5100.0,
       "notes": "الخميس 19/11/2026",
       "isPinned": false,
-      "index": 32
+      "index": 33
     },
     {
       "customerName": "رجب الدريني سيلا",
@@ -5060,7 +5102,7 @@
       "remaining": 133180.0,
       "notes": "دورة 3شهور دفعات",
       "isPinned": false,
-      "index": 33
+      "index": 34
     },
     {
       "customerName": "عبدالرحمن محمد فراج (مدحت محمد)",
@@ -5074,7 +5116,7 @@
       "remaining": 10125.0,
       "notes": "جي واحده  هياخد علف ويدفع",
       "isPinned": false,
-      "index": 34
+      "index": 35
     },
     {
       "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
@@ -5088,7 +5130,7 @@
       "remaining": 4005645.0,
       "notes": "السبت 21/11/2026 بلاغ علي",
       "isPinned": false,
-      "index": 35
+      "index": 36
     },
     {
       "customerName": "طارق ايوب (باديه فارم)",
@@ -5102,7 +5144,7 @@
       "remaining": 32105.0,
       "notes": "السسبت 21/11 بلاغ طارق",
       "isPinned": false,
-      "index": 36
+      "index": 37
     },
     {
       "customerName": "عبود عدلي عبود قيصر",
@@ -5116,7 +5158,7 @@
       "remaining": 451644.92000000004,
       "notes": "شهرين واصفي الحساب",
       "isPinned": false,
-      "index": 37
+      "index": 38
     },
     {
       "customerName": "الحاج /ايمن منصور - البحيرة",
@@ -5130,7 +5172,7 @@
       "remaining": 155750.0,
       "notes": "الاحد 23/11/2026",
       "isPinned": false,
-      "index": 38
+      "index": 39
     },
     {
       "customerName": "خالد عبد الوهاب (البيضاء)",
@@ -5144,7 +5186,7 @@
       "remaining": 106380.0,
       "notes": "الباقي بعد 15 يوم مكالمة",
       "isPinned": false,
-      "index": 39
+      "index": 40
     },
     {
       "customerName": "محمد سيد (مصطفي الصعيدي)",
@@ -5158,7 +5200,21 @@
       "remaining": 63485.0,
       "notes": "محمد سيد مصطفى السعيد على يوم الحد",
       "isPinned": false,
-      "index": 40
+      "index": 41
+    },
+    {
+      "customerName": "مرسي (مدشه)",
+      "normalizedName": "مرسي مدشه",
+      "currentBalance": 195.0,
+      "expectedAmount": 195.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-22",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 195.0,
+      "notes": "السبت او الاحد",
+      "isPinned": false,
+      "index": 42
     },
     {
       "customerName": "عبد الغفورعلي عبد الباقي(كوم ابو راضي)",
@@ -5172,7 +5228,7 @@
       "remaining": 8700.0,
       "notes": "هيجي واحده",
       "isPinned": false,
-      "index": 41
+      "index": 43
     },
     {
       "customerName": "خميس محمد يتيم (قيصر)",
@@ -5186,7 +5242,7 @@
       "remaining": 6750.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 42
+      "index": 44
     },
     {
       "customerName": "حمدان احمد ابو هوله - دوار",
@@ -5200,7 +5256,7 @@
       "remaining": 5200.0,
       "notes": "",
       "isPinned": false,
-      "index": 43
+      "index": 45
     },
     {
       "customerName": "ربيع جابر عبد الحميد",
@@ -5214,7 +5270,7 @@
       "remaining": 151190.0,
       "notes": "اخر طن",
       "isPinned": false,
-      "index": 44
+      "index": 46
     },
     {
       "customerName": "احمد سيد جبالى مهدى بيه",
@@ -5228,7 +5284,7 @@
       "remaining": 97355.0,
       "notes": "شهرين وكلمه تاني",
       "isPinned": false,
-      "index": 45
+      "index": 47
     },
     {
       "customerName": "محمود عباس (القطوري)",
@@ -5242,7 +5298,7 @@
       "remaining": 7325.0,
       "notes": "المرة الجاية هصفي  مش هيبقي تاني",
       "isPinned": false,
-      "index": 46
+      "index": 48
     },
     {
       "customerName": "عبد الله كمال شاهين (معوض)",
@@ -5256,7 +5312,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 47
+      "index": 49
     },
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
@@ -5270,7 +5326,7 @@
       "remaining": 0.0,
       "notes": "دورة 4 شهور سدد القديم",
       "isPinned": false,
-      "index": 48
+      "index": 50
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -5284,7 +5340,7 @@
       "remaining": 0.0,
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
       "isPinned": false,
-      "index": 49
+      "index": 51
     }
   ]
 }
