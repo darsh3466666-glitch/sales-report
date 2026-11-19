@@ -1,25 +1,18 @@
-# Gates: Multi-Day Weekly Treasury Accumulation & Collection Persistence in Cashflow
+# Acceptance Gates — Critical Bugfix Batch (2026-11-19)
 
-OWNS: src/lib/cashflow.functions.ts, public/cashflow_data.json, dist/cashflow_data.json, scripts/extract_cashflow.py
-
-Scope: Fix the critical flaw where daily rollover in the external treasury dashboard wipes previous days' collections within the active week. Ensure all incoming treasury and bank transactions accumulate across all days of the weekly cycle (Wednesday through Tuesday) so that payments from earlier in the week (e.g. Mohammed Younes 200k, Ahmed Ragheb 30k, Osama Ali 44k, Mahmoud Abuzeid 16k) remain permanently credited and accumulated alongside new daily payments (Abu Hamza 140k, Abu Fahd 39.2k, Ali Mohamed 5.7k, Cash).
-
-- [x] G1: Multi-day weekly treasury transactions pool merges and preserves past days of active cycle
-  CHECK: npx tsx scripts/test_weekly_accumulation.ts --check-pool
-  EXPECT: PASS: multi-day transactions accumulated
-  RESULT: PASS: multi-day transactions accumulated (10 transactions across multiple days)
-
-- [x] G2: Individual customer amounts and statuses accurately reflect cumulative weekly collections
-  CHECK: npx tsx scripts/test_weekly_accumulation.ts --check-customers
-  EXPECT: PASS: all weekly customers accumulated
-  RESULT: PASS: all weekly customers accumulated (All 8 key customer groups verified)
-
-- [x] G3: Total weekly treasury inflow equals sum of active cycle days (477,450 EGP)
-  CHECK: npx tsx scripts/test_weekly_accumulation.ts --check-totals
-  EXPECT: PASS: total treasury weekly inflow verified
-  RESULT: PASS: total treasury weekly inflow verified (477,450 EGP)
-
-- [x] G4: Production build succeeds with 0 errors
-  CHECK: npm run build
-  EXPECT: SUCCESS_BUILD_VERIFIED
-  RESULT: SUCCESS_BUILD_VERIFIED (built in 14.55s)
+## G1: gh-pages push uses instant commit-tree, NOT subtree split
+## G2: gh-pages push uses git commit-tree
+## G3: fixedAmounts filter removed (clean_fixed line gone)
+## G4: fixedAmounts saved as-is (not filtered by pinned)
+## G5: Notes priority in Python — user saved note takes priority
+## G6: Old authoritative note override removed from Python
+## G7: Hardcoded auto-correct for الخيرات removed from TS
+## G8: Hardcoded auto-correct for حمز removed from TS
+## G9: Notes priority in TS — user override takes priority over masterCust
+## G10: Watcher log shows successful fast gh-pages push
+## G11: Watcher log has NO recent subtree split timeout
+## G12: Build succeeds cleanly
+## G13: Git commit pushed to main
+## G14: gh-pages branch updated after fix
+## G15: hasAutoCorrected never set to true (dead code cleaned)
+## G16: extract_cashflow.py runs without error
