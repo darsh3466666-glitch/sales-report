@@ -143,49 +143,22 @@ def extract_cashflow():
     notes = existing_config.get("notes", {})
 
     # 1. Load active week treasury transactions dynamically:
-    # A) From public/cashflow_data.json to retain all days of active cycle
-    # B) From live Treasury URL (https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json) - INCOMING ONLY!
+    # Rule (أ) Fresh Snapshot لليوم الحالي (Today) مباشرة من شيت الخزينة اللحظي
+    # Rule (ب) تجميد الأيام السابقة (Past Days) من نفس الأسبوع دون مساس ولا تكرار
     week_start, week_end = get_current_week_window()
     data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
-    existing_weekly_tx = []
-    seen_sigs = set()
-
-    # Read from public/cashflow_data.json first to retain all days of active cycle
-    if os.path.exists(data_path):
-        try:
-            with open(data_path, 'r', encoding='utf-8') as f:
-                prev_d = json.load(f)
-                if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
-                    for idx, t in enumerate(prev_d['weeklyTreasuryTransactions']):
-                        t_date = str(t.get('date', '')).strip()
-                        t_desc = normalize_arabic(t.get('description', ''))
-                        t_amt = float(t.get('amount', 0))
-                        t_rcpt = str(t.get('receipt', '')).strip()
-                        if t_amt > 0 and t_desc:
-                            # Strictly filter out transactions from past archived weeks
-                            if t_date and (t_date < week_start or t_date > week_end):
-                                continue
-                            # Exclude internal non-customer movements like "النور نقدية"
-                            if 'النور نقد' in t_desc or 'نقديه النور' in t_desc or 'نقدية النور' in t_desc or 'نقدي النور' in t_desc or t_desc in ('النور', 'معلف النور'):
-                                continue
-                            # Preserve each legitimate transaction by receipt or sequence index
-                            sig = f"rcpt_{t_rcpt}" if t_rcpt else f"{t_date}_{t_desc}_{t_amt}_{idx}"
-                            if sig not in seen_sigs:
-                                existing_weekly_tx.append(t)
-                                seen_sigs.add(sig)
-        except Exception as e:
-            print("Could not read previous weekly treasury data:", e)
-
-    # Read from live Treasury link (INCOMING ONLY!)
+    
+    live_incoming_tx = []
+    t_rep_date = datetime.date.today().strftime('%Y-%m-%d')
     try:
         import urllib.request
         req = urllib.request.Request(
             "https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json",
             headers={"User-Agent": "Mozilla/5.0"}
         )
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=6) as resp:
             t_data = json.loads(resp.read().decode('utf-8'))
-            t_rep_date = str(t_data.get('reportDate', '')).strip()
+            t_rep_date = str(t_data.get('reportDate', '')).strip() or t_rep_date
             incoming_list = t_data.get('transactions', {}).get('incoming', [])
             for idx, item in enumerate(incoming_list):
                 i_amt = float(item.get('amount', 0))
@@ -198,18 +171,58 @@ def extract_cashflow():
                     # Exclude internal non-customer movements like "النور نقدية"
                     if 'النور نقد' in norm_i or 'نقديه النور' in norm_i or 'نقدية النور' in norm_i or 'نقدي النور' in norm_i or norm_i in ('النور', 'معلف النور'):
                         continue
-                    sig = f"rcpt_{i_rcpt}"
-                    if sig not in seen_sigs:
-                        existing_weekly_tx.append({
-                            "receipt": i_rcpt,
-                            "amount": i_amt,
-                            "description": i_desc,
-                            "type": i_type,
-                            "date": i_date
-                        })
-                        seen_sigs.add(sig)
+                    live_incoming_tx.append({
+                        "receipt": i_rcpt,
+                        "amount": i_amt,
+                        "description": i_desc,
+                        "type": i_type,
+                        "date": i_date
+                    })
     except Exception as e:
         print("Note: live treasury incoming fetch failed or offline:", e)
+
+    # Rule (ب): تجميد الأيام السابقة من الداتا المحفوظة
+    past_days_tx = []
+    cached_today_tx = []
+    if os.path.exists(data_path):
+        try:
+            with open(data_path, 'r', encoding='utf-8') as f:
+                prev_d = json.load(f)
+                if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
+                    seen_past_sigs = set()
+                    for idx, t in enumerate(prev_d['weeklyTreasuryTransactions']):
+                        t_date = str(t.get('date', '')).strip()
+                        t_desc = normalize_arabic(t.get('description', ''))
+                        t_amt = float(t.get('amount', 0))
+                        t_rcpt = str(t.get('receipt', '')).strip()
+                        if t_amt <= 0 or not t_desc:
+                            continue
+                        if t_date and (t_date < week_start or t_date > week_end):
+                            continue
+                        if 'النور نقد' in t_desc or 'نقديه النور' in t_desc or 'نقدية النور' in t_desc or 'نقدي النور' in t_desc or t_desc in ('النور', 'معلف النور'):
+                            continue
+                        
+                        # Cleanup duplicate transaction for Mahmoud Ismail (live_2026-11-18_11)
+                        if t_rcpt == 'live_2026-11-18_11':
+                            continue
+
+                        if t_date and t_date < t_rep_date:
+                            # Frozen past day of this active cycle
+                            sig = f"{t_date}_{t_rcpt}" if t_rcpt else f"{t_date}_{t_desc}_{t_amt}_{idx}"
+                            if sig not in seen_past_sigs:
+                                past_days_tx.append(t)
+                                seen_past_sigs.add(sig)
+                        else:
+                            # Cached copy of today (fallback in case live fetch fails)
+                            cached_today_tx.append(t)
+        except Exception as e:
+            print("Could not read previous weekly treasury data:", e)
+
+    # Rule (أ): إذا تم جلب حركات اليوم طازجة من الخزينة نعتمدها هي فقط لليوم، وإلا نستخدم الكاش
+    if live_incoming_tx:
+        existing_weekly_tx = past_days_tx + live_incoming_tx
+    else:
+        existing_weekly_tx = past_days_tx + cached_today_tx
 
     paid_names_set = set()
     for t in existing_weekly_tx:

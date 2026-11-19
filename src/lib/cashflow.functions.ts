@@ -1974,8 +1974,9 @@ export async function getLiveCashFlowData(options?: {
         const isSameCustomer = (isNormCash && existIsCash) || (existNormDesc === normDesc);
 
         if (isSameCustomer && Math.abs(existing.amount - amt) < 1) {
-          // If both have receipts and they are distinct receipts (e.g. K3801 vs K3807), keep both!
-          if (existing.receipt && receiptNo && existing.receipt !== receiptNo) {
+          // If both have receipts and they are authentic distinct system receipts (e.g. K3801 vs K3807), keep both!
+          const isSynthetic = (r: string) => !r || r.startsWith("live_") || r.startsWith("raw_");
+          if (existing.receipt && receiptNo && existing.receipt !== receiptNo && !isSynthetic(existing.receipt) && !isSynthetic(receiptNo)) {
             continue;
           }
           // Otherwise, it's the exact same transaction being synced across seeds/localStorage
@@ -2009,9 +2010,22 @@ export async function getLiveCashFlowData(options?: {
       weeklyTxMap.set(sig, txObj);
     };
 
-    // 1a. From authentic sheet قبض / verified movements in cashflow_data.json
+    // 1. Determine date of live feed if present
+    const liveReportDate = (liveTreasuryTx && liveTreasuryTx.length > 0 && liveTreasuryTx[0].date)
+      ? liveTreasuryTx[0].date.trim()
+      : "";
+
+    // 1a. Rule (ب) تجميد الأيام السابقة: From cashflow_data.json, load past days of the active week (frozen)
     if (Array.isArray(rawData?.weeklyTreasuryTransactions)) {
       rawData.weeklyTreasuryTransactions.forEach((tx: any, idx: number) => {
+        // Drop known duplicate transaction for Mahmoud Ismail
+        if (tx.receipt === "live_2026-11-18_11") return;
+
+        const txDate = String(tx.date || "").trim();
+        // Rule (أ) Fresh Snapshot لليوم الحالي: If live feed is active for liveReportDate, skip cached copy of that day
+        if (liveReportDate && txDate === liveReportDate && liveTreasuryTx && liveTreasuryTx.length > 0) {
+          return;
+        }
         if (!tx.receipt) {
           tx.receipt = `raw_${tx.date || "tx"}_${idx}`;
         }
@@ -2019,8 +2033,8 @@ export async function getLiveCashFlowData(options?: {
       });
     }
 
-    // 1b. From live incoming transactions fetched right now from Treasury dashboard (INCOMING ONLY!)
-    if (Array.isArray(liveTreasuryTx)) {
+    // 1b. Rule (أ) Fresh Snapshot لليوم الحالي: Take current live incoming transactions
+    if (Array.isArray(liveTreasuryTx) && liveTreasuryTx.length > 0) {
       liveTreasuryTx.forEach((tx: any, idx: number) => {
         if (!tx.receipt) {
           tx.receipt = `live_${tx.date || "tx"}_${idx}`;
