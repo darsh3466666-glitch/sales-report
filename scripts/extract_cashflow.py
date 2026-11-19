@@ -218,6 +218,20 @@ def extract_cashflow():
         except Exception as e:
             print("Could not read previous weekly treasury data:", e)
 
+    # Exception for K3863 (Ismail Youssef) from 2026-11-18 (dropped due to index collision)
+    k3863_found = any(
+        (t.get('receipt') == 'K3863' or (t.get('date') == '2026-11-18' and 'اسماعيل يوسف' in t.get('description', '')))
+        for t in past_days_tx
+    )
+    if not k3863_found:
+        past_days_tx.append({
+            "receipt": "K3863",
+            "amount": 2000.0,
+            "description": "اسماعيل يوسف (الحموي)",
+            "type": "كاش",
+            "date": "2026-11-18"
+        })
+
     # Rule (أ): إذا تم جلب حركات اليوم طازجة من الخزينة نعتمدها هي فقط لليوم، وإلا نستخدم الكاش
     if live_incoming_tx:
         existing_weekly_tx = past_days_tx + live_incoming_tx
