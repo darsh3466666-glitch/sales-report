@@ -3384,8 +3384,8 @@
     {
       "customerName": "الحاج /ايمن منصور - البحيرة",
       "currentBalance": 155750.0,
-      "dueDate": "2026-11-19",
-      "notes": "الخميس 19/11/2026",
+      "dueDate": "2026-11-22",
+      "notes": "الاحد 23/11/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4993,20 +4993,6 @@
       "index": 28
     },
     {
-      "customerName": "الحاج /ايمن منصور - البحيرة",
-      "normalizedName": "الحاج ايمن منصور البحيره",
-      "currentBalance": 155750.0,
-      "expectedAmount": 155750.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-19",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 155750.0,
-      "notes": "الخميس 19/11/2026",
-      "isPinned": false,
-      "index": 29
-    },
-    {
       "customerName": "عيد ادريس (ابو بساط)",
       "normalizedName": "عيد ادريس ابو بساط",
       "currentBalance": 66810.0,
@@ -5018,7 +5004,7 @@
       "remaining": 66810.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 30
+      "index": 29
     },
     {
       "customerName": "محمد احمد (الوسطى)",
@@ -5032,7 +5018,7 @@
       "remaining": 32040.0,
       "notes": "مطالبة ب استمرار محمد ابو احمد بكره",
       "isPinned": false,
-      "index": 31
+      "index": 30
     },
     {
       "customerName": "جمعه قاياتي(الدالي)",
@@ -5046,7 +5032,7 @@
       "remaining": 7010.0,
       "notes": "الخميس 19/11/2026",
       "isPinned": false,
-      "index": 32
+      "index": 31
     },
     {
       "customerName": "جمعه محمود رضوان (ادريس)",
@@ -5060,7 +5046,7 @@
       "remaining": 5100.0,
       "notes": "الخميس 19/11/2026",
       "isPinned": false,
-      "index": 33
+      "index": 32
     },
     {
       "customerName": "رجب الدريني سيلا",
@@ -5074,7 +5060,7 @@
       "remaining": 133180.0,
       "notes": "دورة 3شهور دفعات",
       "isPinned": false,
-      "index": 34
+      "index": 33
     },
     {
       "customerName": "عبدالرحمن محمد فراج (مدحت محمد)",
@@ -5088,7 +5074,7 @@
       "remaining": 10125.0,
       "notes": "جي واحده  هياخد علف ويدفع",
       "isPinned": false,
-      "index": 35
+      "index": 34
     },
     {
       "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
@@ -5102,7 +5088,7 @@
       "remaining": 4005645.0,
       "notes": "السبت 21/11/2026 بلاغ علي",
       "isPinned": false,
-      "index": 36
+      "index": 35
     },
     {
       "customerName": "طارق ايوب (باديه فارم)",
@@ -5116,7 +5102,7 @@
       "remaining": 32105.0,
       "notes": "السسبت 21/11 بلاغ طارق",
       "isPinned": false,
-      "index": 37
+      "index": 36
     },
     {
       "customerName": "عبود عدلي عبود قيصر",
@@ -5129,6 +5115,20 @@
       "status": "لم يسدد",
       "remaining": 451644.92000000004,
       "notes": "شهرين واصفي الحساب",
+      "isPinned": false,
+      "index": 37
+    },
+    {
+      "customerName": "الحاج /ايمن منصور - البحيرة",
+      "normalizedName": "الحاج ايمن منصور البحيره",
+      "currentBalance": 155750.0,
+      "expectedAmount": 155750.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-22",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 155750.0,
+      "notes": "الاحد 23/11/2026",
       "isPinned": false,
       "index": 38
     },
