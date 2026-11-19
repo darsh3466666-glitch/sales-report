@@ -316,9 +316,13 @@ def extract_cashflow():
         else:
             expected = bal
 
-        # Notes: Master_Data Column M is authoritative, exactly like due dates and balances!
-        note = m_note if m_note is not None else notes.get(m_name, '')
-        notes[m_name] = note
+        # Notes: User-saved notes (from config) take priority; fall back to Master_Data if not set
+        if m_name in notes and notes[m_name] != '':
+            note = notes[m_name]  # Keep user's saved note
+        else:
+            note = m_note or ''  # Use Excel note as default only if no saved note
+            if note:
+                notes[m_name] = note  # Save new note from Excel (only if not already set)
 
         data_rows.append({
             'customerName': m_name,
@@ -368,9 +372,8 @@ def extract_cashflow():
     for i, r in enumerate(data_rows):
         r['index'] = i + 1
 
-    clean_fixed = {k: v for k, v in fixed_amounts.items() if pinned_customers.get(k, False)}
     existing_config["pinnedCustomers"] = pinned_customers
-    existing_config["fixedAmounts"] = clean_fixed
+    existing_config["fixedAmounts"] = fixed_amounts  # Preserve ALL user overrides, not just pinned
     existing_config["notes"] = notes
     existing_config["updatedAt"] = datetime.datetime.now().isoformat()
 

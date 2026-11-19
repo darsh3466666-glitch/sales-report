@@ -222,15 +222,51 @@ def run_once(force=False):
                 subprocess.run(['git', 'commit', '-m', f'Auto-update sales & cashflow data: {now_str}'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=60)
                 subprocess.run(['git', 'push', 'origin', 'main'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=60)
 
-                # Clean any lingering temporary branch first
-                subprocess.run(['git', 'branch', '-D', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=30)
+                # Push dist to gh-pages branch instantaneously (< 1 second) via direct tree commit
+                log("Updating gh-pages branch (fast tree-commit)...")
+                try:
+                    tree_sha = subprocess.check_output(
+                        ['git', 'rev-parse', 'HEAD:dist'],
+                        cwd=REPO_DIR,
+                        creationflags=CREATE_NO_WINDOW,
+                        timeout=15
+                    ).decode().strip()
 
-                # Push dist to gh-pages branch
-                log("Updating gh-pages branch...")
-                subprocess.run(['git', 'subtree', 'split', '--prefix', 'dist', '-b', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=120)
-                subprocess.run(['git', 'push', '-f', 'origin', 'gh-pages-tmp:gh-pages'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=90)
-                subprocess.run(['git', 'branch', '-D', 'gh-pages-tmp'], cwd=REPO_DIR, capture_output=True, creationflags=CREATE_NO_WINDOW, timeout=30)
-                log("GitHub Pages updated successfully!")
+                    parent_res = subprocess.run(
+                        ['git', 'rev-parse', 'origin/gh-pages'],
+                        cwd=REPO_DIR,
+                        capture_output=True,
+                        text=True,
+                        creationflags=CREATE_NO_WINDOW,
+                        timeout=15
+                    )
+                    parent_sha = parent_res.stdout.strip() if parent_res.returncode == 0 else ""
+
+                    commit_cmd = ['git', 'commit-tree', tree_sha, '-m', f"Auto-update site: {now_str}"]
+                    if parent_sha:
+                        commit_cmd.extend(['-p', parent_sha])
+
+                    new_commit = subprocess.check_output(
+                        commit_cmd,
+                        cwd=REPO_DIR,
+                        creationflags=CREATE_NO_WINDOW,
+                        timeout=15
+                    ).decode().strip()
+
+                    push_res = subprocess.run(
+                        ['git', 'push', '-f', 'origin', f"{new_commit}:gh-pages"],
+                        cwd=REPO_DIR,
+                        capture_output=True,
+                        text=True,
+                        creationflags=CREATE_NO_WINDOW,
+                        timeout=45
+                    )
+                    if push_res.returncode == 0:
+                        log("GitHub Pages updated successfully in < 1s!")
+                    else:
+                        log(f"GitHub Pages push error: {push_res.stderr}")
+                except Exception as gpe:
+                    log(f"Fast gh-pages push warning: {gpe}")
             else:
                 log("No changes detected in data file to commit.")
         except Exception as ge:

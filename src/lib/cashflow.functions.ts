@@ -1595,17 +1595,6 @@ export async function getLiveCashFlowData(options?: {
         const norm = c.normalizedName || normalizeArabicName(c.customerName);
         let overrideAmt = getOverrideFixedAmount(overrides, c.customerName, rawConfig);
 
-        // Auto-correct stale baseline numbers for مزرعه الخيرات and ابو حمزة if they match old values
-        if (norm.includes("الخيرات") && (c.expectedAmount === 300000 || overrideAmt === 300000)) {
-          overrideAmt = 200000;
-          c.expectedAmount = 200000;
-          hasAutoCorrected = true;
-        }
-        if (norm.includes("حمز") && (c.expectedAmount === 280000 || overrideAmt === 280000)) {
-          overrideAmt = 140000;
-          c.expectedAmount = 140000;
-          hasAutoCorrected = true;
-        }
 
         let expectedAmount =
           overrideAmt !== undefined
@@ -1642,12 +1631,12 @@ export async function getLiveCashFlowData(options?: {
           expectedAmount = 0;
         }
 
-        // Notes: live from Master_Data Column M, exactly like due dates and balances!
+        // Notes: User override (from config) takes priority; fall back to Master_Data, then saved
         let notes =
-          masterCust?.notes !== undefined
-            ? masterCust.notes
-            : overrides.notes?.[c.customerName] !== undefined
+          overrides.notes?.[c.customerName] !== undefined && overrides.notes[c.customerName] !== ""
             ? overrides.notes[c.customerName]
+            : masterCust?.notes !== undefined
+            ? masterCust.notes
             : c.notes || "";
 
         // Strictly remove synthetic "سداد وارد غير متوقع" note as instructed by user!
