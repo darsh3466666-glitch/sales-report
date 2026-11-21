@@ -1272,7 +1272,7 @@
     {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
       "currentBalance": 802821.0999999996,
-      "dueDate": "2026-11-22",
+      "dueDate": "2026-11-26",
       "notes": "جهينة",
       "isActive2026": true,
       "isKhalis": false
@@ -4685,20 +4685,6 @@
   ],
   "customers": [
     {
-      "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
-      "normalizedName": "ايه بي ديري هشام فؤادطارق حسن وشركاه",
-      "currentBalance": 802821.0999999996,
-      "expectedAmount": 100000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-22",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 100000.0,
-      "notes": "جهينة",
-      "isPinned": true,
-      "index": 1
-    },
-    {
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
       "normalizedName": "عيد احمد عبدالفتاح ابو السعود",
       "currentBalance": 501320.0,
@@ -4710,7 +4696,7 @@
       "remaining": 150000.0,
       "notes": "الاحد 22/11/2026",
       "isPinned": true,
-      "index": 2
+      "index": 1
     },
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
@@ -4724,7 +4710,7 @@
       "remaining": 150000.0,
       "notes": "الاحد من كل اسبوع",
       "isPinned": true,
-      "index": 3
+      "index": 2
     },
     {
       "customerName": "ابو حمزة للأعلاف",
@@ -4738,7 +4724,7 @@
       "remaining": 140000.0,
       "notes": "عميل كاش",
       "isPinned": true,
-      "index": 4
+      "index": 3
     },
     {
       "customerName": "ايمن محمود يوسف (طاميه)",
@@ -4752,7 +4738,7 @@
       "remaining": 150000.0,
       "notes": "وزود 123 الف عن بداية السنة",
       "isPinned": true,
-      "index": 5
+      "index": 4
     },
     {
       "customerName": "عبد التواب احمد( ميدوم )",
@@ -4766,7 +4752,7 @@
       "remaining": 120000.0,
       "notes": "الاثنين مكالمة تليفون  16/11/202680 الف",
       "isPinned": true,
-      "index": 6
+      "index": 5
     },
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
@@ -4780,7 +4766,7 @@
       "remaining": 44433.85713900067,
       "notes": "هيجيب 100 الف",
       "isPinned": true,
-      "index": 7
+      "index": 6
     },
     {
       "customerName": "مزرعه الخيرات",
@@ -4794,7 +4780,7 @@
       "remaining": 200000.0,
       "notes": "جهينة الخميس القادم",
       "isPinned": true,
-      "index": 8
+      "index": 7
     },
     {
       "customerName": "د.هاني محمود يوسف (طاميه)",
@@ -4807,6 +4793,20 @@
       "status": "لم يسدد",
       "remaining": 1388771.0,
       "notes": "",
+      "isPinned": true,
+      "index": 8
+    },
+    {
+      "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
+      "normalizedName": "ايه بي ديري هشام فؤادطارق حسن وشركاه",
+      "currentBalance": 802821.0999999996,
+      "expectedAmount": 100000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-26",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 100000.0,
+      "notes": "جهينة",
       "isPinned": true,
       "index": 9
     },
