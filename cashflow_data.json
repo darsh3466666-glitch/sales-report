@@ -2136,8 +2136,8 @@
     {
       "customerName": "جمعه محمد (مصطفى الصعيدي)",
       "currentBalance": 31315.0,
-      "dueDate": "2026-11-28",
-      "notes": "الاسبوع ده او الي بعده",
+      "dueDate": "2026-12-03",
+      "notes": "اخر الشهر 2/12/2026",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -3192,7 +3192,7 @@
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
       "currentBalance": 10900.0,
-      "dueDate": "2026-11-27",
+      "dueDate": "2026-12-21",
       "notes": "دورة 4 شهور سدد القديم",
       "isActive2026": true,
       "isKhalis": false
@@ -3568,8 +3568,8 @@
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
       "currentBalance": 80580.0,
-      "dueDate": "2026-12-03",
-      "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
+      "dueDate": "2026-12-06",
+      "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال 3 شهور قبل رمضان  تصفية الحساب",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4048,7 +4048,7 @@
     {
       "customerName": "محمد جابر عبدالحميد(قيصر)",
       "currentBalance": 204350.0,
-      "dueDate": "2026-11-28",
+      "dueDate": "2026-12-11",
       "notes": "انتظار بيع",
       "isActive2026": true,
       "isKhalis": false
@@ -4743,6 +4743,27 @@
       "amount": 300000.0,
       "description": "محمد العسكري",
       "type": "ب مصر",
+      "date": "2026-11-21"
+    },
+    {
+      "receipt": "live_2026-11-21_9",
+      "amount": 12000.0,
+      "description": "مفرح سيد",
+      "type": "كاش",
+      "date": "2026-11-21"
+    },
+    {
+      "receipt": "live_2026-11-21_10",
+      "amount": 1700.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-21"
+    },
+    {
+      "receipt": "live_2026-11-21_11",
+      "amount": 5950.0,
+      "description": "سيد صابر",
+      "type": "كاش",
       "date": "2026-11-21"
     }
   ],
@@ -5462,20 +5483,6 @@
       "index": 51
     },
     {
-      "customerName": "حماده عبدالجيد فريد (الخرابه)",
-      "normalizedName": "حماده عبدالجيد فريد الخرابه",
-      "currentBalance": 10900.0,
-      "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-27",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 0.0,
-      "notes": "دورة 4 شهور سدد القديم",
-      "isPinned": false,
-      "index": 52
-    },
-    {
       "customerName": "توفيق محمد (نجع العرب)",
       "normalizedName": "توفيق محمد نجع العرب",
       "currentBalance": 12310.0,
@@ -5487,7 +5494,7 @@
       "remaining": 0.0,
       "notes": "بعد 10 ايام الباقي",
       "isPinned": false,
-      "index": 53
+      "index": 52
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -5495,13 +5502,13 @@
       "currentBalance": 80580.0,
       "expectedAmount": 0.0,
       "collectedFromSheet": 0.0,
-      "dueDate": "2026-12-03",
+      "dueDate": "2026-12-06",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
       "isPinned": false,
-      "index": 54
+      "index": 53
     },
     {
       "customerName": "محمود اسماعيل",
@@ -5514,6 +5521,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "20  يوم بلاغ محمد شعبان",
+      "isPinned": false,
+      "index": 54
+    },
+    {
+      "customerName": "حماده عبدالجيد فريد (الخرابه)",
+      "normalizedName": "حماده عبدالجيد فريد الخرابه",
+      "currentBalance": 10900.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-21",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "دورة 4 شهور سدد القديم",
       "isPinned": false,
       "index": 55
     },
