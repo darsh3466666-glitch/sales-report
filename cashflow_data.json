@@ -1696,8 +1696,8 @@
     {
       "customerName": "عبد الله كمال شاهين (معوض)",
       "currentBalance": 41435.0,
-      "dueDate": "2026-11-27",
-      "notes": "",
+      "dueDate": "2027-02-20",
+      "notes": "على رمضان لو في قبل هيجيب دورة كل 3 شهو",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -5518,20 +5518,6 @@
       "index": 47
     },
     {
-      "customerName": "عبد الله كمال شاهين (معوض)",
-      "normalizedName": "عبدالله كمال شاهين معوض",
-      "currentBalance": 41435.0,
-      "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-27",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 0.0,
-      "notes": "",
-      "isPinned": false,
-      "index": 48
-    },
-    {
       "customerName": "توفيق محمد (نجع العرب)",
       "normalizedName": "توفيق محمد نجع العرب",
       "currentBalance": 10.0,
@@ -5543,7 +5529,7 @@
       "remaining": 0.0,
       "notes": "بعد 10 ايام الباقي",
       "isPinned": false,
-      "index": 49
+      "index": 48
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -5557,7 +5543,7 @@
       "remaining": 0.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 50
+      "index": 49
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -5571,7 +5557,7 @@
       "remaining": 0.0,
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
       "isPinned": false,
-      "index": 51
+      "index": 50
     },
     {
       "customerName": "سيد محمد عبود - قيصر",
@@ -5585,7 +5571,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 52
+      "index": 51
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -5599,7 +5585,7 @@
       "remaining": 0.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 53
+      "index": 52
     },
     {
       "customerName": "محمود اسماعيل",
@@ -5613,7 +5599,7 @@
       "remaining": 0.0,
       "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 54
+      "index": 53
     },
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
@@ -5627,7 +5613,7 @@
       "remaining": 0.0,
       "notes": "دورة 4 شهور سدد القديم",
       "isPinned": false,
-      "index": 55
+      "index": 54
     },
     {
       "customerName": "حمدان احمد ابو هوله - دوار",
@@ -5640,6 +5626,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "",
+      "isPinned": false,
+      "index": 55
+    },
+    {
+      "customerName": "عبد الله كمال شاهين (معوض)",
+      "normalizedName": "عبدالله كمال شاهين معوض",
+      "currentBalance": 41435.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2027-02-20",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "على رمضان لو في قبل هيجيب دورة كل 3 شهو",
       "isPinned": false,
       "index": 56
     },
