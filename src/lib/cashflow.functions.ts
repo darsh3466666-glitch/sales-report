@@ -2097,7 +2097,15 @@ export async function getLiveCashFlowData(options?: {
 
     for (const tx of cycleTreasuryTx) {
       let matched = false;
-      for (const cust of baseCustomers) {
+
+      // Tier 1: Search active cash flow table, prioritizing customers with expected amounts
+      const tier1Customers = [...baseCustomers].sort((a, b) => {
+        const aExp = (a.expectedAmount || 0) > 0 ? 1 : 0;
+        const bExp = (b.expectedAmount || 0) > 0 ? 1 : 0;
+        return bExp - aExp;
+      });
+
+      for (const cust of tier1Customers) {
         if (matchTreasuryDescriptionToCustomer(tx.description, cust.customerName)) {
           // Prevent attaching duplicate transaction with same amount and date to the same customer
           const isCash = isCashNorm(normalizeArabicName(cust.customerName));
@@ -2126,26 +2134,55 @@ export async function getLiveCashFlowData(options?: {
         }
       }
 
-      // If not matched in base customers, check if it corresponds to an authentic customer from Master Data or Sales Report!
+      // Tier 2: If not matched in Tier 1, search Master Data narrowed by:
+      // 1. Exact normalized name match
+      // 2. Active debtors sorted by closest due date to tx.date
+      // 3. Remaining master customers
       if (!matched) {
         const normTxDesc = normalizeArabicName(tx.description);
 
         let matchedMasterName = "";
         if (rawData?.masterCustomerNames) {
-          // Priority 1: Exact normalized match first!
+          // Exact normalized match first
           for (const mName of rawData.masterCustomerNames) {
             if (normTxDesc === normalizeArabicName(mName)) {
               matchedMasterName = mName;
               break;
             }
           }
-          // Priority 2: Enhanced matching!
-          if (!matchedMasterName) {
-            for (const mName of rawData.masterCustomerNames) {
-              if (matchTreasuryDescriptionToCustomer(tx.description, mName)) {
-                matchedMasterName = mName;
-                break;
-              }
+        }
+
+        // Narrow candidates by active balance & due date proximity
+        if (!matchedMasterName) {
+          const txDate = tx.date || liveReportDate || todayStr;
+          const masterList = Array.isArray(rawData?.masterCustomers) && rawData.masterCustomers.length > 0
+            ? [...rawData.masterCustomers]
+            : (rawData?.masterCustomerNames || []).map((n: string) => ({ customerName: n }));
+
+          masterList.sort((a: any, b: any) => {
+            const aBal = Number(a.currentBalance) || 0;
+            const bBal = Number(b.currentBalance) || 0;
+            const aActive = !a.isKhalis && aBal > 0 ? 1 : 0;
+            const bActive = !b.isKhalis && bBal > 0 ? 1 : 0;
+            if (bActive !== aActive) return bActive - aActive;
+
+            const getDiff = (dStr?: string) => {
+              if (!dStr || dStr.length < 10) return 9999;
+              const d = new Date(dStr.slice(0, 10)).getTime();
+              const t = new Date(txDate.slice(0, 10)).getTime();
+              return isNaN(d) || isNaN(t) ? 9999 : Math.abs(d - t);
+            };
+            const aDiff = getDiff(a.dueDate);
+            const bDiff = getDiff(b.dueDate);
+            if (aDiff !== bDiff) return aDiff - bDiff;
+
+            return bBal - aBal;
+          });
+
+          for (const mc of masterList) {
+            if (matchTreasuryDescriptionToCustomer(tx.description, mc.customerName)) {
+              matchedMasterName = mc.customerName;
+              break;
             }
           }
         }
