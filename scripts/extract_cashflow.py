@@ -41,6 +41,22 @@ def clean_arabic_matching(text):
         s = s.replace(ch, ' ')
     return ' '.join(s.split())
 
+GENERIC_SINGLE_NAMES = {
+    'احمد', 'محمد', 'محمود', 'علي', 'حسن', 'حسين', 'سيد', 'ابراهيم', 'مصطفي', 'مصطفى',
+    'خالد', 'طارق', 'عمرو', 'عمر', 'يوسف', 'سعيد', 'اشرف', 'جمال', 'عادل', 'رضا', 'نقدي', 'كاش'
+}
+
+def words_match(w1, w2):
+    if w1 == w2:
+        return True
+    nw1 = w1.rstrip('ي')
+    nw2 = w2.rstrip('ي')
+    if nw1 == nw2:
+        return True
+    sw1 = nw1[2:] if nw1.startswith('ال') and len(nw1) >= 4 else nw1
+    sw2 = nw2[2:] if nw2.startswith('ال') and len(nw2) >= 4 else nw2
+    return sw1 == sw2
+
 def match_treasury_to_customer(desc, cust_name):
     if not desc or not cust_name:
         return False
@@ -48,14 +64,45 @@ def match_treasury_to_customer(desc, cust_name):
     cc = clean_arabic_matching(cust_name)
     if not cd or not cc:
         return False
-    if cd == cc or cd.rstrip('ي') == cc.rstrip('ي'):
+    if cd == cc or words_match(cd, cc):
         return True
+
     cd_words = [w for w in cd.split() if len(w) >= 2]
     cc_words = [w for w in cc.split() if len(w) >= 2]
-    if len(cd_words) >= 2 and (cc.startswith(cd + ' ') or cc == cd):
-        return True
-    if len(cc_words) >= 2 and (cd.startswith(cc + ' ') or cd == cc):
-        return True
+
+    # Prefix match on clean words
+    if len(cd_words) >= 2 and len(cc_words) >= 2:
+        m_count = 0
+        min_len = min(len(cd_words), len(cc_words))
+        for i in range(min_len):
+            if words_match(cd_words[i], cc_words[i]):
+                m_count += 1
+            else:
+                break
+        if m_count >= 2 and (m_count == len(cd_words) or m_count == len(cc_words)):
+            return True
+
+    # Match across full customer name (including paren annotations like مرسي مدشه or عبدالتواب احمد ميدوم)
+    raw_norm = normalize_arabic(cust_name)
+    for ch in ['-', '/', '\\', '_', '.', ',', '،', '(', ')']:
+        raw_norm = raw_norm.replace(ch, ' ')
+    all_cust_words = [w for w in raw_norm.split() if len(w) >= 2]
+    if len(cd_words) >= 2 and len(all_cust_words) >= 2:
+        m_all = 0
+        min_all = min(len(cd_words), len(all_cust_words))
+        for i in range(min_all):
+            if words_match(cd_words[i], all_cust_words[i]):
+                m_all += 1
+            else:
+                break
+        if m_all >= 2 and (m_all == len(cd_words) or m_all == len(all_cust_words)):
+            return True
+
+    # Distinctive single entity or compound name (e.g. الخيرات or ابوحمزه)
+    if len(cd_words) == 1 and cd_words[0] not in GENERIC_SINGLE_NAMES:
+        if any(words_match(cd_words[0], w) for w in cc_words):
+            return True
+
     return False
 
 def format_date(val):

@@ -233,6 +233,22 @@ export const isCashNorm = (s: string) => {
   );
 };
 
+const GENERIC_SINGLE_NAMES = new Set([
+  "احمد", "محمد", "محمود", "علي", "حسن", "حسين", "سيد", "ابراهيم", "مصطفي", "مصطفى",
+  "خالد", "طارق", "عمرو", "عمر", "يوسف", "سعيد", "اشرف", "جمال", "عادل", "رضا", "نقدي", "كاش"
+]);
+
+function wordsMatch(w1: string, w2: string): boolean {
+  if (!w1 || !w2) return false;
+  if (w1 === w2) return true;
+  const nw1 = w1.replace(/ي+$/, "");
+  const nw2 = w2.replace(/ي+$/, "");
+  if (nw1 === nw2) return true;
+  const sw1 = nw1.startsWith("ال") && nw1.length >= 4 ? nw1.slice(2) : nw1;
+  const sw2 = nw2.startsWith("ال") && nw2.length >= 4 ? nw2.slice(2) : nw2;
+  return sw1 === sw2;
+}
+
 export function matchTreasuryDescriptionToCustomer(
   desc: string,
   customerName: string
@@ -262,12 +278,12 @@ export function matchTreasuryDescriptionToCustomer(
 
   const sd = stripPrefixHonorific(nd);
   const sc = stripPrefixHonorific(nc);
-  if (sd && sc && sd === sc) return true;
+  if (sd && sc && (sd === sc || wordsMatch(sd, sc))) return true;
 
   // 4. Clean match (handling colloquial ذ/ز, compound prefixes عبد/ابو, and trailing annotations)
   const cd = cleanCustomerMatchingName(desc);
   const cc = cleanCustomerMatchingName(customerName);
-  if (cd && cc && (cd === cc || cd.replace(/ي+$/, "") === cc.replace(/ي+$/, ""))) return true;
+  if (cd && cc && (cd === cc || wordsMatch(cd, cc))) return true;
 
   // 5. Match full name ignoring parenthesized nickname/branch annotation
   const cleanParens = (s: string) => {
@@ -276,7 +292,7 @@ export function matchTreasuryDescriptionToCustomer(
   };
   const bd = normalizeArabicName(cleanParens(desc));
   const bc = normalizeArabicName(cleanParens(customerName));
-  if (bd && bc && (bd === bc || sd === bc || bd === sc)) return true;
+  if (bd && bc && (bd === bc || sd === bc || bd === sc || wordsMatch(bd, bc))) return true;
 
   // 6. STRICT ENTITY GUARD:
   const isEntity = Array.from(GENERIC_PREFIXES).some(
@@ -284,20 +300,51 @@ export function matchTreasuryDescriptionToCustomer(
   );
   if (isEntity) return false;
 
-  // 7. Full personal name prefix matching on clean words (must have at least 2 full words):
-  // e.g. "محمود ابوذيد" matches "محمود ابو زيد - الهداهده"
-  // "اسامه علي" matches "اسامه علي عبد الكريم"
-  // "احمد راغب" matches "احمد راغب(الهداهدة)"
-  // "محمد يونس" matches "محمد يونس عبد اللطيف(قلمشاه)"
-  // "حسن مصطفى حسن" matches "حسن مصطفى (منشأة الامراء)" (cd starts with cc)
+  // 7. Token-based smart matching
   const cdWords = cd.split(" ").filter((w) => w.length >= 2);
   const ccWords = cc.split(" ").filter((w) => w.length >= 2);
 
-  if (cdWords.length >= 2 && (cc.startsWith(cd + " ") || cc === cd)) {
-    return true;
+  // 7a. Prefix matching on primary customer name (handles مرداش/مرداشي, ديب/الديب, etc.)
+  if (cdWords.length >= 2 && ccWords.length >= 2) {
+    let mCount = 0;
+    const minLen = Math.min(cdWords.length, ccWords.length);
+    for (let i = 0; i < minLen; i++) {
+      if (wordsMatch(cdWords[i], ccWords[i])) {
+        mCount++;
+      } else {
+        break;
+      }
+    }
+    if (mCount >= 2 && (mCount === cdWords.length || mCount === ccWords.length)) {
+      return true;
+    }
   }
-  if (ccWords.length >= 2 && (cd.startsWith(cc + " ") || cd === cc)) {
-    return true;
+
+  // 7b. Match description words across full customer name (handles descriptions with branch/nickname like "مرسي مدشه" or "عبدالتواب احمد ميدوم")
+  const allCustWords = normalizeArabicName(customerName)
+    .replace(/[\.\/\\\s\-_()]+/g, " ")
+    .split(" ")
+    .filter((w) => w.length >= 2);
+  if (cdWords.length >= 2 && allCustWords.length >= 2) {
+    let mAllCount = 0;
+    const minAllLen = Math.min(cdWords.length, allCustWords.length);
+    for (let i = 0; i < minAllLen; i++) {
+      if (wordsMatch(cdWords[i], allCustWords[i])) {
+        mAllCount++;
+      } else {
+        break;
+      }
+    }
+    if (mAllCount >= 2 && (mAllCount === cdWords.length || mAllCount === allCustWords.length)) {
+      return true;
+    }
+  }
+
+  // 7c. Distinctive single entity or compound surname (e.g. "الخيرات" or "ابوحمزه")
+  if (cdWords.length === 1 && !GENERIC_SINGLE_NAMES.has(cdWords[0])) {
+    if (ccWords.some((w) => wordsMatch(cdWords[0], w))) {
+      return true;
+    }
   }
 
   const dWords = nd.split(" ").filter((w) => w.length >= 2);
