@@ -3,7 +3,7 @@
   "weekStart": "2026-11-18",
   "weekEnd": "2026-11-24",
   "weeklyGoal": 4000000,
-  "totalExpected": 5016874.777139001,
+  "totalExpected": 5006919.777139001,
   "totalCollected": 0.0,
   "customerCount": 57,
   "remainingToTarget": 4000000.0,
@@ -3672,7 +3672,7 @@
     {
       "customerName": "حسين هليل عبدالحليم",
       "currentBalance": 10005.0,
-      "dueDate": "2026-02-28",
+      "dueDate": "2026-12-22",
       "notes": "",
       "isActive2026": true,
       "isKhalis": false
@@ -4856,6 +4856,13 @@
       "description": "نقدي",
       "type": "اتصالات كاش",
       "date": "2026-11-22"
+    },
+    {
+      "receipt": "live_2026-11-22_8",
+      "amount": 200.0,
+      "description": "فرج محمد مسلم (السحابه)",
+      "type": "كاش",
+      "date": "2026-11-22"
     }
   ],
   "customers": [
@@ -5014,20 +5021,6 @@
       "index": 11
     },
     {
-      "customerName": "حسين هليل عبدالحليم",
-      "normalizedName": "حسين هليل عبدالحليم",
-      "currentBalance": 10005.0,
-      "expectedAmount": 10005.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-02-28",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 10005.0,
-      "notes": "",
-      "isPinned": false,
-      "index": 12
-    },
-    {
       "customerName": "عفت الشوكي",
       "normalizedName": "عفت الشوكي",
       "currentBalance": 50.0,
@@ -5038,6 +5031,20 @@
       "status": "لم يسدد",
       "remaining": 50.0,
       "notes": "هيحول انهردة",
+      "isPinned": false,
+      "index": 12
+    },
+    {
+      "customerName": "فرج محمد مسلم (السحابه)",
+      "normalizedName": "فرج محمد مسلم السحابه",
+      "currentBalance": 50.0,
+      "expectedAmount": 50.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-09-16",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 50.0,
+      "notes": "الاربعاء 2/9",
       "isPinned": false,
       "index": 13
     },
