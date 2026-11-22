@@ -22,8 +22,9 @@ const FIRESTORE_COLLECTION = "reports";
 export async function getLocalReports() {
   const reportsByDate = new Map<string, any>();
 
-  // 1. Load from local IndexedDB first (lightning fast, zero network latency)
-  if (typeof window !== "undefined") {
+  // 1 & 2: Concurrently read local IndexedDB and fetch authoritative server sales_data.json
+  const fetchLocalIdb = async () => {
+    if (typeof window === "undefined") return;
     try {
       const allKeys = await keys();
       const reportKeys = allKeys.filter(
@@ -63,10 +64,10 @@ export async function getLocalReports() {
     } catch (error) {
       console.error("Error fetching from IndexedDB", error);
     }
-  }
+  };
 
-  // 2. ALWAYS fetch fresh static bundled reports from server (Authoritative Realtime Live Sync)
-  if (typeof window !== "undefined") {
+  const fetchServerSalesData = async () => {
+    if (typeof window === "undefined") return null;
     try {
       const basePath = window.location.pathname.includes("/sales-report")
         ? "/sales-report/"
@@ -75,48 +76,55 @@ export async function getLocalReports() {
         cache: "no-store",
       });
       if (res.ok) {
-        const staticData = await res.json();
-        if (Array.isArray(staticData)) {
-          for (const item of staticData) {
-            if (item && item.report && item.report.report_date) {
-              const date = item.report.report_date;
-              const id = item.report.id || date;
-              item.report.id = id;
-
-              // If IndexedDB had an outdated record with different ID for this date, clean it up
-              const existingLocal = reportsByDate.get(date);
-              if (
-                existingLocal &&
-                existingLocal.report.id &&
-                existingLocal.report.id !== id
-              ) {
-                del(DB_PREFIX + existingLocal.report.id).catch(() => {});
-              }
-
-              // Preserve persistent custom opening balance override if set by user
-              try {
-                const customBalances = getCustomOpeningBalances();
-                const userVal = customBalances[date] ?? customBalances[id];
-                if (userVal !== undefined) {
-                  item.report.opening_balance = userVal;
-                  item.report.total_receivables =
-                    userVal +
-                    (item.report.total_sales || 0) -
-                    (item.report.total_receipts_qabd ??
-                      item.report.total_collected ??
-                      0);
-                }
-              } catch (e) {}
-
-              // Overwrite with authoritative server data
-              reportsByDate.set(date, item);
-              set(DB_PREFIX + id, item).catch(() => {});
-            }
-          }
-        }
+        return await res.json();
       }
     } catch (e) {
       console.warn("Server sales_data.json fetch warning:", e);
+    }
+    return null;
+  };
+
+  const [, staticData] = await Promise.all([
+    fetchLocalIdb(),
+    fetchServerSalesData(),
+  ]);
+
+  if (Array.isArray(staticData)) {
+    for (const item of staticData) {
+      if (item && item.report && item.report.report_date) {
+        const date = item.report.report_date;
+        const id = item.report.id || date;
+        item.report.id = id;
+
+        // If IndexedDB had an outdated record with different ID for this date, clean it up
+        const existingLocal = reportsByDate.get(date);
+        if (
+          existingLocal &&
+          existingLocal.report.id &&
+          existingLocal.report.id !== id
+        ) {
+          del(DB_PREFIX + existingLocal.report.id).catch(() => {});
+        }
+
+        // Preserve persistent custom opening balance override if set by user
+        try {
+          const customBalances = getCustomOpeningBalances();
+          const userVal = customBalances[date] ?? customBalances[id];
+          if (userVal !== undefined) {
+            item.report.opening_balance = userVal;
+            item.report.total_receivables =
+              userVal +
+              (item.report.total_sales || 0) -
+              (item.report.total_receipts_qabd ??
+                item.report.total_collected ??
+                0);
+          }
+        } catch (e) {}
+
+        // Overwrite with authoritative server data
+        reportsByDate.set(date, item);
+        set(DB_PREFIX + id, item).catch(() => {});
+      }
     }
   }
 

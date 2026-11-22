@@ -90,6 +90,50 @@ export function extractCustomerNameTokens(name: string): string[] {
   return Array.from(tokens);
 }
 
+interface InvoiceIndexCache {
+  exactMap: Map<string, number>;
+  normMap: Map<string, number>;
+  normalizedList: Array<{ norm: string; raw: string }>;
+}
+
+export function getInvoiceIndex(
+  invoices: Array<{ customer_name?: string | null }>,
+): InvoiceIndexCache {
+  const cached = (invoices as any)._indexCache as InvoiceIndexCache | undefined;
+  if (cached) return cached;
+
+  const exactMap = new Map<string, number>();
+  const normMap = new Map<string, number>();
+  const normalizedList: Array<{ norm: string; raw: string }> = [];
+
+  for (let i = 0; i < invoices.length; i++) {
+    const raw = invoices[i]?.customer_name;
+    if (!raw) continue;
+    const trimmed = raw.trim();
+    if (trimmed) {
+      exactMap.set(trimmed, (exactMap.get(trimmed) || 0) + 1);
+      const norm = normalizeArabicName(trimmed);
+      if (norm) {
+        normMap.set(norm, (normMap.get(norm) || 0) + 1);
+        normalizedList.push({ norm, raw: trimmed });
+      }
+    }
+  }
+
+  const index: InvoiceIndexCache = { exactMap, normMap, normalizedList };
+  try {
+    Object.defineProperty(invoices, "_indexCache", {
+      value: index,
+      writable: true,
+      configurable: true,
+      enumerable: false,
+    });
+  } catch {
+    (invoices as any)._indexCache = index;
+  }
+  return index;
+}
+
 export function countCustomerInvoices(
   customerName: string,
   salesAmount: number,
@@ -99,34 +143,34 @@ export function countCustomerInvoices(
   if (!salesAmount || salesAmount <= 0) return 0;
   if (!customerName) return 1;
 
-  // 1. Direct exact match
-  const exactMatches = invoices.filter(
-    (inv) =>
-      inv.customer_name && inv.customer_name.trim() === customerName.trim(),
-  ).length;
+  const trimmed = customerName.trim();
+  const index = getInvoiceIndex(invoices);
+
+  // 1. Direct exact match in O(1)
+  const exactMatches = index.exactMap.get(trimmed) || 0;
   if (exactMatches > 0) return exactMatches;
 
-  // 2. Normalized match
-  const targetNorm = normalizeArabicName(customerName);
-  const normMatches = invoices.filter(
-    (inv) =>
-      inv.customer_name &&
-      normalizeArabicName(inv.customer_name) === targetNorm,
-  ).length;
+  // 2. Normalized match in O(1)
+  const targetNorm = normalizeArabicName(trimmed);
+  const normMatches = index.normMap.get(targetNorm) || 0;
   if (normMatches > 0) return normMatches;
 
   // 3. Substring / Token matching
   const tokens =
-    extractCustomerNameTokens(customerName).map(normalizeArabicName);
-  const tokenMatches = invoices.filter((inv) => {
-    if (!inv.customer_name) return false;
-    const invNorm = normalizeArabicName(inv.customer_name);
-    return tokens.some(
-      (tok) =>
-        tok.length >= 3 &&
-        (invNorm === tok || invNorm.includes(tok) || tok.includes(invNorm)),
-    );
-  }).length;
+    extractCustomerNameTokens(trimmed).map(normalizeArabicName);
+  let tokenMatches = 0;
+  for (let i = 0; i < index.normalizedList.length; i++) {
+    const invNorm = index.normalizedList[i].norm;
+    if (
+      tokens.some(
+        (tok) =>
+          tok.length >= 3 &&
+          (invNorm === tok || invNorm.includes(tok) || tok.includes(invNorm)),
+      )
+    ) {
+      tokenMatches++;
+    }
+  }
   if (tokenMatches > 0) return tokenMatches;
 
   // 4. Fallback count from sales sheet if available
@@ -167,7 +211,10 @@ function toISO(d: unknown): string | null {
 }
 
 function parseWorkbook(b64: string): XLSX.WorkBook {
-  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  const bytes =
+    typeof Buffer !== "undefined"
+      ? Buffer.from(b64, "base64")
+      : Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   return XLSX.read(bytes, { type: "array", cellDates: true });
 }
 
@@ -592,6 +639,7 @@ export async function parseAndImportReport(args: { data: any }) {
         (invoiceCountByCustomer.get(cname) || 0) + 1,
       );
   }
+  const invoiceIndex = getInvoiceIndex(invoices);
 
   const qtyRows = sheetRows(wb1, qtyName);
   const productMap = new Map<string, { qty: number; category: string }>();
@@ -687,12 +735,8 @@ export async function parseAndImportReport(args: { data: any }) {
       const normOld = normalizeArabicName(oldName);
       const hasInvoice =
         invoiceCountByCustomer.has(oldName) ||
-        invoices.some(
-          (inv) =>
-            inv.customer_name &&
-            (inv.customer_name === oldName ||
-              normalizeArabicName(inv.customer_name) === normOld),
-        );
+        invoiceIndex.exactMap.has(oldName) ||
+        invoiceIndex.normMap.has(normOld);
       if (fromSales && (fromSales.sales || 0) === 0 && !hasInvoice) {
         replacedOldCusts.push(oldName);
       }
@@ -830,12 +874,8 @@ export async function parseAndImportReport(args: { data: any }) {
         // Customer in sales sheet has 0 sales. Only allow sales if they actually have an invoice!
         const hasInvoice =
           invoiceCountByCustomer.has(name) ||
-          invoices.some(
-            (inv) =>
-              inv.customer_name &&
-              (inv.customer_name === name ||
-                normalizeArabicName(inv.customer_name) === normName),
-          );
+          invoiceIndex.exactMap.has(name) ||
+          invoiceIndex.normMap.has(normName);
         sales = hasInvoice ? f2?.sales || 0 : 0;
       }
     } else {

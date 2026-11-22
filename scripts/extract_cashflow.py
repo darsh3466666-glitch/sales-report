@@ -9,7 +9,9 @@ PUBLIC_DIR = r'public'
 DIST_DIR = r'dist'
 
 import re
+from functools import lru_cache
 
+@lru_cache(maxsize=4096)
 def normalize_arabic(text):
     if not text:
         return ''
@@ -21,6 +23,7 @@ def normalize_arabic(text):
         text = text.replace(ch, ' ')
     return ' '.join(text.split())
 
+@lru_cache(maxsize=4096)
 def clean_arabic_matching(text):
     if not text:
         return ''

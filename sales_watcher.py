@@ -143,43 +143,52 @@ def run_once(force=False):
         if not files_changed and not force:
             return True
 
-        log("Detected file changes or force run. Extracting sales data...")
+        log("Detected file changes or force run. Extracting sales & cashflow data in parallel...")
 
-        # 1. Run official accounting sync script
+        # 1. Run official accounting sync script & cash flow extraction concurrently
         npx_cmd = 'npx.cmd' if os.name == 'nt' else 'npx'
-        ext_res = subprocess.run(
+        cf_script = os.path.join(REPO_DIR, 'scripts', 'extract_cashflow.py')
+
+        sync_proc = subprocess.Popen(
             [npx_cmd, 'tsx', SYNC_SCRIPT],
             cwd=REPO_DIR,
-            capture_output=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
             encoding='utf-8',
             shell=(os.name == 'nt'),
             creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0,
-            timeout=120
         )
-        if ext_res.returncode != 0:
-            log(f"Sync ERROR: {ext_res.stderr or ext_res.stdout}")
+
+        cf_proc = None
+        if os.path.exists(cf_script):
+            cf_proc = subprocess.Popen(
+                [sys.executable or 'python', cf_script],
+                cwd=REPO_DIR,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding='utf-8',
+                creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0,
+            )
+
+        sync_out, sync_err = sync_proc.communicate(timeout=120)
+        cf_out, cf_err = (cf_proc.communicate(timeout=60) if cf_proc else ("", ""))
+
+        if sync_proc.returncode != 0:
+            log(f"Sync ERROR: {sync_err or sync_out}")
             return False
 
-        log(f"Sync completed successfully. Output:\n{ext_res.stdout.strip()}")
+        log(f"Sync completed successfully. Output:\n{sync_out.strip()}")
+        if cf_out:
+            log(f"Cash flow extraction output:\n{cf_out.strip()}")
 
-        if "تعليق المزامنة المؤقت" in ext_res.stdout:
+        if "تعليق المزامنة المؤقت" in sync_out:
             log("Sync paused due to date mismatch between files. Waiting for files to synchronize...")
             return True
 
-        # 1.5 Run cash flow extraction
+        # 1.5 Run Firestore remote cash flow seed
         try:
-            cf_script = os.path.join(REPO_DIR, 'scripts', 'extract_cashflow.py')
-            if os.path.exists(cf_script):
-                log("Extracting cash flow data...")
-                subprocess.run(
-                    [sys.executable or 'python', cf_script],
-                    cwd=REPO_DIR,
-                    capture_output=True,
-                    creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0,
-                    timeout=60
-                )
-            
             seed_script = os.path.join(REPO_DIR, 'scripts', 'seed_remote_cashflow.ts')
             if os.path.exists(seed_script):
                 log("Syncing live cash flow to Firestore...")

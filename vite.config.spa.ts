@@ -20,5 +20,27 @@ export default defineConfig({
   build: {
     outDir: "dist",
     emptyOutDir: true,
+    chunkSizeWarningLimit: 1200,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes("node_modules")) {
+            if (id.includes("xlsx")) {
+              return "vendor-excel";
+            }
+            if (
+              id.includes("recharts") ||
+              id.includes("d3-") ||
+              id.includes("victory-vendor")
+            ) {
+              return "vendor-charts";
+            }
+            if (id.includes("firebase")) {
+              return "vendor-firebase";
+            }
+          }
+        },
+      },
+    },
   },
 });

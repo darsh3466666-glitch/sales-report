@@ -1559,6 +1559,10 @@ export async function getLiveCashFlowData(options?: {
 
   let rawData: any = null;
   let rawConfig: any = null;
+  let liveTreasuryTx: TreasuryIncomingTx[] = [];
+  let remoteCycle: any = null;
+  let remoteOverrides: any = null;
+  let remotePrevWeek: any = null;
 
   if (typeof window === "undefined") {
     try {
@@ -1582,36 +1586,65 @@ export async function getLiveCashFlowData(options?: {
       // ignore
     }
   } else {
-    try {
-      const res = await fetch(`${basePath}cashflow_data.json?t=${Date.now()}`, {
-        cache: "no-store",
-      });
-      if (res.ok) {
-        rawData = await res.json();
+    // Parallelize all initial fetches concurrently (cashflow_data, config, live treasury, remote cycle/overrides)
+    const fetchCashflowData = async () => {
+      try {
+        const res = await fetch(`${basePath}cashflow_data.json?t=${Date.now()}`, {
+          cache: "no-store",
+        });
+        if (res.ok) return await res.json();
+      } catch (e) {
+        console.warn("Failed to fetch cashflow_data.json:", e);
       }
-    } catch (e) {
-      console.warn("Failed to fetch cashflow_data.json:", e);
-    }
+      return null;
+    };
+
+    const fetchCashflowConfig = async () => {
+      try {
+        const cfgRes = await fetch(`${basePath}cashflow_config.json?t=${Date.now()}`, {
+          cache: "no-store",
+        });
+        if (cfgRes.ok) return await cfgRes.json();
+      } catch (e) {
+        console.warn("Failed to fetch cashflow_config.json:", e);
+      }
+      return null;
+    };
 
     try {
-      const cfgRes = await fetch(`${basePath}cashflow_config.json?t=${Date.now()}`, {
-        cache: "no-store",
-      });
-      if (cfgRes.ok) {
-        rawConfig = await cfgRes.json();
-      }
+      const [fetchedData, fetchedConfig, liveTx, rCycle, rOverrides, rPrevWeek] =
+        await Promise.all([
+          fetchCashflowData(),
+          fetchCashflowConfig(),
+          fetchLiveTreasuryIncoming(),
+          fetchRemoteCycleState(),
+          fetchRemoteUserOverrides(),
+          fetchRemotePreviousWeek(),
+        ]);
+      if (fetchedData) rawData = fetchedData;
+      if (fetchedConfig) rawConfig = fetchedConfig;
+      liveTreasuryTx = liveTx;
+      remoteCycle = rCycle;
+      remoteOverrides = rOverrides;
+      remotePrevWeek = rPrevWeek;
     } catch (e) {
-      console.warn("Failed to fetch cashflow_config.json:", e);
+      console.warn("Error in parallel cashflow initial fetches:", e);
     }
   }
 
   try {
-    const [liveTreasuryTx, remoteCycle, remoteOverrides, remotePrevWeek] = await Promise.all([
-      fetchLiveTreasuryIncoming(),
-      fetchRemoteCycleState(),
-      fetchRemoteUserOverrides(),
-      fetchRemotePreviousWeek(),
-    ]);
+    if (typeof window === "undefined") {
+      const [liveTx, rCycle, rOverrides, rPrevWeek] = await Promise.all([
+        fetchLiveTreasuryIncoming(),
+        fetchRemoteCycleState(),
+        fetchRemoteUserOverrides(),
+        fetchRemotePreviousWeek(),
+      ]);
+      liveTreasuryTx = liveTx;
+      remoteCycle = rCycle;
+      remoteOverrides = rOverrides;
+      remotePrevWeek = rPrevWeek;
+    }
 
     if (remoteOverrides) {
       syncRemoteOverridesToLocal(remoteOverrides);
@@ -2129,15 +2162,26 @@ export async function getLiveCashFlowData(options?: {
     // Match live Treasury incoming transactions with customers
     const unmatchedTreasuryTx: TreasuryIncomingTx[] = [];
 
+    // Pre-sort Tier 1 customers ONCE before the matching loop (prioritizing customers with expected amounts)
+    const tier1Customers = [...baseCustomers].sort((a, b) => {
+      const aExp = (a.expectedAmount || 0) > 0 ? 1 : 0;
+      const bExp = (b.expectedAmount || 0) > 0 ? 1 : 0;
+      return bExp - aExp;
+    });
+
+    // Pre-build fast O(1) exact normalized index for Master Data names
+    const masterExactNormMap = new Map<string, string>();
+    if (rawData?.masterCustomerNames && Array.isArray(rawData.masterCustomerNames)) {
+      for (const mName of rawData.masterCustomerNames) {
+        const n = normalizeArabicName(mName);
+        if (n && !masterExactNormMap.has(n)) {
+          masterExactNormMap.set(n, mName);
+        }
+      }
+    }
+
     for (const tx of cycleTreasuryTx) {
       let matched = false;
-
-      // Tier 1: Search active cash flow table, prioritizing customers with expected amounts
-      const tier1Customers = [...baseCustomers].sort((a, b) => {
-        const aExp = (a.expectedAmount || 0) > 0 ? 1 : 0;
-        const bExp = (b.expectedAmount || 0) > 0 ? 1 : 0;
-        return bExp - aExp;
-      });
 
       for (const cust of tier1Customers) {
         if (matchTreasuryDescriptionToCustomer(tx.description, cust.customerName)) {
@@ -2169,22 +2213,12 @@ export async function getLiveCashFlowData(options?: {
       }
 
       // Tier 2: If not matched in Tier 1, search Master Data narrowed by:
-      // 1. Exact normalized name match
+      // 1. Exact normalized name match in O(1)
       // 2. Active debtors sorted by closest due date to tx.date
       // 3. Remaining master customers
       if (!matched) {
         const normTxDesc = normalizeArabicName(tx.description);
-
-        let matchedMasterName = "";
-        if (rawData?.masterCustomerNames) {
-          // Exact normalized match first
-          for (const mName of rawData.masterCustomerNames) {
-            if (normTxDesc === normalizeArabicName(mName)) {
-              matchedMasterName = mName;
-              break;
-            }
-          }
-        }
+        let matchedMasterName = masterExactNormMap.get(normTxDesc) || "";
 
         // Narrow candidates by active balance & due date proximity
         if (!matchedMasterName) {
