@@ -5,7 +5,7 @@
   "weeklyGoal": 4000000,
   "totalExpected": 5461859.277139001,
   "totalCollected": 0.0,
-  "customerCount": 58,
+  "customerCount": 59,
   "remainingToTarget": 4000000.0,
   "collectionRate": 0.0,
   "masterCustomerNames": [
@@ -5595,6 +5595,20 @@
       "index": 53
     },
     {
+      "customerName": "سيد محمد عبود - قيصر",
+      "normalizedName": "سيد محمد عبود قيصر",
+      "currentBalance": 546225.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-15",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 54
+    },
+    {
       "customerName": "عيد ادريس (ابو بساط)",
       "normalizedName": "عيد ادريس ابو بساط",
       "currentBalance": 66840.0,
@@ -5606,7 +5620,7 @@
       "remaining": 0.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 54
+      "index": 55
     },
     {
       "customerName": "محمود اسماعيل",
@@ -5620,7 +5634,7 @@
       "remaining": 0.0,
       "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 55
+      "index": 56
     },
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
@@ -5634,7 +5648,7 @@
       "remaining": 0.0,
       "notes": "دورة 4 شهور سدد القديم",
       "isPinned": false,
-      "index": 56
+      "index": 57
     },
     {
       "customerName": "حمدان احمد ابو هوله - دوار",
@@ -5648,7 +5662,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 57
+      "index": 58
     },
     {
       "customerName": "اسماعيل يوسف (الحموي)",
@@ -5662,7 +5676,7 @@
       "remaining": 0.0,
       "notes": "دورة جديدة ودفعات كل علفة",
       "isPinned": false,
-      "index": 58
+      "index": 59
     }
   ]
 }
