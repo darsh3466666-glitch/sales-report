@@ -1,5 +1,5 @@
 {
-  "reportDate": "2026-11-21",
+  "reportDate": "2026-11-22",
   "weekStart": "2026-11-18",
   "weekEnd": "2026-11-24",
   "weeklyGoal": 4000000,
@@ -4791,6 +4791,13 @@
       "receipt": "live_2026-11-21_15",
       "amount": 50000.0,
       "description": "احمد محمد مرداش",
+      "type": "كاش",
+      "date": "2026-11-21"
+    },
+    {
+      "receipt": "live_2026-11-21_16",
+      "amount": 140000.0,
+      "description": "ابو حمزه",
       "type": "كاش",
       "date": "2026-11-21"
     }
