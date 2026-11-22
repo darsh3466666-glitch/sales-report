@@ -3,7 +3,7 @@
   "weekStart": "2026-11-18",
   "weekEnd": "2026-11-24",
   "weeklyGoal": 4000000,
-  "totalExpected": 5275269.277139001,
+  "totalExpected": 5016874.777139001,
   "totalCollected": 0.0,
   "customerCount": 57,
   "remainingToTarget": 4000000.0,
@@ -1240,8 +1240,8 @@
     {
       "customerName": "احمد محمد مرداشي (وحيد كامل)",
       "currentBalance": 258394.5,
-      "dueDate": "2026-11-24",
-      "notes": "الثلاثاء 24/11/2026 بلاغ ا احمد",
+      "dueDate": "2026-12-22",
+      "notes": "",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -5434,20 +5434,6 @@
       "index": 41
     },
     {
-      "customerName": "احمد محمد مرداشي (وحيد كامل)",
-      "normalizedName": "احمد محمد مرداشي وحيد كامل",
-      "currentBalance": 258394.5,
-      "expectedAmount": 258394.5,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-24",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 258394.5,
-      "notes": "الاربعاء بعد السوق 18/11/2026",
-      "isPinned": false,
-      "index": 42
-    },
-    {
       "customerName": "ربيع جابر عبد الحميد",
       "normalizedName": "ربيع جابر عبدالحميد",
       "currentBalance": 151190.0,
@@ -5459,7 +5445,7 @@
       "remaining": 151190.0,
       "notes": "اخر طن",
       "isPinned": false,
-      "index": 43
+      "index": 42
     },
     {
       "customerName": "احمد سيد جبالى مهدى بيه",
@@ -5473,7 +5459,7 @@
       "remaining": 97355.0,
       "notes": "شهرين وكلمه تاني",
       "isPinned": false,
-      "index": 44
+      "index": 43
     },
     {
       "customerName": "محمود عباس (القطوري)",
@@ -5487,7 +5473,7 @@
       "remaining": 7325.0,
       "notes": "المرة الجاية هصفي  مش هيبقي تاني",
       "isPinned": false,
-      "index": 45
+      "index": 44
     },
     {
       "customerName": "جمعه محمد عبد الحميد (سرسنا)",
@@ -5501,7 +5487,7 @@
       "remaining": 6200.0,
       "notes": "جمعه محمد سرسنا يوم الاثنين  17/11/2026",
       "isPinned": false,
-      "index": 46
+      "index": 45
     },
     {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
@@ -5515,7 +5501,7 @@
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 47
+      "index": 46
     },
     {
       "customerName": "توفيق محمد (نجع العرب)",
@@ -5529,7 +5515,7 @@
       "remaining": 0.0,
       "notes": "بعد 10 ايام الباقي",
       "isPinned": false,
-      "index": 48
+      "index": 47
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -5543,7 +5529,7 @@
       "remaining": 0.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 49
+      "index": 48
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -5557,7 +5543,7 @@
       "remaining": 0.0,
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
       "isPinned": false,
-      "index": 50
+      "index": 49
     },
     {
       "customerName": "سيد محمد عبود - قيصر",
@@ -5571,7 +5557,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 51
+      "index": 50
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -5585,7 +5571,7 @@
       "remaining": 0.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 52
+      "index": 51
     },
     {
       "customerName": "محمود اسماعيل",
@@ -5599,7 +5585,7 @@
       "remaining": 0.0,
       "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 53
+      "index": 52
     },
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
@@ -5612,6 +5598,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "دورة 4 شهور سدد القديم",
+      "isPinned": false,
+      "index": 53
+    },
+    {
+      "customerName": "احمد محمد مرداشي (وحيد كامل)",
+      "normalizedName": "احمد محمد مرداشي وحيد كامل",
+      "currentBalance": 258394.5,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-22",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "الاربعاء بعد السوق 18/11/2026",
       "isPinned": false,
       "index": 54
     },
