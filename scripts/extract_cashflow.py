@@ -48,7 +48,7 @@ def match_treasury_to_customer(desc, cust_name):
     cc = clean_arabic_matching(cust_name)
     if not cd or not cc:
         return False
-    if cd == cc:
+    if cd == cc or cd.rstrip('ي') == cc.rstrip('ي'):
         return True
     cd_words = [w for w in cd.split() if len(w) >= 2]
     cc_words = [w for w in cc.split() if len(w) >= 2]

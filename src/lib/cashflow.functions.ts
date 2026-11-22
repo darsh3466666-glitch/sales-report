@@ -267,7 +267,7 @@ export function matchTreasuryDescriptionToCustomer(
   // 4. Clean match (handling colloquial ذ/ز, compound prefixes عبد/ابو, and trailing annotations)
   const cd = cleanCustomerMatchingName(desc);
   const cc = cleanCustomerMatchingName(customerName);
-  if (cd && cc && cd === cc) return true;
+  if (cd && cc && (cd === cc || cd.replace(/ي+$/, "") === cc.replace(/ي+$/, ""))) return true;
 
   // 5. Match full name ignoring parenthesized nickname/branch annotation
   const cleanParens = (s: string) => {
