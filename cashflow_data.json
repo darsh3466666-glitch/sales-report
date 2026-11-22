@@ -1145,7 +1145,7 @@
       "customerName": "عبود عدلي عبود قيصر",
       "currentBalance": 451644.92000000004,
       "dueDate": "2026-11-22",
-      "notes": "شهرين واصفي الحساب",
+      "notes": "عبود هيوزن بكرة",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4400,7 +4400,7 @@
     {
       "customerName": "وجيه مراد (فانوس)",
       "currentBalance": 4700.0,
-      "dueDate": "2026-11-20",
+      "dueDate": "2026-11-23",
       "notes": "",
       "isActive2026": true,
       "isKhalis": false
@@ -4806,6 +4806,13 @@
       "amount": 38000.0,
       "description": "محمد ابو فهد",
       "type": "كاش",
+      "date": "2026-11-22"
+    },
+    {
+      "receipt": "live_2026-11-22_1",
+      "amount": 7000.0,
+      "description": "جمعة قياتي",
+      "type": "ب مصر",
       "date": "2026-11-22"
     }
   ],
