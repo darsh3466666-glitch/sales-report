@@ -2728,8 +2728,8 @@
     {
       "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
       "currentBalance": 1232073.0500000007,
-      "dueDate": "2026-12-05",
-      "notes": "الاثنين",
+      "dueDate": "2026-11-27",
+      "notes": "خلال الاسبوع ده هيجيب من 450 ل500 الف",
       "isActive2026": true,
       "isKhalis": false
     },
@@ -4849,6 +4849,13 @@
       "description": "عيد احمد عبدالفتاح",
       "type": "كاش",
       "date": "2026-11-22"
+    },
+    {
+      "receipt": "live_2026-11-22_7",
+      "amount": 875.0,
+      "description": "نقدي",
+      "type": "اتصالات كاش",
+      "date": "2026-11-22"
     }
   ],
   "customers": [
@@ -4951,6 +4958,20 @@
       "index": 7
     },
     {
+      "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
+      "normalizedName": "محمد يونس عبداللطيف قلمشاه",
+      "currentBalance": 1232073.0500000007,
+      "expectedAmount": 200000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-27",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 200000.0,
+      "notes": "الاثنين",
+      "isPinned": true,
+      "index": 8
+    },
+    {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
       "normalizedName": "ايه بي ديري هشام فؤادطارق حسن وشركاه",
       "currentBalance": 802821.0999999996,
@@ -4962,7 +4983,7 @@
       "remaining": 100000.0,
       "notes": "جهينة",
       "isPinned": true,
-      "index": 8
+      "index": 9
     },
     {
       "customerName": "عبد التواب احمد( ميدوم )",
@@ -4975,20 +4996,6 @@
       "status": "لم يسدد",
       "remaining": 120000.0,
       "notes": "الاثنين مكالمة تليفون  16/11/202680 الف",
-      "isPinned": true,
-      "index": 9
-    },
-    {
-      "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
-      "normalizedName": "محمد يونس عبداللطيف قلمشاه",
-      "currentBalance": 1232073.0500000007,
-      "expectedAmount": 200000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-12-05",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 200000.0,
-      "notes": "الاثنين",
       "isPinned": true,
       "index": 10
     },
