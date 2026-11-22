@@ -4828,6 +4828,27 @@
       "description": "محمد سيد",
       "type": "كاش",
       "date": "2026-11-22"
+    },
+    {
+      "receipt": "live_2026-11-22_4",
+      "amount": 5000.0,
+      "description": "بدوي حجازي",
+      "type": "ب مصر",
+      "date": "2026-11-22"
+    },
+    {
+      "receipt": "live_2026-11-22_5",
+      "amount": 31200.0,
+      "description": "بدوي حجازي",
+      "type": "اتصالات كاش",
+      "date": "2026-11-22"
+    },
+    {
+      "receipt": "live_2026-11-22_6",
+      "amount": 50000.0,
+      "description": "عيد احمد عبدالفتاح",
+      "type": "كاش",
+      "date": "2026-11-22"
     }
   ],
   "customers": [
