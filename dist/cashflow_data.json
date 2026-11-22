@@ -2864,7 +2864,7 @@
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
       "currentBalance": 88303.85713900067,
-      "dueDate": "2026-11-23",
+      "dueDate": "2026-11-25",
       "notes": "هيجيب 100 الف",
       "isActive2026": true,
       "isKhalis": false
@@ -4860,20 +4860,6 @@
       "index": 4
     },
     {
-      "customerName": "بادية فارم (كوم ابو راضي)",
-      "normalizedName": "باديه فارم كوم ابو راضي",
-      "currentBalance": 88303.85713900067,
-      "expectedAmount": 88303.85713900067,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-23",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 88303.85713900067,
-      "notes": "هيجيب 100 الف",
-      "isPinned": true,
-      "index": 5
-    },
-    {
       "customerName": "مزرعه الخيرات",
       "normalizedName": "مزرعه الخيرات",
       "currentBalance": 1456178.4700000007,
@@ -4884,6 +4870,20 @@
       "status": "لم يسدد",
       "remaining": 200000.0,
       "notes": "جهينة الخميس القادم",
+      "isPinned": true,
+      "index": 5
+    },
+    {
+      "customerName": "بادية فارم (كوم ابو راضي)",
+      "normalizedName": "باديه فارم كوم ابو راضي",
+      "currentBalance": 88303.85713900067,
+      "expectedAmount": 88303.85713900067,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-25",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 88303.85713900067,
+      "notes": "هيجيب 100 الف",
       "isPinned": true,
       "index": 6
     },
