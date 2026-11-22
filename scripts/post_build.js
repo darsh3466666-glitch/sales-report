@@ -9,12 +9,20 @@ const distDir = path.resolve(__dirname, '../dist');
 const publicDir = path.resolve(__dirname, '../public');
 
 if (fs.existsSync(distDir)) {
-  // 1. Copy index.html -> 404.html for GitHub Pages routing
+  // 1. Copy index.html -> 404.html and static route folders for direct clean 200 OK routing
   const indexHtml = path.join(distDir, 'index.html');
   const notFoundHtml = path.join(distDir, '404.html');
   if (fs.existsSync(indexHtml)) {
     fs.copyFileSync(indexHtml, notFoundHtml);
     console.log('✓ Created 404.html from index.html');
+
+    const staticRoutes = ['cashflow', 'dashboard', 'history', 'cashflow/history'];
+    for (const route of staticRoutes) {
+      const targetDir = path.join(distDir, route);
+      fs.mkdirSync(targetDir, { recursive: true });
+      fs.copyFileSync(indexHtml, path.join(targetDir, 'index.html'));
+      console.log(`✓ Created clean route folder: ${route}/index.html`);
+    }
   }
 
   // 2. Create .nojekyll for GitHub Pages
