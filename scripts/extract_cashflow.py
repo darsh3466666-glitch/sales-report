@@ -46,7 +46,37 @@ GENERIC_SINGLE_NAMES = {
     'خالد', 'طارق', 'عمرو', 'عمر', 'يوسف', 'سعيد', 'اشرف', 'جمال', 'عادل', 'رضا', 'نقدي', 'كاش'
 }
 
-def words_match(w1, w2):
+def is_one_edit_apart(s1, s2):
+    s1 = s1.replace('ط', 'ت').replace('ص', 'س').replace('ظ', 'ز').rstrip('ي')
+    s2 = s2.replace('ط', 'ت').replace('ص', 'س').replace('ظ', 'ز').rstrip('ي')
+    if s1 == s2:
+        return True
+    if abs(len(s1) - len(s2)) > 1:
+        return False
+    if len(s1) < 3 or len(s2) < 3:
+        return False
+    edits = 0
+    i, j = 0, 0
+    while i < len(s1) and j < len(s2):
+        if s1[i] != s2[j]:
+            edits += 1
+            if edits > 1:
+                return False
+            if len(s1) > len(s2):
+                i += 1
+            elif len(s2) > len(s1):
+                j += 1
+            else:
+                i += 1
+                j += 1
+        else:
+            i += 1
+            j += 1
+    return True
+
+def words_match(w1, w2, allow_fuzzy=False):
+    if not w1 or not w2:
+        return False
     if w1 == w2:
         return True
     nw1 = w1.rstrip('ي')
@@ -55,7 +85,11 @@ def words_match(w1, w2):
         return True
     sw1 = nw1[2:] if nw1.startswith('ال') and len(nw1) >= 4 else nw1
     sw2 = nw2[2:] if nw2.startswith('ال') and len(nw2) >= 4 else nw2
-    return sw1 == sw2
+    if sw1 == sw2:
+        return True
+    if allow_fuzzy and is_one_edit_apart(sw1, sw2):
+        return True
+    return False
 
 def match_treasury_to_customer(desc, cust_name):
     if not desc or not cust_name:
@@ -64,43 +98,46 @@ def match_treasury_to_customer(desc, cust_name):
     cc = clean_arabic_matching(cust_name)
     if not cd or not cc:
         return False
-    if cd == cc or words_match(cd, cc):
+    if cd == cc or words_match(cd, cc, allow_fuzzy=False):
         return True
 
     cd_words = [w for w in cd.split() if len(w) >= 2]
     cc_words = [w for w in cc.split() if len(w) >= 2]
 
-    # Prefix match on clean words
+    # Prefix match on clean words (allowing fuzzy tolerance on last word if prior words match)
     if len(cd_words) >= 2 and len(cc_words) >= 2:
         m_count = 0
         min_len = min(len(cd_words), len(cc_words))
         for i in range(min_len):
-            if words_match(cd_words[i], cc_words[i]):
+            is_last = (i == min_len - 1 and i >= 2)
+            if words_match(cd_words[i], cc_words[i], allow_fuzzy=is_last):
                 m_count += 1
             else:
                 break
         if m_count >= 2 and (m_count == len(cd_words) or m_count == len(cc_words)):
             return True
 
-    # Match across full customer name (including paren annotations like مرسي مدشه or عبدالتواب احمد ميدوم)
+    # Order-invariant & full tokens match (including paren annotations like مرسي مدشه or حلوان احمد سلامه)
     raw_norm = normalize_arabic(cust_name)
     for ch in ['-', '/', '\\', '_', '.', ',', '،', '(', ')']:
         raw_norm = raw_norm.replace(ch, ' ')
     all_cust_words = [w for w in raw_norm.split() if len(w) >= 2]
     if len(cd_words) >= 2 and len(all_cust_words) >= 2:
-        m_all = 0
-        min_all = min(len(cd_words), len(all_cust_words))
-        for i in range(min_all):
-            if words_match(cd_words[i], all_cust_words[i]):
-                m_all += 1
-            else:
-                break
-        if m_all >= 2 and (m_all == len(cd_words) or m_all == len(all_cust_words)):
+        matched_tokens = 0
+        used = set()
+        for i, dw in enumerate(cd_words):
+            is_fuzzy = (i >= 2)
+            for idx, cw in enumerate(all_cust_words):
+                if idx not in used and words_match(dw, cw, allow_fuzzy=is_fuzzy):
+                    matched_tokens += 1
+                    used.add(idx)
+                    break
+        if matched_tokens >= 2 and (matched_tokens == len(cd_words) or matched_tokens == len(all_cust_words)):
             return True
 
     # Distinctive single entity or compound name (e.g. الخيرات or ابوحمزه)
     if len(cd_words) == 1 and cd_words[0] not in GENERIC_SINGLE_NAMES:
-        if any(words_match(cd_words[0], w) for w in cc_words):
+        if any(words_match(cd_words[0], w, allow_fuzzy=False) for w in cc_words):
             return True
 
     return False
