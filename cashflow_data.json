@@ -3,11 +3,11 @@
   "weekStart": "2026-11-18",
   "weekEnd": "2026-11-24",
   "weeklyGoal": 4000000,
-  "totalExpected": 4526090.92,
-  "totalCollected": 0.0,
-  "customerCount": 60,
-  "remainingToTarget": 4000000.0,
-  "collectionRate": 0.0,
+  "totalExpected": 4526290.99,
+  "totalCollected": 605075.0,
+  "customerCount": 83,
+  "remainingToTarget": 3394925.0,
+  "collectionRate": 0.13368009289212754,
   "masterCustomerNames": [
     "محمد سيف الترساوي(ابو شويقي)",
     "احمد صابر ضيف الله (ابوشويقي)",
@@ -507,7 +507,8 @@
       "dueDate": "2025-07-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد صابر ضيف الله (ابوشويقي)",
@@ -515,7 +516,8 @@
       "dueDate": "2026-06-06",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد مصطفي محمد حسين قيصر",
@@ -523,7 +525,8 @@
       "dueDate": "2026-12-22",
       "notes": "3 شهور ويصفي",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ايمن زيور (صالح مسعود)",
@@ -531,7 +534,8 @@
       "dueDate": "2025-11-11",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شعبان محمود (ادريس)",
@@ -539,7 +543,8 @@
       "dueDate": "2025-04-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد وهيب علي (الشركه)",
@@ -547,7 +552,8 @@
       "dueDate": "2026-07-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد عبيد (مرعب)",
@@ -555,7 +561,8 @@
       "dueDate": "2024-03-19",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حلمي هليل عبد الحليم - الهداهده",
@@ -563,7 +570,8 @@
       "dueDate": "2026-12-24",
       "notes": "شهرين وهيصفي بلاغ م علي",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "هليل عبدالحليم(الهداهده)",
@@ -571,7 +579,8 @@
       "dueDate": "2026-11-30",
       "notes": "دورة + دفعات 50% من المسحوب يوصل 500 الف يدفع 250 الف وهكذا",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد علي ذيدان (البيضاء)",
@@ -579,7 +588,8 @@
       "dueDate": "2027-02-09",
       "notes": "( تصفية الحساب في رمضان )",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "م احمد ابو العيد (دبانة)",
@@ -587,7 +597,8 @@
       "dueDate": "2025-06-29",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعة سند",
@@ -595,7 +606,8 @@
       "dueDate": "2025-03-22",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الله محمد عبد الله(البراني)",
@@ -603,7 +615,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد ابو الغيط (ابو النمرس)",
@@ -611,7 +624,8 @@
       "dueDate": "2025-07-06",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شحات احمد عبدالرازق(سيلا)",
@@ -619,7 +633,8 @@
       "dueDate": "2025-06-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مهندس احمد عزت",
@@ -627,7 +642,8 @@
       "dueDate": "2025-02-25",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حماده سيد عبدالرحمن الهداهده",
@@ -635,7 +651,8 @@
       "dueDate": "2026-04-14",
       "notes": "قالي الاسبوع ده اول م فلوس البنجر هتيجي",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "هاني منير (شكيب )عماد رمزي",
@@ -643,7 +660,8 @@
       "dueDate": "2024-03-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد حفني (اهناسيا) المسيد",
@@ -651,7 +669,8 @@
       "dueDate": "2026-12-04",
       "notes": "طلب الحساب يكون مفتوح",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال علي ابو الحسن (بني سويف)",
@@ -659,7 +678,8 @@
       "dueDate": "2026-04-20",
       "notes": "بكرا فلوسه هتكون جاهزة 21/4/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ميلاد حبيب(بني سويف)",
@@ -667,7 +687,8 @@
       "dueDate": "2024-10-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "صالح عبده جمعه قيصر",
@@ -675,7 +696,8 @@
       "dueDate": "2024-08-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مجدي احمد محمد (دوار)",
@@ -683,7 +705,8 @@
       "dueDate": "2026-07-29",
       "notes": "اخر الشهر",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابو سريع اشرف البطل (الشوبك)",
@@ -691,7 +714,8 @@
       "dueDate": "2026-05-23",
       "notes": "وكيل  + فاتورة بفاتورة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد ابو خضره",
@@ -699,7 +723,8 @@
       "dueDate": "2026-12-07",
       "notes": "اخر الشهر",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مفرح سيد فهيم",
@@ -707,7 +732,8 @@
       "dueDate": "2026-11-09",
       "notes": "مفرح يوم الاثنين  10/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حماده عبد الخالق قيصر",
@@ -715,7 +741,8 @@
       "dueDate": "2026-12-07",
       "notes": "هيصفي بعد شهر نتظار بيع",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شريف عبد الخالق(قيصر)",
@@ -723,7 +750,8 @@
       "dueDate": "2026-05-12",
       "notes": "فلوسه جهزة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خميس عبيد (ابو شويقي)",
@@ -731,7 +759,8 @@
       "dueDate": "2024-10-24",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعه امير حسن (طريق اسيوط)",
@@ -739,7 +768,8 @@
       "dueDate": "2024-07-04",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نصر لملوم",
@@ -747,7 +777,8 @@
       "dueDate": "2026-11-30",
       "notes": "اخر الشهر بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد ابو بكر(قيصر)",
@@ -755,7 +786,8 @@
       "dueDate": "2026-11-30",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حامد جوده احمد(الخرابه)",
@@ -763,7 +795,8 @@
       "dueDate": "2027-01-04",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شعبان بدوى رمضان(الطوبجى)",
@@ -771,7 +804,8 @@
       "dueDate": "2025-04-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج ياسر اللحامي",
@@ -779,7 +813,8 @@
       "dueDate": "2025-07-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علي حجازي",
@@ -787,7 +822,8 @@
       "dueDate": "2026-09-06",
       "notes": "السبت 5/9/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عيد عبد الحميد سيلا",
@@ -795,7 +831,8 @@
       "dueDate": "2026-05-26",
       "notes": "بكرا 25/6/2026 اخر النهار",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رجب الدريني سيلا",
@@ -803,7 +840,8 @@
       "dueDate": "2026-12-24",
       "notes": "دورة 3شهور دفعات",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حماده ابو خضره سيلا",
@@ -811,7 +849,8 @@
       "dueDate": "2026-11-27",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خالد عمر (جمعه محمد عزوز)",
@@ -819,7 +858,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حماده شحات احمد عبد الرازق (سيلا)",
@@ -827,7 +867,8 @@
       "dueDate": "2024-05-04",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمر عيد احمد عبد الفتاح(ابو السعود)",
@@ -835,7 +876,8 @@
       "dueDate": "2026-07-16",
       "notes": "عيد احمد عبد الفتاح هيحول كاش انهارده",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج ابراهيم مجاهد",
@@ -843,7 +885,8 @@
       "dueDate": "2025-04-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد عبد الحميد (سيلا)",
@@ -851,7 +894,8 @@
       "dueDate": "2025-01-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدي عبد الحميد(سيلا)",
@@ -859,7 +903,8 @@
       "dueDate": "2026-11-25",
       "notes": "الاربعاء 25/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد رشيد الحموى",
@@ -867,7 +912,8 @@
       "dueDate": "2027-02-09",
       "notes": "دورة جديدة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد السميع ابو حسن (الوسطى)",
@@ -875,7 +921,8 @@
       "dueDate": "2026-05-19",
       "notes": "عندي دريس  هبعيعه وادفع اخر الشهر 30/4/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خليفه عامر الشيخ على",
@@ -883,7 +930,8 @@
       "dueDate": "2027-02-26",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -891,7 +939,8 @@
       "dueDate": "2026-11-23",
       "notes": "بكرا 23/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خيري موسي عريان",
@@ -899,7 +948,8 @@
       "dueDate": "2025-07-10",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد ابراهيم عمر (سيلا)",
@@ -907,7 +957,8 @@
       "dueDate": "2025-02-10",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعة بيور",
@@ -915,7 +966,8 @@
       "dueDate": "2026-10-25",
       "notes": "سداد خلال اسبوعين",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رجب ابو الخير فاضل سيلا",
@@ -923,7 +975,8 @@
       "dueDate": "2024-03-21",
       "notes": "والأسبوع القادم تصفية الحساب.",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عامر عيد (جمعه محمد عزوز) العياط",
@@ -931,7 +984,8 @@
       "dueDate": "2026-06-30",
       "notes": "اسبوع",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "بدوي حجازي البطل (الشوبك )",
@@ -939,7 +993,8 @@
       "dueDate": "2026-11-18",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 37550.0
     },
     {
       "customerName": "احمد حسين فرج (العياط)",
@@ -947,7 +1002,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعه الخيرات",
@@ -955,7 +1011,8 @@
       "dueDate": "2026-11-29",
       "notes": "التلات 24/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسن محمد حسن(الحطي وحيد كامل)",
@@ -963,7 +1020,8 @@
       "dueDate": "2026-12-08",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسن على حسن (ابويط)",
@@ -971,7 +1029,8 @@
       "dueDate": "2024-09-05",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اشرف عبد الحميد طلبه(سيلا)",
@@ -979,7 +1038,8 @@
       "dueDate": "2024-03-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعه الحسيني (المنيا -مطاي)",
@@ -987,7 +1047,8 @@
       "dueDate": "2026-05-03",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مقدم / ياسر عرفات",
@@ -995,7 +1056,8 @@
       "dueDate": "2025-06-16",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سامي قرني(اسعد نصيف)",
@@ -1003,7 +1065,8 @@
       "dueDate": "2026-12-03",
       "notes": "اسبوع بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 3000.0
     },
     {
       "customerName": "احمد عبد الله على العزازيه",
@@ -1011,7 +1074,8 @@
       "dueDate": "2026-12-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جابر عبدالحميد قيصر",
@@ -1019,7 +1083,8 @@
       "dueDate": "2027-04-26",
       "notes": "هيبيع على العيد الكبير",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد ثابت ( عزبة شعيب)",
@@ -1027,7 +1092,8 @@
       "dueDate": "2026-11-14",
       "notes": "مطالبة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عيد سلومه قرني الهداهده",
@@ -1035,7 +1101,8 @@
       "dueDate": "2026-06-09",
       "notes": "عيد سلومه قرني بعد العيد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعة المهندس",
@@ -1043,7 +1110,8 @@
       "dueDate": "2025-06-24",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "بدوى محمد فرج (الشيخ علي)",
@@ -1051,7 +1119,8 @@
       "dueDate": "2026-10-07",
       "notes": "صفى وفاتورة وفاتورة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محيسن سويلم العربي (قيصر)",
@@ -1059,7 +1128,8 @@
       "dueDate": "2024-06-10",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابراهيم عيد (الخواجات)",
@@ -1067,7 +1137,8 @@
       "dueDate": "2027-05-15",
       "notes": "دورة جديدة ودفعات",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د/يوسف سيد السحابه",
@@ -1075,7 +1146,8 @@
       "dueDate": "2024-03-27",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ا/خليل عبد العزيز (مقار)",
@@ -1083,7 +1155,8 @@
       "dueDate": "2025-04-23",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "م مصطفى فهمي (العدوه -المنيا)",
@@ -1091,7 +1164,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الغفورعلي عبد الباقي(كوم ابو راضي)",
@@ -1099,7 +1173,8 @@
       "dueDate": "2026-11-23",
       "notes": "هيجي واحده",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "صالح مسعود ابو بكر الهداهده",
@@ -1107,7 +1182,8 @@
       "dueDate": "2027-01-01",
       "notes": "ف شهر ١٢ سداد دفعة وتصفية ف رمضان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "روبي سيد عبد الواحد",
@@ -1115,7 +1191,8 @@
       "dueDate": "2027-03-21",
       "notes": "دورة جديدة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود شحات احمد عبدالرازق سيلا",
@@ -1123,7 +1200,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود سامي ابراهيم سيد(السحابه)",
@@ -1131,7 +1209,8 @@
       "dueDate": "2026-11-18",
       "notes": "الاربيعاء 18/11",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ماهر احمد(مصطفى الصعيدي)",
@@ -1139,7 +1218,8 @@
       "dueDate": "2026-10-09",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبود عدلي عبود قيصر",
@@ -1147,7 +1227,8 @@
       "dueDate": "2026-11-22",
       "notes": "عبود هيوزن بكرة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ايمن عدلي عبود قيصر",
@@ -1155,7 +1236,8 @@
       "dueDate": "2027-03-13",
       "notes": "مطلوب باقي الفلوس مش في البيت وسايب تليفونه",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الله عيد (سيلا)",
@@ -1163,7 +1245,8 @@
       "dueDate": "2024-02-08",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رمضان جابر عبد الحميد (قيصر)",
@@ -1171,7 +1254,8 @@
       "dueDate": "2026-12-02",
       "notes": "رمضان جابر عبد الحميد بيقول مفيش فلوس اله يوم12/1",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبدالغني موسي عريان",
@@ -1179,7 +1263,8 @@
       "dueDate": "2024-10-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "فايد علي رمضان (الشخ علي)",
@@ -1187,7 +1272,8 @@
       "dueDate": "2026-09-24",
       "notes": "الخميس 24/9/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محروس عوض (نجع محمد على)",
@@ -1195,7 +1281,8 @@
       "dueDate": "2024-05-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "فرج محمد مسلم (السحابه)",
@@ -1203,7 +1290,8 @@
       "dueDate": "2026-12-24",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال عبدالشفيق قيصر",
@@ -1211,7 +1299,8 @@
       "dueDate": "2026-11-07",
       "notes": "جمال عبد الشفيق 10ايام",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدي صلاح عبود قيصر",
@@ -1219,7 +1308,8 @@
       "dueDate": "2026-12-19",
       "notes": "بهايم صغيرة  شهرين",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علاء عدلي عبدالمعبود قيصر",
@@ -1227,7 +1317,8 @@
       "dueDate": "2026-12-15",
       "notes": "تحصيل 28 الف قديم قال شهر وهسدهم",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عيد ذكي ( الشيخ علي)",
@@ -1235,7 +1326,8 @@
       "dueDate": "2024-05-06",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد محمد مرداشي (وحيد كامل)",
@@ -1243,7 +1335,8 @@
       "dueDate": "2026-12-22",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسين عبد الفتاح ابويط",
@@ -1251,7 +1344,8 @@
       "dueDate": "2026-10-03",
       "notes": "كل اتصال يقولو مش موجود",
       "isActive2026": false,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د /مصطفى فاضل (طمبول )",
@@ -1259,7 +1353,8 @@
       "dueDate": "2024-09-08",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عارف صلاح قيصر",
@@ -1267,7 +1362,8 @@
       "dueDate": "2026-12-10",
       "notes": "عارف صلاح ممكن ياخد طن تاني ويطلع بهايمه",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
@@ -1275,7 +1371,8 @@
       "dueDate": "2026-11-28",
       "notes": "جهينة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مصطفى منشاوي(البيضاء)",
@@ -1283,7 +1380,8 @@
       "dueDate": "2026-11-14",
       "notes": "مصطفى المنشاوي مستني تحويل جيلو انهارده",
       "isActive2026": false,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محروس محمود عبد الوهاب (لطيف)",
@@ -1291,7 +1389,8 @@
       "dueDate": "2027-01-16",
       "notes": "دورة جديدة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ماهر محمد حلمى(البرنسه)",
@@ -1299,7 +1398,8 @@
       "dueDate": "2026-04-30",
       "notes": "اليوم 4 الف + الباقي اخر الشهر",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ايمن محمود يوسف (طاميه)",
@@ -1307,7 +1407,8 @@
       "dueDate": "2026-11-29",
       "notes": "وزود 123 الف عن بداية السنة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد ابو بكر خليفه   الشيخ على",
@@ -1315,7 +1416,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد عبد المنعم سيلا",
@@ -1323,7 +1425,8 @@
       "dueDate": "2024-03-22",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نور مسعود سالم (نسنوس)",
@@ -1331,7 +1434,8 @@
       "dueDate": "2026-04-30",
       "notes": "باقي 500 يوم الخميس 30/4/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد رجب عبد الشفيق (قيصر)",
@@ -1339,7 +1443,8 @@
       "dueDate": "2027-04-13",
       "notes": "مطالبة ب 8000 قيدم ومعرفة موقفه الحالي",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خالد عبد الوهاب (البيضاء)",
@@ -1347,7 +1452,8 @@
       "dueDate": "2026-11-29",
       "notes": "اسبوع بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سمحي ابو زيد عبد الرحمن (الهداهده)",
@@ -1355,7 +1461,8 @@
       "dueDate": "2026-12-07",
       "notes": "بلاغ  اا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد مسعود عبد الجواد (بشرى)",
@@ -1363,7 +1470,8 @@
       "dueDate": "2025-08-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عماد رمزي الحموى",
@@ -1371,7 +1479,8 @@
       "dueDate": "2024-02-29",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج عوض ابو زيد عقيله",
@@ -1379,7 +1488,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شحات قرني البسيونيه",
@@ -1387,7 +1497,8 @@
       "dueDate": "2026-12-06",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعه الجندي",
@@ -1395,7 +1506,8 @@
       "dueDate": "2025-11-26",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود اسماعيل",
@@ -1403,7 +1515,8 @@
       "dueDate": "2026-12-21",
       "notes": "20  يوم بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 60000.0
     },
     {
       "customerName": "احمد سعد (السحابه)",
@@ -1411,7 +1524,8 @@
       "dueDate": "2026-11-30",
       "notes": "قربي يبيع بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "وائل فاروق الشرقاوي الفيوم",
@@ -1419,7 +1533,8 @@
       "dueDate": "2025-04-22",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد سيد جبالى مهدى بيه",
@@ -1427,7 +1542,8 @@
       "dueDate": "2026-11-24",
       "notes": "شهرين وكلمه تاني",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حماده عويس (سيلا)",
@@ -1435,7 +1551,8 @@
       "dueDate": "2025-12-25",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الرحمن محمد (المحصل)",
@@ -1443,7 +1560,8 @@
       "dueDate": "2026-05-03",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مجدي شعيب (لطيف)",
@@ -1451,7 +1569,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبدالقادر حسين داود",
@@ -1459,7 +1578,8 @@
       "dueDate": "2026-07-20",
       "notes": "بكرا اخ النهار 20/7   مع جمادة ابو خضرا",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد عويس (الشيخ على)",
@@ -1467,7 +1587,8 @@
       "dueDate": "2026-04-14",
       "notes": "بلاغ استاذ احمد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمر سيد عبد الجواد (الحموي)",
@@ -1475,7 +1596,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمر مدحت يوسف (الحموى)",
@@ -1483,7 +1605,8 @@
       "dueDate": "2027-04-19",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد عبد الله حسبو (الامراء)",
@@ -1491,7 +1614,8 @@
       "dueDate": "2024-03-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رمضان طه ابو شويقى",
@@ -1499,7 +1623,8 @@
       "dueDate": "2026-12-25",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعه جرين فالي",
@@ -1507,7 +1632,8 @@
       "dueDate": "2025-04-16",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سامح حسب الله(شكيب)",
@@ -1515,7 +1641,8 @@
       "dueDate": "2025-07-02",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد محمود الاشرجي (مصطفى الصعيدي)",
@@ -1523,7 +1650,8 @@
       "dueDate": "2024-05-09",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عيد احمد عبد الفتاح(ابو السعود)",
@@ -1531,7 +1659,8 @@
       "dueDate": "2026-11-22",
       "notes": "الاحد 22/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 3000.0
     },
     {
       "customerName": "محمد رشيد(ابو السعود)",
@@ -1539,7 +1668,8 @@
       "dueDate": "2024-06-19",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د مصطفى متولي",
@@ -1547,7 +1677,8 @@
       "dueDate": "2025-04-16",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مجدي فهمي (منشيه الامراء)",
@@ -1555,7 +1686,8 @@
       "dueDate": "2025-07-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عشري محمد احمد",
@@ -1563,7 +1695,8 @@
       "dueDate": "2024-03-21",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسين احمدحسين (قيصر)",
@@ -1571,7 +1704,8 @@
       "dueDate": "2026-12-03",
       "notes": "عليه 3 الف قديم لما يجي المرة الجاية",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد عبد العزيز حسين (نصار)",
@@ -1579,7 +1713,8 @@
       "dueDate": "2026-08-06",
       "notes": "الخميس 6/8/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خالد احمد عبد الرازق",
@@ -1587,7 +1722,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اسماعيل يوسف (الحموي)",
@@ -1595,7 +1731,8 @@
       "dueDate": "2027-05-08",
       "notes": "دورة جديدة ودفعات كل علفة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عاطف راغب (الهداهده)",
@@ -1603,7 +1740,8 @@
       "dueDate": "2027-01-21",
       "notes": "بلاغ صالح مسعود",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اشرف ابو سريع البطل",
@@ -1611,7 +1749,8 @@
       "dueDate": "2026-03-11",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "يوسف ابو الحاج",
@@ -1619,7 +1758,8 @@
       "dueDate": "2026-11-13",
       "notes": "يوسف ابو الحاج لسه بهايمو صغيره ما بعتش",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "كيمو جمعه عيسى (الصفيح)",
@@ -1627,7 +1767,8 @@
       "dueDate": "2024-09-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ناصر محمد عبد الستار (دوار)",
@@ -1635,7 +1776,8 @@
       "dueDate": "2025-04-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه صابر غالب",
@@ -1643,7 +1785,8 @@
       "dueDate": "2026-11-26",
       "notes": "بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعة ماضيكو",
@@ -1651,7 +1794,8 @@
       "dueDate": "2025-08-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نبيل محمد عبود (قيصر)",
@@ -1659,7 +1803,8 @@
       "dueDate": "2026-05-23",
       "notes": "باقي 100 مطالبة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حامد ابراهيم (الدوار)",
@@ -1667,7 +1812,8 @@
       "dueDate": "2026-12-04",
       "notes": "اول شهر 11",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ناجي محمود (الشوبك)",
@@ -1675,7 +1821,8 @@
       "dueDate": "2025-04-25",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "المزرعه",
@@ -1683,7 +1830,8 @@
       "dueDate": "2027-02-16",
       "notes": "خارج برنامج التحصيل (أ علي منير)",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابو حمزة للأعلاف",
@@ -1691,7 +1839,8 @@
       "dueDate": "2026-11-26",
       "notes": "عميل كاش",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 139125.0
     },
     {
       "customerName": "عبد الله كمال شاهين (معوض)",
@@ -1699,7 +1848,8 @@
       "dueDate": "2027-02-20",
       "notes": "على رمضان لو في قبل هيجيب دورة كل 3 شهو",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد سليمان عبد العزيز",
@@ -1707,7 +1857,8 @@
       "dueDate": "2026-05-05",
       "notes": "لما القبض ينزل",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عادل ذكي قيصر",
@@ -1715,7 +1866,8 @@
       "dueDate": "2024-05-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد الوكيل (ابو الهوايل)",
@@ -1723,7 +1875,8 @@
       "dueDate": "2024-10-12",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسين عبد الحميد حسين (قيصر)",
@@ -1731,7 +1884,8 @@
       "dueDate": "2026-07-14",
       "notes": "الثلاثاء 14/7/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علاء عيد",
@@ -1739,7 +1893,8 @@
       "dueDate": "2026-06-03",
       "notes": "بعد يومين",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود شعبان فرج الله",
@@ -1747,7 +1902,8 @@
       "dueDate": "2026-12-11",
       "notes": "بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "وجيه عبد العظيم (الحموي)",
@@ -1755,7 +1911,8 @@
       "dueDate": "2025-04-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مرسي (مدشه)",
@@ -1763,7 +1920,8 @@
       "dueDate": "2026-11-22",
       "notes": "السبت او الاحد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه محمد عزوز(العياط)",
@@ -1771,7 +1929,8 @@
       "dueDate": "2026-12-24",
       "notes": "دورة جديدة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مصطفى عدوى",
@@ -1779,7 +1938,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عادل جمعه - البيضاء",
@@ -1787,7 +1947,8 @@
       "dueDate": "2026-12-05",
       "notes": "لو مسحبش خلال شهر طالبه ودورته مش شغالة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدان احمد ابو هوله - دوار",
@@ -1795,7 +1956,8 @@
       "dueDate": "2026-12-22",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمار فهمي",
@@ -1803,7 +1965,8 @@
       "dueDate": "2025-03-12",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد امام",
@@ -1811,7 +1974,8 @@
       "dueDate": "2024-06-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد ابو الحاج",
@@ -1819,7 +1983,8 @@
       "dueDate": "2024-06-19",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد التواب محمود (نعام)",
@@ -1827,7 +1992,8 @@
       "dueDate": "2026-05-09",
       "notes": "تصفية وفلوسه جاهزة ف البيت",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعة الكريم",
@@ -1835,7 +2001,8 @@
       "dueDate": "2024-06-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مهندس - عمرو نبيل ابو السعود",
@@ -1843,7 +2010,8 @@
       "dueDate": "2026-04-25",
       "notes": "مع تحويل جهينة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عيد سلطان",
@@ -1851,7 +2019,8 @@
       "dueDate": "2026-04-22",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د\\ احمد عاطف",
@@ -1859,7 +2028,8 @@
       "dueDate": "2025-11-14",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "فارس ماهر",
@@ -1867,7 +2037,8 @@
       "dueDate": "2026-12-14",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خليل قطب",
@@ -1875,7 +2046,8 @@
       "dueDate": "2024-06-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ايمن علي حسن",
@@ -1883,7 +2055,8 @@
       "dueDate": "2026-12-15",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حاج / حازم برغوت",
@@ -1891,7 +2064,8 @@
       "dueDate": "2026-11-26",
       "notes": "يوم الاثنين 100 الف",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اشرف انور",
@@ -1899,7 +2073,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد شعبان هاشم",
@@ -1907,7 +2082,8 @@
       "dueDate": "2026-12-05",
       "notes": "اخر الشهر",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد صلاح حسنين(اطفيح)",
@@ -1915,7 +2091,8 @@
       "dueDate": "2024-09-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد صابر طنطاوي",
@@ -1923,7 +2100,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد سيد جبالي",
@@ -1931,7 +2109,8 @@
       "dueDate": "2026-05-24",
       "notes": "تم التصفية عن طريق اخوه",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ربيع جابر عبد الحميد",
@@ -1939,7 +2118,8 @@
       "dueDate": "2026-11-24",
       "notes": "اخر طن",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ياسر عباس",
@@ -1947,7 +2127,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خالد حامد",
@@ -1955,7 +2136,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "طارق عوض داوود",
@@ -1963,7 +2145,8 @@
       "dueDate": "2024-04-20",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "صابر عبد الحميد(الهداهده)",
@@ -1971,7 +2154,8 @@
       "dueDate": "2025-05-22",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد كردي",
@@ -1979,7 +2163,8 @@
       "dueDate": "2026-07-21",
       "notes": "تصفية يوم الاحد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "بدر مسعود صابر",
@@ -1987,7 +2172,8 @@
       "dueDate": "2026-11-20",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اشرف عدلي مصطفي",
@@ -1995,7 +2181,8 @@
       "dueDate": "2026-11-26",
       "notes": "خميس 26/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيف الجزار",
@@ -2003,7 +2190,8 @@
       "dueDate": "2025-11-27",
       "notes": "+ تصفية باقي الحساب يوم 10-7-2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد مهدي (ربيع قرني)",
@@ -2011,7 +2199,8 @@
       "dueDate": "2025-06-20",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د. عبد المجيد المرزوقي",
@@ -2019,7 +2208,8 @@
       "dueDate": "2026-10-01",
       "notes": "ربيع قرني متابعه مع البشمهدس",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه عبد الستار (سيلا)",
@@ -2027,7 +2217,8 @@
       "dueDate": "2025-02-11",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد التواب احمد( ميدوم )",
@@ -2035,7 +2226,8 @@
       "dueDate": "2026-12-02",
       "notes": "الاثنين مكالمة تليفون  16/11/202680 الف",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "صابر مصطفى محمد",
@@ -2043,7 +2235,8 @@
       "dueDate": "2026-12-03",
       "notes": "مطالبة يوميا",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه محمد رضوان",
@@ -2051,7 +2244,8 @@
       "dueDate": "2026-11-10",
       "notes": "فاتورة وفاتورة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 6000.0
     },
     {
       "customerName": "سعيد جوده (السحابه)",
@@ -2059,7 +2253,8 @@
       "dueDate": "2026-10-31",
       "notes": "اتوفى 21/10/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد حمدين الغنام",
@@ -2067,7 +2262,8 @@
       "dueDate": "2026-11-19",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مختار محمد محمد جمال",
@@ -2075,7 +2271,8 @@
       "dueDate": "2026-04-02",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "هاني احمد زكي",
@@ -2083,7 +2280,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود صالح عبد العاطي",
@@ -2091,7 +2289,8 @@
       "dueDate": "2026-12-01",
       "notes": "شهر من تاريخ اخر فاتورة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد سلامه (حلوان)",
@@ -2099,7 +2298,8 @@
       "dueDate": "2026-11-14",
       "notes": "هيصفي الفترة الجاية",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عيد عظمي",
@@ -2107,7 +2307,8 @@
       "dueDate": "2024-10-30",
       "notes": "حساب 1/2 طن علف",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد عبد الحميد سعد بريك(مرعب)",
@@ -2115,7 +2316,8 @@
       "dueDate": "2025-07-22",
       "notes": "ويوم 10-4-2026",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبوده الجزار",
@@ -2123,7 +2325,8 @@
       "dueDate": "2024-11-03",
       "notes": "تصفية ما باقي من الحساب بعد سداد يوم 31-3-2026",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مشهور محمود",
@@ -2131,7 +2334,8 @@
       "dueDate": "2025-05-23",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه محمد (مصطفى الصعيدي)",
@@ -2139,7 +2343,8 @@
       "dueDate": "2026-12-03",
       "notes": "اخر الشهر 2/12/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "طه عبد الحميد سعد (مرعب)",
@@ -2147,7 +2352,8 @@
       "dueDate": "2024-05-08",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د.هاني محمود يوسف (طاميه)",
@@ -2155,7 +2361,8 @@
       "dueDate": "2026-11-26",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "م / أكرم أبو السعود",
@@ -2163,7 +2370,8 @@
       "dueDate": "2026-08-08",
       "notes": "السداد السبت القادم. بلاغ م علي",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رحيم لملوم محجوب (مرعب)",
@@ -2171,7 +2379,8 @@
       "dueDate": "2025-06-03",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود قمر",
@@ -2179,7 +2388,8 @@
       "dueDate": "2025-11-22",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سليمان سالم عبد العزيز",
@@ -2187,7 +2397,8 @@
       "dueDate": "2024-06-20",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمل محمد سليمان(ميدوم)",
@@ -2195,7 +2406,8 @@
       "dueDate": "2024-06-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد القادر عبد الجليل (الهداهده)",
@@ -2203,7 +2415,8 @@
       "dueDate": "2025-04-16",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه محمود رضوان (ادريس)",
@@ -2211,7 +2424,8 @@
       "dueDate": "2026-12-24",
       "notes": "الخميس 19/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "صبحي عبده ابو صبحي",
@@ -2219,7 +2433,8 @@
       "dueDate": "2024-04-27",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الله حسين داوود (محمد علي)",
@@ -2227,7 +2442,8 @@
       "dueDate": "2026-08-02",
       "notes": "جاب 20 الف الباقي بعد 20 يوم",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج / ابراهيم ابو سريع",
@@ -2235,7 +2451,8 @@
       "dueDate": "2026-10-01",
       "notes": "الخميس اخر كلام 1/10/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "راضي منصور",
@@ -2243,7 +2460,8 @@
       "dueDate": "2026-12-02",
       "notes": "مكالمة من ا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود عبد العليم (الهداهده)",
@@ -2251,7 +2469,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمر سعد عمر",
@@ -2259,7 +2478,8 @@
       "dueDate": "2026-05-25",
       "notes": "هحول كاش لما اروح 2/6/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود عبد المولى (البيضاء)",
@@ -2267,7 +2487,8 @@
       "dueDate": "2024-05-05",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحج جاب الله (قصر الباسل)",
@@ -2275,7 +2496,8 @@
       "dueDate": "2025-07-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سلطان هريدي (العياط)",
@@ -2283,7 +2505,8 @@
       "dueDate": "2026-11-21",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه عبيد",
@@ -2291,7 +2514,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدي عبد المهدي",
@@ -2299,7 +2523,8 @@
       "dueDate": "2024-05-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سعداوي مهدي",
@@ -2307,7 +2532,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "كريم سويلم العربي (قيصر)",
@@ -2315,7 +2541,8 @@
       "dueDate": "2024-07-10",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال عبد البديع (الدوار)",
@@ -2323,7 +2550,8 @@
       "dueDate": "2025-12-29",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعه السلام",
@@ -2331,7 +2559,8 @@
       "dueDate": "2024-05-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد سيد (مصطفي الصعيدي)",
@@ -2339,7 +2568,8 @@
       "dueDate": "2026-11-23",
       "notes": "بكرا هياخد علف ويدفع 10",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد عدلي (الوسطى)",
@@ -2347,7 +2577,8 @@
       "dueDate": "2026-10-11",
       "notes": "محمد عدلي الوسطى يوم الاربعاء",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "المستشار / محمد فرحات",
@@ -2355,7 +2586,8 @@
       "dueDate": "2026-05-25",
       "notes": "هيسدد ال5285 مع الجديد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "هشام يحى",
@@ -2363,7 +2595,8 @@
       "dueDate": "2026-01-16",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د.محمد العسكري (اطفيح)",
@@ -2371,7 +2604,8 @@
       "dueDate": "2026-11-29",
       "notes": "600 الف يوم الاحد 29/11/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "طارق طلعت زكي (قيصر)",
@@ -2379,7 +2613,8 @@
       "dueDate": "2025-08-08",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابو عمر محمد (الاسماعيليه)",
@@ -2387,7 +2622,8 @@
       "dueDate": "2024-11-05",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "طارق خليفه (الوسطى)",
@@ -2395,7 +2631,8 @@
       "dueDate": "2024-06-20",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "زغلول ابراهيم(مشهور محمود)",
@@ -2403,7 +2640,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علاء محمد الجبلاوي (الصفيح)",
@@ -2411,7 +2649,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد علي محمد (نصار)",
@@ -2419,7 +2658,8 @@
       "dueDate": "2026-08-06",
       "notes": "بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد حسين بريك (مرعب)",
@@ -2427,7 +2667,8 @@
       "dueDate": "2026-06-07",
       "notes": "بعد العيد ب اسبوع",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "بدوي عبده جمعه (قيصر)",
@@ -2435,7 +2676,8 @@
       "dueDate": "2025-11-09",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود ابو خضره",
@@ -2443,7 +2685,8 @@
       "dueDate": "2025-01-02",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسن العمده(عين الصيره)",
@@ -2451,7 +2694,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد عتريس (السيده زينب)",
@@ -2459,7 +2703,8 @@
       "dueDate": "2025-07-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد صالح ( العزالي )",
@@ -2467,7 +2712,8 @@
       "dueDate": "2026-02-15",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سعد ربيع (حماده ابو خضره)",
@@ -2475,7 +2721,8 @@
       "dueDate": "2025-01-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خميس محمد يتيم (قيصر)",
@@ -2483,7 +2730,8 @@
       "dueDate": "2026-11-23",
       "notes": "بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سمري خليل حبشي(الحموي)",
@@ -2491,7 +2739,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "يوسف فتحي الترساوي",
@@ -2499,7 +2748,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد البطل (الشوبك)",
@@ -2507,7 +2757,8 @@
       "dueDate": "2024-07-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "م.حسن حسان (كوم ابو راضي)",
@@ -2515,7 +2766,8 @@
       "dueDate": "2026-10-06",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود عباس (القطوري)",
@@ -2523,7 +2775,8 @@
       "dueDate": "2026-11-29",
       "notes": "المرة الجاية هصفي  مش هيبقي تاني",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الرازق مرعي العياط(عزوز عدلي)",
@@ -2531,7 +2784,8 @@
       "dueDate": "2026-01-07",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمر زين (حنس)",
@@ -2539,7 +2793,8 @@
       "dueDate": "2025-07-20",
       "notes": "مطالبة واتصال حتى السداد",
       "isActive2026": false,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محيسن عبد الستار(كوم ابو راضي)",
@@ -2547,7 +2802,8 @@
       "dueDate": "2026-05-30",
       "notes": "هحول المغرب",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "فايز سنوسي (الزهيري)",
@@ -2555,7 +2811,8 @@
       "dueDate": "2024-10-24",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال احمد سيد (الهداهده)",
@@ -2563,7 +2820,8 @@
       "dueDate": "2024-10-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حازم مصطفى (دوار)",
@@ -2571,7 +2829,8 @@
       "dueDate": "2025-04-18",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد ثابت (شعيب)",
@@ -2579,7 +2838,8 @@
       "dueDate": "2024-08-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "فوزي محمد متولي (الشركه)",
@@ -2587,7 +2847,8 @@
       "dueDate": "2025-05-10",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الله طلعت سلطان (دوار)",
@@ -2595,7 +2856,8 @@
       "dueDate": "2024-12-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد سلطان (دوار)",
@@ -2603,7 +2865,8 @@
       "dueDate": "2026-11-12",
       "notes": "بعد شهر (اخد شهر فبل كده من اخر فاتورة)",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبدالله قرني هاشم - عزبة دوار",
@@ -2611,7 +2874,8 @@
       "dueDate": "2025-05-22",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه محمد عبد الحميد (سرسنا)",
@@ -2619,7 +2883,8 @@
       "dueDate": "2026-11-24",
       "notes": "جمعه محمد سرسنا يوم الثلاثاء   24/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ام محمود (ميدوم)",
@@ -2627,7 +2892,8 @@
       "dueDate": "2024-10-17",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د.حماده أبو الحسن",
@@ -2635,7 +2901,8 @@
       "dueDate": "2025-04-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علي سيد - الخواجات",
@@ -2643,7 +2910,8 @@
       "dueDate": "2026-12-08",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "المستشار/ محمد جبر (المنيا)",
@@ -2651,7 +2919,8 @@
       "dueDate": "2025-06-25",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد جابر الريفي(الشركه)",
@@ -2659,7 +2928,8 @@
       "dueDate": "2027-02-11",
       "notes": "تم تصفية الدورة كاملة ودورة جديدة 3 شهور",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "فرج روبي يوسف",
@@ -2667,7 +2937,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود حميده (كوم ابو راضي)",
@@ -2675,7 +2946,8 @@
       "dueDate": "2026-11-13",
       "notes": "مكالمة تليفون",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه محمد حسن (الحطي)",
@@ -2683,7 +2955,8 @@
       "dueDate": "2026-11-27",
       "notes": "هيدفع قديم 55175 يوم27/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد نابيل عبد العظيم (الشركه)",
@@ -2691,7 +2964,8 @@
       "dueDate": "2024-11-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد سليمان عبد المعز",
@@ -2699,7 +2973,8 @@
       "dueDate": "2025-04-02",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رامي احمد طلعت",
@@ -2707,7 +2982,8 @@
       "dueDate": "2025-05-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
@@ -2715,7 +2991,8 @@
       "dueDate": "2026-11-22",
       "notes": "الاحد من كل اسبوع",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود خميس (كفر سلطان)",
@@ -2723,7 +3000,8 @@
       "dueDate": "2025-06-24",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
@@ -2731,7 +3009,8 @@
       "dueDate": "2026-11-27",
       "notes": "خلال الاسبوع ده هيجيب من 450 ل500 الف",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابراهيم سويلم - العياط",
@@ -2739,7 +3018,8 @@
       "dueDate": "2026-07-31",
       "notes": "اخر الشهر بالمتابعة مع م علي",
       "isActive2026": false,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال موسى (عربيه)",
@@ -2747,7 +3027,8 @@
       "dueDate": "2026-11-03",
       "notes": "طالبه بعد 5 ايام",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود جابر الريفي(الشركه)",
@@ -2755,7 +3036,8 @@
       "dueDate": "2026-05-26",
       "notes": "صفي منه ال300",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج محمد رجب قمن العروس",
@@ -2763,7 +3045,8 @@
       "dueDate": "2026-06-20",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال سعد ابو السعود",
@@ -2771,7 +3054,8 @@
       "dueDate": "2025-12-12",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عويس الخراط",
@@ -2779,7 +3063,8 @@
       "dueDate": "2025-06-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه محمد مجاهد (الحطي)",
@@ -2787,7 +3072,8 @@
       "dueDate": "2025-08-10",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "توبه رشاد - الشركة",
@@ -2795,7 +3081,8 @@
       "dueDate": "2024-12-31",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مجدي محمد عبد العال",
@@ -2803,7 +3090,8 @@
       "dueDate": "2026-11-26",
       "notes": "هيوصلنا 2,800,000 ج   والاحد 29/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -2811,7 +3099,8 @@
       "dueDate": "2026-12-16",
       "notes": "25 يوم لسداد ابن عمه و3 شهور لسدد عيد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د.عزام صالح منصور",
@@ -2819,7 +3108,8 @@
       "dueDate": "2026-10-25",
       "notes": "الخميس 15/10/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعه جلوبال",
@@ -2827,7 +3117,8 @@
       "dueDate": "2025-11-20",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حربي عبد الغفار (قصر شانه)",
@@ -2835,7 +3126,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رمضان احمد مصطفى",
@@ -2843,7 +3135,8 @@
       "dueDate": "2027-01-15",
       "notes": "دورة جديدة 5 شهور",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مدشة ابو عمر",
@@ -2851,7 +3144,8 @@
       "dueDate": "2025-07-12",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه قاياتي(الدالي)",
@@ -2859,7 +3153,8 @@
       "dueDate": "2026-11-22",
       "notes": "الخميس 19/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
@@ -2867,7 +3162,8 @@
       "dueDate": "2026-11-29",
       "notes": "بكرا 23/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 90000.0
     },
     {
       "customerName": "مصطفى خليل (لطيف)",
@@ -2875,7 +3171,8 @@
       "dueDate": "",
       "notes": "[12:19 م، 2026/3/7] م / علي منير: قبل ما ياخد جديد يسدد",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد محروس (بني سويف)",
@@ -2883,7 +3180,8 @@
       "dueDate": "2025-04-02",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سالم محمد (نسنوس)",
@@ -2891,7 +3189,8 @@
       "dueDate": "2025-05-22",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد سويلم (العياط)",
@@ -2899,7 +3198,8 @@
       "dueDate": "2026-12-01",
       "notes": "باقى 7400ياحج أحمد يوم 1فى الشهر المقبل",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
@@ -2907,7 +3207,8 @@
       "dueDate": "2026-11-30",
       "notes": "الباقي بعد 15 ايام +دورة جديدة  ودفعة الفلوس الجاية ف او اسبوع رمضان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محيسن ابو حمره (كوم ابو راضي)",
@@ -2915,7 +3216,8 @@
       "dueDate": "2026-12-02",
       "notes": "اخر النهار",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "بسيوني سيد مصطفى (مصطفى الصعيدي)",
@@ -2923,7 +3225,8 @@
       "dueDate": "2026-07-21",
       "notes": "تم تصفية الدورة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حيدر عبد الحميد حسين(قيصر)",
@@ -2931,7 +3234,8 @@
       "dueDate": "2027-04-03",
       "notes": "حماده حيدر يومين 20/10",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ايمن شحات (مصطفى الصعيدي)",
@@ -2939,7 +3243,8 @@
       "dueDate": "2026-12-08",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نادر محمد (الشيخ علي)",
@@ -2947,7 +3252,8 @@
       "dueDate": "2026-06-01",
       "notes": "بلاغ استاذ احمد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدي عبد الونيس الرمادي(عزبة شقلوف)",
@@ -2955,7 +3261,8 @@
       "dueDate": "2025-06-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رجب محمد عوض (العزالي)",
@@ -2963,7 +3270,8 @@
       "dueDate": "2026-01-28",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد محمد سليمان (كوم ابو راضي)",
@@ -2971,7 +3279,8 @@
       "dueDate": "2025-07-13",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
@@ -2979,7 +3288,8 @@
       "dueDate": "2026-11-29",
       "notes": "السبت 21/11/2026 بلاغ علي",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مختار السمرجي (الشيخ علي)",
@@ -2987,7 +3297,8 @@
       "dueDate": "2025-05-15",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود دبور",
@@ -2995,7 +3306,8 @@
       "dueDate": "2026-12-19",
       "notes": "العلفة الجاية هيسد القديم والجديد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 70000.0
     },
     {
       "customerName": "عمرو عبد المنعم (ابو بساط)",
@@ -3003,7 +3315,8 @@
       "dueDate": "2025-06-05",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد راضي عويس (الصفيح)",
@@ -3011,7 +3324,8 @@
       "dueDate": "2026-05-01",
       "notes": "يوم 1/5 او السبت",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسن مصطفى (منشأة الامراء)",
@@ -3019,7 +3333,8 @@
       "dueDate": "2026-12-16",
       "notes": "فاتورة وفاتورة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الله ضيف (الصفيح)",
@@ -3027,7 +3342,8 @@
       "dueDate": "2026-09-30",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابو عبدو الحاج ابراهيم عبدالله (طاميه)",
@@ -3035,7 +3351,8 @@
       "dueDate": "2026-01-29",
       "notes": "450من فلوس ايمن هتتخصم",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د.شعبان (مزرعة جلوبال)",
@@ -3043,7 +3360,8 @@
       "dueDate": "2025-05-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "غزال مفتاح (خور الضبع)",
@@ -3051,7 +3369,8 @@
       "dueDate": "2026-05-30",
       "notes": "اسبوع العيد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مصطفى العدوى",
@@ -3059,7 +3378,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ايمن سعيد ابو خليفه (الشوبك)",
@@ -3067,7 +3387,8 @@
       "dueDate": "2025-05-18",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد احمد (الوسطى)",
@@ -3075,7 +3396,8 @@
       "dueDate": "2026-11-26",
       "notes": "الخميس هيجهزفلوس 26/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 10000.0
     },
     {
       "customerName": "ياسر العسال",
@@ -3083,7 +3405,8 @@
       "dueDate": "2025-06-25",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اسامه علي عبد الكريم",
@@ -3091,7 +3414,8 @@
       "dueDate": "2026-12-01",
       "notes": "مكالمة مع م علي",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ذا بارك",
@@ -3099,7 +3423,8 @@
       "dueDate": "2025-07-06",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد راغب (الهداهده)",
@@ -3107,7 +3432,8 @@
       "dueDate": "2027-01-29",
       "notes": "محمد راغب هيصفي القديم اخر الشهر",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محيسن محمد (كوم ابو راضي)",
@@ -3115,7 +3441,8 @@
       "dueDate": "2026-04-09",
       "notes": "اسبوع بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "يوسف سيد قرني سلومه (الهداهده)",
@@ -3123,7 +3450,8 @@
       "dueDate": "2026-01-17",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابراهيم سيد عبدالعزيز ( كفر سلطان )",
@@ -3131,7 +3459,8 @@
       "dueDate": "2026-01-29",
       "notes": "السداد يوم 10/7",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود عبد المنعم (اللاهون)",
@@ -3139,7 +3468,8 @@
       "dueDate": "2027-04-07",
       "notes": "مع كل فاتورة دفعة  والتصفية آخر الدورة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الحميد حسين (العياط)",
@@ -3147,7 +3477,8 @@
       "dueDate": "2026-09-14",
       "notes": "بكرا",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سعيد علي (سمسطا)",
@@ -3155,7 +3486,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اسامه يحيى (العياط)",
@@ -3163,7 +3495,8 @@
       "dueDate": "2026-06-30",
       "notes": "مع باقي مجموعة جمعة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رفيق مصطفى عبد المعبود (قيصر)",
@@ -3171,7 +3504,8 @@
       "dueDate": "2026-10-14",
       "notes": "الاربعاء 14/10/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمرو حسن عابد",
@@ -3179,7 +3513,8 @@
       "dueDate": "2026-12-16",
       "notes": "الخميس 12/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "صبحي صلاح سيد ( البرنسة )",
@@ -3187,7 +3522,8 @@
       "dueDate": "2026-07-23",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
@@ -3195,7 +3531,8 @@
       "dueDate": "2026-12-21",
       "notes": "دورة 4 شهور سدد القديم",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "م - محمود (طريق اسيوط )",
@@ -3203,7 +3540,8 @@
       "dueDate": "2025-08-01",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عواد يونس (العياط)",
@@ -3211,7 +3549,8 @@
       "dueDate": "2026-05-13",
       "notes": "السبت الجي 18/4/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "هيثم عبد الهادي (السحابة)",
@@ -3219,7 +3558,8 @@
       "dueDate": "2026-11-20",
       "notes": "هيجي واحده",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الله ادريس (ابو بساط)",
@@ -3227,7 +3567,8 @@
       "dueDate": "2026-04-15",
       "notes": "باع وفلوسه جاهزة معاه  3 ايام كده",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد رجب (سمسطا)",
@@ -3235,7 +3576,8 @@
       "dueDate": "2026-09-22",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسبو احمد حسين (قيصر)",
@@ -3243,7 +3585,8 @@
       "dueDate": "2027-01-03",
       "notes": "نهاية دورته لانه صفى القديم",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عطيه محمد غريب (العياط)",
@@ -3251,7 +3594,8 @@
       "dueDate": "2026-10-04",
       "notes": "مطالبة من جمعة",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عماد صلاح عبدالمعبود (قيصر)",
@@ -3259,7 +3603,8 @@
       "dueDate": "2027-01-31",
       "notes": "دورة جديدة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ناصر شعبان هاشم ( طاميه)",
@@ -3267,7 +3612,8 @@
       "dueDate": "2026-06-27",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مصطفى محمد حسن (الحطي)",
@@ -3275,7 +3621,8 @@
       "dueDate": "2027-02-21",
       "notes": "بلاغ استاذ احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد المقصود عربية",
@@ -3283,7 +3630,8 @@
       "dueDate": "2026-03-17",
       "notes": "بصفي قبل اي فاتورة جديدة او يدفع جزء كبير",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمزة عبدالحميد خليفة - حلوان",
@@ -3291,7 +3639,8 @@
       "dueDate": "2026-01-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مشهور ابراهيم معوض (الشركة)",
@@ -3299,7 +3648,8 @@
       "dueDate": "2026-10-02",
       "notes": "مشهور ابراهيم بكره",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نور حميده (البراني)",
@@ -3307,7 +3657,8 @@
       "dueDate": "2026-09-16",
       "notes": "الباقي بعد 10 ايام",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبدالرحمن صلاح (المسلة)",
@@ -3315,7 +3666,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد عبداللطيف - ابو شويقي",
@@ -3323,7 +3675,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "كارم سعد",
@@ -3331,7 +3684,8 @@
       "dueDate": "2025-09-29",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسن عبدالجليل - السحابه",
@@ -3339,7 +3693,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خيرالله سيد محمود - السحابه",
@@ -3347,7 +3702,8 @@
       "dueDate": "2026-02-15",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "راضي عاشور - العياط",
@@ -3355,7 +3711,8 @@
       "dueDate": "2026-04-05",
       "notes": "بكرا 5/4/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "خالد يحيى - العياط",
@@ -3363,7 +3720,8 @@
       "dueDate": "2025-10-07",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رجب بكري - ابو شويقي",
@@ -3371,7 +3729,8 @@
       "dueDate": "2026-04-18",
       "notes": "بيقبض يوم 18 ف الشهر",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد علي حامد - مقار",
@@ -3379,7 +3738,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج /ايمن منصور - البحيرة",
@@ -3387,7 +3747,8 @@
       "dueDate": "2026-11-22",
       "notes": "الاحد 23/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مزرعة الصفا - كوم ابو راضي",
@@ -3395,7 +3756,8 @@
       "dueDate": "2026-06-25",
       "notes": "وقبل العيد بأسبوع تصفية الحساب.",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "زغلول رجب سيد - العدوة",
@@ -3403,7 +3765,8 @@
       "dueDate": "2026-06-25",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "طارق ايوب (باديه فارم)",
@@ -3411,7 +3774,8 @@
       "dueDate": "2026-11-29",
       "notes": "مطالبة تاني حتى التصفية",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 12000.0
     },
     {
       "customerName": "خالد سعداوي - السحابة",
@@ -3419,7 +3783,8 @@
       "dueDate": "2026-03-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مدحت محمد (الخرابه)",
@@ -3427,7 +3792,8 @@
       "dueDate": "2026-12-11",
       "notes": "يطالب ع القديم",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "واعر حجازي - الشيخ علي",
@@ -3435,7 +3801,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "هاني الشيمي - العياط",
@@ -3443,7 +3810,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "معاذ ذيدان - البيضاء",
@@ -3451,7 +3819,8 @@
       "dueDate": "2026-05-19",
       "notes": "مطلوب منه لانه كاش",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسني صلاح عبدالمعبود - قيصر",
@@ -3459,7 +3828,8 @@
       "dueDate": "2027-01-31",
       "notes": "التصفية بعد 90 يوم بمكالمة مع صلاح حسني صلاح",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عاطف علي حسان - حسنه",
@@ -3467,7 +3837,8 @@
       "dueDate": "2026-05-07",
       "notes": "يومين ونسيبه هيدفعهم",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عامر عبدالهادي - الهداهده",
@@ -3475,7 +3846,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال الافي - نجع الافي",
@@ -3483,7 +3855,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد محمد عبود - قيصر",
@@ -3491,7 +3864,8 @@
       "dueDate": "2026-12-15",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "يوسف هاشم (طامية)",
@@ -3499,7 +3873,8 @@
       "dueDate": "2026-08-04",
       "notes": "هيصفي ع العيد الصغير الكلام بتاريخ 19/1/2026 فاتورة بفاتورة + دفعات",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد شعبان (البيضاء)",
@@ -3507,7 +3882,8 @@
       "dueDate": "2026-11-26",
       "notes": "مطالبة بعد 10 ايام يخف الحساب",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علي مسعود ابو بكر(الهداهده)",
@@ -3515,7 +3891,8 @@
       "dueDate": "2026-04-14",
       "notes": "الاربعاء 8/4/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود عبد الونيس خلف(اسعد نصيف)",
@@ -3523,7 +3900,8 @@
       "dueDate": "2026-05-30",
       "notes": "ممكن يصفي ع العيد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شعبان عويس عبدالعزيز (الخرابة)",
@@ -3531,7 +3909,8 @@
       "dueDate": "2026-04-22",
       "notes": "خالص",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود راغب (ابشواى)",
@@ -3539,7 +3918,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد احمد توفيق - ميدوم",
@@ -3547,7 +3927,8 @@
       "dueDate": "2025-12-30",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد عزوز _العزالي",
@@ -3555,7 +3936,8 @@
       "dueDate": "2026-02-28",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مجدي سيد عدالرحمن - الهداهده",
@@ -3563,7 +3945,8 @@
       "dueDate": "2027-04-10",
       "notes": "عيد الاضحى ودوفعات ان وجد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -3571,7 +3954,8 @@
       "dueDate": "2026-12-06",
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال 3 شهور قبل رمضان  تصفية الحساب",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مصطفي هاشم  _ طامية",
@@ -3579,7 +3963,8 @@
       "dueDate": "2026-08-20",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عثمان ربيع _قيصر",
@@ -3587,7 +3972,8 @@
       "dueDate": "2026-12-09",
       "notes": "عثمان ربيع هياخد اخر علفه ويبيع",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبدالحميد طه العكام",
@@ -3595,7 +3981,8 @@
       "dueDate": "2026-01-25",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "د. رمضان عبدالله_المريوطيه",
@@ -3603,7 +3990,8 @@
       "dueDate": "2026-05-05",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علاء عاشور _المنيا",
@@ -3611,7 +3999,8 @@
       "dueDate": "2026-03-16",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ممدوح عبد القادر محمد (قيصر)",
@@ -3619,7 +4008,8 @@
       "dueDate": "2026-09-18",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد ابو فهد-المنيب",
@@ -3627,7 +4017,8 @@
       "dueDate": "2026-11-12",
       "notes": "مع الدفعة الجاية هيسدد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدي نعيم - العياط",
@@ -3635,7 +4026,8 @@
       "dueDate": "2026-06-30",
       "notes": "اسبوع بلاغ جمعة عزوز",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علي العمده - كورنيش المعادي",
@@ -3643,7 +4035,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ذيدان علي ذيدان (البيضاء)",
@@ -3651,7 +4044,8 @@
       "dueDate": "2026-06-01",
       "notes": "عيد الاضحى هيصفي",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عصام الدريني - سيلا",
@@ -3659,7 +4053,8 @@
       "dueDate": "2026-03-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اشرف مدشه",
@@ -3667,7 +4062,8 @@
       "dueDate": "2026-06-11",
       "notes": "الخميس  11/6",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسين هليل عبدالحليم",
@@ -3675,7 +4071,8 @@
       "dueDate": "2026-12-22",
       "notes": "وخلال الشهر لو في فلوس هيجيب",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عفت الشوكي",
@@ -3683,7 +4080,8 @@
       "dueDate": "2026-06-04",
       "notes": "هيحول انهردة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ربيع قرني(طريق اسيوط)",
@@ -3691,7 +4089,8 @@
       "dueDate": "2026-10-01",
       "notes": "ربيع قرني متابعه مع البشمهدس",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج/ عمر نادي",
@@ -3699,7 +4098,8 @@
       "dueDate": "2026-03-03",
       "notes": "",
       "isActive2026": false,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود ابو زيد - الهداهده",
@@ -3707,7 +4107,8 @@
       "dueDate": "2026-12-11",
       "notes": "شهر ويبيع وصل 16 الف",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبدالله الجمل - كفر الشيخ",
@@ -3715,7 +4116,8 @@
       "dueDate": "2026-06-13",
       "notes": "الاربعاء 3/6/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شعبان محمد - نجع اللهيب",
@@ -3723,7 +4125,8 @@
       "dueDate": "2026-11-06",
       "notes": "شعبان محمد نجع اللهيب جي المدشه",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسام عبدالقادر عبدالجليل-الهداهده",
@@ -3731,7 +4134,8 @@
       "dueDate": "2026-09-22",
       "notes": "حسام عبد القادر اصبوع هيجي ياخد علف ويجيب فلوس",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ناصر مصطفى عبدالمعبود-قيصر",
@@ -3739,7 +4143,8 @@
       "dueDate": "2026-06-13",
       "notes": "اسبوع",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "قرنى احمد محمد حسين (كمال علوى)",
@@ -3747,7 +4152,8 @@
       "dueDate": "2026-12-15",
       "notes": "باخد علف واسدد القديم",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدي ابراهيم - السحابة",
@@ -3755,7 +4161,8 @@
       "dueDate": "2026-07-08",
       "notes": "الاربعاء 8/7/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حسام عدلي عبود(قيصر)",
@@ -3763,7 +4170,8 @@
       "dueDate": "2026-11-18",
       "notes": "بعد العصر",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "يحى العربي",
@@ -3771,7 +4179,8 @@
       "dueDate": "2026-05-31",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد خالد السواق-الحموي",
@@ -3779,7 +4188,8 @@
       "dueDate": "2026-11-17",
       "notes": "هيسدد انهردة من فلوسه",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عصام صلاح (لطيف)",
@@ -3787,7 +4197,8 @@
       "dueDate": "2026-03-31",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "فايز دياب(مهدي بيه)",
@@ -3795,7 +4206,8 @@
       "dueDate": "2026-09-04",
       "notes": "بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "معوض صابر (البرنسة)",
@@ -3803,7 +4215,8 @@
       "dueDate": "2026-09-24",
       "notes": "بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "العمدة / مبارك الديب - الميمون بني سويف",
@@ -3811,7 +4224,8 @@
       "dueDate": "2026-03-21",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مراد عبد القادر",
@@ -3819,7 +4233,8 @@
       "dueDate": "2026-08-20",
       "notes": "قرب يبيع",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "إبراهيم عدس علي عبدالصمد",
@@ -3827,7 +4242,8 @@
       "dueDate": "2026-04-28",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حمدي أبو غالي - حلوان",
@@ -3835,7 +4251,8 @@
       "dueDate": "2026-05-30",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "اسلام عيد رضوان - منشية دمو",
@@ -3843,7 +4260,8 @@
       "dueDate": "2026-05-30",
       "notes": "بكرا هيجيب الباقي",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نادر عزت -الناصرية(حسنة)",
@@ -3851,7 +4269,8 @@
       "dueDate": "2026-06-16",
       "notes": "بعد العصر 17/6/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد هليل عبدالحليم",
@@ -3859,7 +4278,8 @@
       "dueDate": "2026-06-03",
       "notes": "بعد العيد يوم 1 ف الشهر",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد حلمي هليل عبدالحليم",
@@ -3867,7 +4287,8 @@
       "dueDate": "2027-04-23",
       "notes": "دورة جديدة  5 شهور",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد سعيد محمود (اسعد نصيف)",
@@ -3875,7 +4296,8 @@
       "dueDate": "2026-10-08",
       "notes": "بكرا 7/10/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عويس سيف(ابو شويقي)",
@@ -3883,7 +4305,8 @@
       "dueDate": "2026-11-28",
       "notes": "عويس سيف بكره",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "توفيق محمد (نجع العرب)",
@@ -3891,7 +4314,8 @@
       "dueDate": "2026-11-28",
       "notes": "بعد 10 ايام الباقي",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمر عصام كليب (مرعب)",
@@ -3899,7 +4323,8 @@
       "dueDate": "2026-06-22",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -3907,7 +4332,8 @@
       "dueDate": "2026-12-06",
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "أحمد القصاص - حلوان",
@@ -3915,7 +4341,8 @@
       "dueDate": "2026-06-25",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "موسى ابراهيم(الهداهده)",
@@ -3923,7 +4350,8 @@
       "dueDate": "2026-05-30",
       "notes": "ثالث يوم العيد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سامح راضي ابو شقرا(مرعب)",
@@ -3931,7 +4359,8 @@
       "dueDate": "2026-07-05",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد محمود سيد (السحابه)",
@@ -3939,7 +4368,8 @@
       "dueDate": "2026-08-06",
       "notes": "الخميس 8/6/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد فتحي حسن(مرعب)",
@@ -3947,7 +4377,8 @@
       "dueDate": "2026-09-10",
       "notes": "الخميس 10/9/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "شعبان فتحي(الشيخ علي)",
@@ -3955,7 +4386,8 @@
       "dueDate": "2026-11-22",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عمر محمد عبدالعظيم(الشيخ علي)",
@@ -3963,7 +4395,8 @@
       "dueDate": "2026-09-03",
       "notes": "الخميس 3/9",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال سيد عبدالفتاح(قمن العروس)",
@@ -3971,7 +4404,8 @@
       "dueDate": "2026-11-19",
       "notes": "خلال اسبوع",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد راغب(الهداهدة)",
@@ -3979,7 +4413,8 @@
       "dueDate": "2027-01-23",
       "notes": "دورة جديدة اخرها العيد الكبير",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال مختار - قمن العروس",
@@ -3987,7 +4422,8 @@
       "dueDate": "2026-11-22",
       "notes": "جمال مختار النهاردة أو بكرة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "علي محمد (نصار)",
@@ -3995,7 +4431,8 @@
       "dueDate": "2026-11-23",
       "notes": "فاتورة وفاتورة",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمعه عبد التواب (محمد علي)",
@@ -4003,7 +4440,8 @@
       "dueDate": "2026-09-20",
       "notes": "الاحد 20/9/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد الهواري - كوم أبو راضي",
@@ -4011,7 +4449,8 @@
       "dueDate": "2026-12-04",
       "notes": "والحساب يوم الثلاثاء  3/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رمضان جابر(مدشة) سيلا",
@@ -4019,7 +4458,8 @@
       "dueDate": "2026-09-02",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد عبدالرؤف(مزرعة زعزوع)",
@@ -4027,7 +4467,8 @@
       "dueDate": "2026-06-12",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "يونس علي (الشيخ علي)",
@@ -4035,7 +4476,8 @@
       "dueDate": "2026-07-08",
       "notes": "بعد بكرا 8/7/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "مهندس- حماصة محمد(طريق اسيوط)",
@@ -4043,7 +4485,8 @@
       "dueDate": "2026-11-21",
       "notes": "السبت اخر النهار",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد جابر عبدالحميد(قيصر)",
@@ -4051,7 +4494,8 @@
       "dueDate": "2026-12-11",
       "notes": "انتظار بيع",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ادهم عباس (طريق اسيوط)",
@@ -4059,7 +4503,8 @@
       "dueDate": "2026-06-10",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رمضان زكي( الشيخ علي)",
@@ -4067,7 +4512,8 @@
       "dueDate": "2026-06-12",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد الدعيكي(الخواجات)",
@@ -4075,7 +4521,8 @@
       "dueDate": "2026-11-09",
       "notes": "الباقيبعد اسبوع",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج / محمد عوده (الفشن)",
@@ -4083,7 +4530,8 @@
       "dueDate": "2026-11-28",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نادي قرني سلومة",
@@ -4091,7 +4539,8 @@
       "dueDate": "2026-06-26",
       "notes": "يومين وهيجيب",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ناصر سيد جبالي (مهدي بيه)",
@@ -4099,7 +4548,8 @@
       "dueDate": "2026-11-22",
       "notes": "وتصفية  رمضان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبد العليم سامي (قيصر)",
@@ -4107,7 +4557,8 @@
       "dueDate": "2026-07-06",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد نصر احمد",
@@ -4115,7 +4566,8 @@
       "dueDate": "2026-11-07",
       "notes": "احمد نصر يوم الاثنين  26/10/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "جمال علام عطية(مرعب)",
@@ -4123,7 +4575,8 @@
       "dueDate": "2026-10-18",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "بدوي احمد سالم (ابو شويقي)",
@@ -4131,7 +4584,8 @@
       "dueDate": "2026-11-26",
       "notes": "الباقي يوم 22/9/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد عيد (مزرعة الدولية) كوم ابور راضي",
@@ -4139,7 +4593,8 @@
       "dueDate": "2026-11-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد حنفي(شعبان) طريق اسيوط",
@@ -4147,7 +4602,8 @@
       "dueDate": "2026-07-19",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 21000.0
     },
     {
       "customerName": "احمد عبدالفضيل (الفشن)",
@@ -4155,7 +4611,8 @@
       "dueDate": "2026-08-04",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نزيه حسني (الخرابة)",
@@ -4163,7 +4620,8 @@
       "dueDate": "2026-11-30",
       "notes": "اخر الشهر بلاغ م علي",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "كرومه (هجمين العزازية)",
@@ -4171,7 +4629,8 @@
       "dueDate": "2026-11-30",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سلطان غزال (الهداهدة)",
@@ -4179,7 +4638,8 @@
       "dueDate": "2026-12-14",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "توفيق محمد - اللاطه",
@@ -4187,7 +4647,8 @@
       "dueDate": "2026-08-09",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "الحاج/ عمرو صلاح الكومي",
@@ -4195,7 +4656,8 @@
       "dueDate": "2026-10-08",
       "notes": "لما يبيع",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "حجاج حامد (قصر شانة)",
@@ -4203,7 +4665,8 @@
       "dueDate": "2026-08-16",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "امير رياض(احمد فرحات) ريست الفيوم",
@@ -4211,7 +4674,8 @@
       "dueDate": "2026-12-13",
       "notes": "تصفية خلال 7 شهور وسداد 2 مليون خلال  3 شهور",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد ابراهيم محمد عبدالمجيد (الصفيح)",
@@ -4219,7 +4683,8 @@
       "dueDate": "2026-09-24",
       "notes": "بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد خالد (الغمري)",
@@ -4227,7 +4692,8 @@
       "dueDate": "2026-11-07",
       "notes": "باع ومستني فلوس بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رفعت ابراهيم ابو النور (الشركة)",
@@ -4235,7 +4701,8 @@
       "dueDate": "2026-11-10",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد خالد قرني(خليفه يونس)",
@@ -4243,7 +4710,8 @@
       "dueDate": "2026-10-21",
       "notes": "الاربعاء تصفية  21/10/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد جمعة قرني (صالح مسعود)",
@@ -4251,7 +4719,8 @@
       "dueDate": "2026-12-19",
       "notes": "بعد 3 شهور",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رمضان عبدالعظيم (عزت عبدالرازق-كفر سلطان)",
@@ -4259,7 +4728,8 @@
       "dueDate": "2026-10-01",
       "notes": "دورة و اول 3 شهور كاش",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد مسعود صابر (الهدهدة)",
@@ -4267,7 +4737,8 @@
       "dueDate": "2026-11-05",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "نبيل بكري (مدحت محمد)",
@@ -4275,7 +4746,8 @@
       "dueDate": "2027-01-02",
       "notes": "3شهور بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سعداوي عبدالجواد (صالح مسعود)",
@@ -4283,7 +4755,8 @@
       "dueDate": "2026-11-28",
       "notes": "بعد 10 ايام بلاغ محمد شعبان",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "رجب عزت (جمعة محمد عزوز)",
@@ -4291,7 +4764,8 @@
       "dueDate": "2026-10-08",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "عبدالرحمن محمد فراج (مدحت محمد)",
@@ -4299,7 +4773,8 @@
       "dueDate": "2026-11-28",
       "notes": "جي واحده  هياخد علف ويدفع هيكلمه السبت 28/11/2026",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "هاني مبروك - قمن العروس",
@@ -4307,7 +4782,8 @@
       "dueDate": "2026-11-05",
       "notes": "2026-11-05 00:00:00",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
@@ -4315,7 +4791,8 @@
       "dueDate": "2026-12-22",
       "notes": "بلاغ ا احمد",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سيد صابر مسعود (الهداهدة)",
@@ -4323,7 +4800,8 @@
       "dueDate": "2026-10-25",
       "notes": "سيد صابر الهدهد جي المدشه",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود محمد محمود رضوان (ادريس)",
@@ -4331,7 +4809,8 @@
       "dueDate": "2026-12-01",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد رمضان (فانوس)",
@@ -4339,7 +4818,8 @@
       "dueDate": "2026-10-24",
       "notes": "السبت 24/10/2026",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 10200.0
     },
     {
       "customerName": "عزت عبدالرازق (كفر سلطان)",
@@ -4347,7 +4827,8 @@
       "dueDate": "2026-10-26",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمود راغب ( الهداهدة)",
@@ -4355,7 +4836,8 @@
       "dueDate": "2027-04-04",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد سعداوي (الهداهدة)",
@@ -4363,7 +4845,8 @@
       "dueDate": "2026-10-27",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "احمد سامي (الخيرات)",
@@ -4371,7 +4854,8 @@
       "dueDate": "2026-11-28",
       "notes": "يوم 28/11 هيسدد ال الفاتورتين",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "محمد رمضان ابو نجيلة",
@@ -4379,7 +4863,8 @@
       "dueDate": "2026-12-03",
       "notes": "تصفية بعد  4 شهور من اول فاتورة وكل نقلة 20 الف",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 10000.0
     },
     {
       "customerName": "مزرعة سمير مينا ( عيد احمد)",
@@ -4387,15 +4872,17 @@
       "dueDate": "2027-01-12",
       "notes": "اخر دورة البط",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "سلامه حمدي ( البرنسة)",
       "currentBalance": 2150.0,
       "dueDate": "2026-11-24",
-      "notes": "10 ايام بلاغ ا احمد",
+      "notes": "سلامه حمدي جي انهرده",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     },
     {
       "customerName": "وجيه مراد (فانوس)",
@@ -4403,7 +4890,8 @@
       "dueDate": "2026-11-23",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 4500.0
     },
     {
       "customerName": "الحمد للاعلاف",
@@ -4411,7 +4899,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": true
+      "isKhalis": true,
+      "collectedFromSheet": 127000.0
     },
     {
       "customerName": "ياسر عبد الصمد",
@@ -4419,7 +4908,8 @@
       "dueDate": "",
       "notes": "",
       "isActive2026": true,
-      "isKhalis": false
+      "isKhalis": false,
+      "collectedFromSheet": 0.0
     }
   ],
   "weeklyTreasuryTransactions": [
@@ -4976,7 +5466,7 @@
       "normalizedName": "عيد احمد عبدالفتاح ابو السعود",
       "currentBalance": 448320.0,
       "expectedAmount": 150000.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 3000.0,
       "dueDate": "2026-11-22",
       "rate": 0.0,
       "status": "لم يسدد",
@@ -5004,7 +5494,7 @@
       "normalizedName": "ابو حمزه للاعلاف",
       "currentBalance": 1035.0,
       "expectedAmount": 140000.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 139125.0,
       "dueDate": "2026-11-26",
       "rate": 0.0,
       "status": "لم يسدد",
@@ -5074,7 +5564,7 @@
       "normalizedName": "باديه فارم كوم ابو راضي",
       "currentBalance": 35488.85713900067,
       "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 90000.0,
       "dueDate": "2026-11-29",
       "rate": 0.0,
       "status": "لم يسدد",
@@ -5102,7 +5592,7 @@
       "normalizedName": "عميل نقدي كاش",
       "currentBalance": 0.0,
       "expectedAmount": 0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 1700.0,
       "dueDate": "",
       "rate": 1.0,
       "status": "مكتمل",
@@ -5110,6 +5600,104 @@
       "notes": "مبيعات وتحصيلات نقدية أسبوعية (كاش)",
       "isPinned": true,
       "index": 11
+    },
+    {
+      "customerName": "خالد عمر (جمعه محمد عزوز)",
+      "normalizedName": "خالد عمر جمعه محمد عزوز",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2024-12-31",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 12
+    },
+    {
+      "customerName": "م احمد ابو العيد (دبانة)",
+      "normalizedName": "م احمد ابو العيد دبانه",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2025-06-29",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 13
+    },
+    {
+      "customerName": "جمعه محمد مجاهد (الحطي)",
+      "normalizedName": "جمعه محمد مجاهد الحطي",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2025-08-10",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 14
+    },
+    {
+      "customerName": "محمد احمد توفيق - ميدوم",
+      "normalizedName": "محمد احمد توفيق ميدوم",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2025-12-30",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 15
+    },
+    {
+      "customerName": "هشام يحى",
+      "normalizedName": "هشام يحي",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-01-16",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 16
+    },
+    {
+      "customerName": "مختار محمد محمد جمال",
+      "normalizedName": "مختار محمد محمد جمال",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-04-02",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 17
+    },
+    {
+      "customerName": "محمد سيد جبالي",
+      "normalizedName": "محمد سيد جبالي",
+      "currentBalance": 0.06999999999970896,
+      "expectedAmount": 0.06999999999970896,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-05-24",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.06999999999970896,
+      "notes": "تم التصفية عن طريق اخوه",
+      "isPinned": false,
+      "index": 18
     },
     {
       "customerName": "عفت الشوكي",
@@ -5123,7 +5711,63 @@
       "remaining": 50.0,
       "notes": "هيحول انهردة",
       "isPinned": false,
-      "index": 12
+      "index": 19
+    },
+    {
+      "customerName": "عامر عيد (جمعه محمد عزوز) العياط",
+      "normalizedName": "عامر عيد جمعه محمد عزوز العياط",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-06-30",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "اسبوع",
+      "isPinned": false,
+      "index": 20
+    },
+    {
+      "customerName": "عمر عيد احمد عبد الفتاح(ابو السعود)",
+      "normalizedName": "عمر عيد احمد عبدالفتاح ابو السعود",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-07-16",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "عيد احمد عبد الفتاح هيحول كاش انهارده",
+      "isPinned": false,
+      "index": 21
+    },
+    {
+      "customerName": "محمد حنفي(شعبان) طريق اسيوط",
+      "normalizedName": "محمد حنفي شعبان طريق اسيوط",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 21000.0,
+      "dueDate": "2026-07-19",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 22
+    },
+    {
+      "customerName": "توفيق محمد - اللاطه",
+      "normalizedName": "توفيق محمد اللاطه",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-08-09",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 23
     },
     {
       "customerName": "جمعه عبد التواب (محمد علي)",
@@ -5137,7 +5781,7 @@
       "remaining": 100.0,
       "notes": "الاحد 20/9/2026",
       "isPinned": false,
-      "index": 13
+      "index": 24
     },
     {
       "customerName": "الحاج/ عمرو صلاح الكومي",
@@ -5151,7 +5795,21 @@
       "remaining": 128900.0,
       "notes": "لما يبيع",
       "isPinned": false,
-      "index": 14
+      "index": 25
+    },
+    {
+      "customerName": "رجب عزت (جمعة محمد عزوز)",
+      "normalizedName": "رجب عزت جمعه محمد عزوز",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-10-08",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 26
     },
     {
       "customerName": "محمد عدلي (الوسطى)",
@@ -5165,7 +5823,49 @@
       "remaining": 13250.0,
       "notes": "محمد عدلي الوسطى يوم الاربعاء",
       "isPinned": false,
-      "index": 15
+      "index": 27
+    },
+    {
+      "customerName": "محمد خالد قرني(خليفه يونس)",
+      "normalizedName": "محمد خالد قرني خليفه يونس",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-10-21",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "الاربعاء تصفية  21/10/2026",
+      "isPinned": false,
+      "index": 28
+    },
+    {
+      "customerName": "محمد رمضان (فانوس)",
+      "normalizedName": "محمد رمضان فانوس",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 10200.0,
+      "dueDate": "2026-10-24",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "السبت 24/10/2026",
+      "isPinned": false,
+      "index": 29
+    },
+    {
+      "customerName": "سيد صابر مسعود (الهداهدة)",
+      "normalizedName": "سيد صابر مسعود الهداهده",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-10-25",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "سيد صابر الهدهد جي المدشه",
+      "isPinned": false,
+      "index": 30
     },
     {
       "customerName": "عزت عبدالرازق (كفر سلطان)",
@@ -5179,7 +5879,7 @@
       "remaining": 17825.0,
       "notes": "",
       "isPinned": false,
-      "index": 16
+      "index": 31
     },
     {
       "customerName": "احمد عيد (مزرعة الدولية) كوم ابور راضي",
@@ -5193,7 +5893,7 @@
       "remaining": 7720.0,
       "notes": "",
       "isPinned": false,
-      "index": 17
+      "index": 32
     },
     {
       "customerName": "جمال موسى (عربيه)",
@@ -5207,7 +5907,7 @@
       "remaining": 700.0,
       "notes": "طالبه بعد 5 ايام",
       "isPinned": false,
-      "index": 18
+      "index": 33
     },
     {
       "customerName": "مفرح سيد فهيم",
@@ -5221,7 +5921,35 @@
       "remaining": 151500.0,
       "notes": "مفرح يوم الاثنين  10/11/2026",
       "isPinned": false,
-      "index": 19
+      "index": 34
+    },
+    {
+      "customerName": "جمعه محمد رضوان",
+      "normalizedName": "جمعه محمد رضوان",
+      "currentBalance": -6000.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 6000.0,
+      "dueDate": "2026-11-10",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "فاتورة وفاتورة",
+      "isPinned": false,
+      "index": 35
+    },
+    {
+      "customerName": "محمد ابو فهد-المنيب",
+      "normalizedName": "محمد ابو فهد المنيب",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-12",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "مع الدفعة الجاية هيسدد",
+      "isPinned": false,
+      "index": 36
     },
     {
       "customerName": "احمد سلامه (حلوان)",
@@ -5235,21 +5963,21 @@
       "remaining": 98570.0,
       "notes": "هيصفي الفترة الجاية",
       "isPinned": false,
-      "index": 20
+      "index": 37
     },
     {
       "customerName": "بدوي حجازي البطل (الشوبك )",
       "normalizedName": "بدوي حجازي البطل الشوبك",
       "currentBalance": 80000.0,
       "expectedAmount": 80000.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 37550.0,
       "dueDate": "2026-11-18",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 80000.0,
       "notes": "",
       "isPinned": false,
-      "index": 21
+      "index": 38
     },
     {
       "customerName": "حسام عدلي عبود(قيصر)",
@@ -5263,7 +5991,7 @@
       "remaining": 11885.0,
       "notes": "بعد العصر",
       "isPinned": false,
-      "index": 22
+      "index": 39
     },
     {
       "customerName": "محمود سامي ابراهيم سيد(السحابه)",
@@ -5277,7 +6005,7 @@
       "remaining": 1890.0,
       "notes": "الاربيعاء 18/11",
       "isPinned": false,
-      "index": 23
+      "index": 40
     },
     {
       "customerName": "محمد حمدين الغنام",
@@ -5291,7 +6019,35 @@
       "remaining": 233045.0,
       "notes": "",
       "isPinned": false,
-      "index": 24
+      "index": 41
+    },
+    {
+      "customerName": "سلطان هريدي (العياط)",
+      "normalizedName": "سلطان هريدي العياط",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-21",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 42
+    },
+    {
+      "customerName": "مهندس- حماصة محمد(طريق اسيوط)",
+      "normalizedName": "مهندس حماصه محمد طريق اسيوط",
+      "currentBalance": 0.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-21",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "السبت اخر النهار",
+      "isPinned": false,
+      "index": 43
     },
     {
       "customerName": "عبود عدلي عبود قيصر",
@@ -5305,7 +6061,7 @@
       "remaining": 451644.92000000004,
       "notes": "شهرين واصفي الحساب",
       "isPinned": false,
-      "index": 25
+      "index": 44
     },
     {
       "customerName": "الحاج /ايمن منصور - البحيرة",
@@ -5319,7 +6075,7 @@
       "remaining": 155750.0,
       "notes": "الاحد 23/11/2026",
       "isPinned": false,
-      "index": 26
+      "index": 45
     },
     {
       "customerName": "ناصر سيد جبالي (مهدي بيه)",
@@ -5333,7 +6089,7 @@
       "remaining": 70435.0,
       "notes": "يوم 18/11/2026 50 الف وتصفية  رمضان",
       "isPinned": false,
-      "index": 27
+      "index": 46
     },
     {
       "customerName": "جمال مختار - قمن العروس",
@@ -5347,7 +6103,7 @@
       "remaining": 50425.0,
       "notes": "جمال مختار باقي حسابه يوم الخميس أو الجمعة",
       "isPinned": false,
-      "index": 28
+      "index": 47
     },
     {
       "customerName": "مرسي (مدشه)",
@@ -5361,7 +6117,7 @@
       "remaining": 415.0,
       "notes": "السبت او الاحد",
       "isPinned": false,
-      "index": 29
+      "index": 48
     },
     {
       "customerName": "جمعه قاياتي(الدالي)",
@@ -5375,7 +6131,7 @@
       "remaining": 10.0,
       "notes": "الخميس 19/11/2026",
       "isPinned": false,
-      "index": 30
+      "index": 49
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -5389,7 +6145,7 @@
       "remaining": 156275.0,
       "notes": "بكرا 23/11/2026",
       "isPinned": false,
-      "index": 31
+      "index": 50
     },
     {
       "customerName": "محمد سيد (مصطفي الصعيدي)",
@@ -5403,7 +6159,7 @@
       "remaining": 33485.0,
       "notes": "محمد سيد مصطفى السعيد على يوم الحد",
       "isPinned": false,
-      "index": 32
+      "index": 51
     },
     {
       "customerName": "عبد الغفورعلي عبد الباقي(كوم ابو راضي)",
@@ -5417,7 +6173,7 @@
       "remaining": 8700.0,
       "notes": "هيجي واحده",
       "isPinned": false,
-      "index": 33
+      "index": 52
     },
     {
       "customerName": "خميس محمد يتيم (قيصر)",
@@ -5431,7 +6187,21 @@
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 34
+      "index": 53
+    },
+    {
+      "customerName": "وجيه مراد (فانوس)",
+      "normalizedName": "وجيه مراد فانوس",
+      "currentBalance": 200.0,
+      "expectedAmount": 200.0,
+      "collectedFromSheet": 4500.0,
+      "dueDate": "2026-11-23",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 200.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 54
     },
     {
       "customerName": "ربيع جابر عبد الحميد",
@@ -5445,7 +6215,7 @@
       "remaining": 151190.0,
       "notes": "اخر طن",
       "isPinned": false,
-      "index": 35
+      "index": 55
     },
     {
       "customerName": "احمد سيد جبالى مهدى بيه",
@@ -5459,7 +6229,7 @@
       "remaining": 97355.0,
       "notes": "شهرين وكلمه تاني",
       "isPinned": false,
-      "index": 36
+      "index": 56
     },
     {
       "customerName": "جمعه محمد عبد الحميد (سرسنا)",
@@ -5473,7 +6243,21 @@
       "remaining": 6200.0,
       "notes": "جمعه محمد سرسنا يوم الاثنين  17/11/2026",
       "isPinned": false,
-      "index": 37
+      "index": 57
+    },
+    {
+      "customerName": "محمد احمد (الوسطى)",
+      "normalizedName": "محمد احمد الوسطي",
+      "currentBalance": 22040.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 10000.0,
+      "dueDate": "2026-11-26",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "مطالبة ب استمرار محمد ابو احمد بكره",
+      "isPinned": false,
+      "index": 58
     },
     {
       "customerName": "اشرف عدلي مصطفي",
@@ -5487,7 +6271,7 @@
       "remaining": 0.0,
       "notes": "وصل 1000 فاضل الباقي",
       "isPinned": false,
-      "index": 38
+      "index": 59
     },
     {
       "customerName": "جمعه محمد حسن (الحطي)",
@@ -5501,7 +6285,7 @@
       "remaining": 0.0,
       "notes": "هيدفع قديم 55175 يوم13/11/2026",
       "isPinned": false,
-      "index": 39
+      "index": 60
     },
     {
       "customerName": "احمد سامي (الخيرات)",
@@ -5515,7 +6299,7 @@
       "remaining": 0.0,
       "notes": "بعد بكرا هياخد ربع طن وهياحسب ع القديم",
       "isPinned": false,
-      "index": 40
+      "index": 61
     },
     {
       "customerName": "توفيق محمد (نجع العرب)",
@@ -5529,21 +6313,35 @@
       "remaining": 0.0,
       "notes": "بعد 10 ايام الباقي",
       "isPinned": false,
-      "index": 41
+      "index": 62
     },
     {
       "customerName": "طارق ايوب (باديه فارم)",
       "normalizedName": "طارق ايوب باديه فارم",
       "currentBalance": 24480.0,
       "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 12000.0,
       "dueDate": "2026-11-29",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "السسبت 21/11 بلاغ طارق",
       "isPinned": false,
-      "index": 42
+      "index": 63
+    },
+    {
+      "customerName": "د.محمد العسكري (اطفيح)",
+      "normalizedName": "د محمد العسكري اطفيح",
+      "currentBalance": -368018.3499999996,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-29",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "السبت 15/11/2026 1,570,000  من ياسر عبدالصمد",
+      "isPinned": false,
+      "index": 64
     },
     {
       "customerName": "جمعه محمد (مصطفى الصعيدي)",
@@ -5557,35 +6355,35 @@
       "remaining": 0.0,
       "notes": "جمعه محمد هيكلم اخوه يبعت فلوس",
       "isPinned": false,
-      "index": 43
+      "index": 65
     },
     {
       "customerName": "محمد رمضان ابو نجيلة",
       "normalizedName": "محمد رمضان ابو نجيله",
       "currentBalance": 23280.0,
       "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 10000.0,
       "dueDate": "2026-12-03",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "تصفية بعد  4 شهور من اول فاتورة وكل نقلة 20 الف",
       "isPinned": false,
-      "index": 44
+      "index": 66
     },
     {
       "customerName": "سامي قرني(اسعد نصيف)",
       "normalizedName": "سامي قرني اسعد نصيف",
       "currentBalance": 4420.0,
       "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 3000.0,
       "dueDate": "2026-12-03",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "اسبوع بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 45
+      "index": 67
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -5599,7 +6397,7 @@
       "remaining": 0.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 46
+      "index": 68
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -5613,7 +6411,7 @@
       "remaining": 0.0,
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
       "isPinned": false,
-      "index": 47
+      "index": 69
     },
     {
       "customerName": "سيد محمد عبود - قيصر",
@@ -5627,7 +6425,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 48
+      "index": 70
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -5641,35 +6439,35 @@
       "remaining": 0.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 49
+      "index": 71
     },
     {
       "customerName": "محمود دبور",
       "normalizedName": "محمود دبور",
       "currentBalance": 28900.0,
       "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 70000.0,
       "dueDate": "2026-12-19",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "العلفة الجاية هيسد القديم والجديد",
       "isPinned": false,
-      "index": 50
+      "index": 72
     },
     {
       "customerName": "محمود اسماعيل",
       "normalizedName": "محمود اسماعيل",
       "currentBalance": 89850.0,
       "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
+      "collectedFromSheet": 60000.0,
       "dueDate": "2026-12-21",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 51
+      "index": 73
     },
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
@@ -5683,7 +6481,7 @@
       "remaining": 0.0,
       "notes": "دورة 4 شهور سدد القديم",
       "isPinned": false,
-      "index": 52
+      "index": 74
     },
     {
       "customerName": "احمد محمد مرداشي (وحيد كامل)",
@@ -5697,7 +6495,7 @@
       "remaining": 0.0,
       "notes": "الاربعاء بعد السوق 18/11/2026",
       "isPinned": false,
-      "index": 53
+      "index": 75
     },
     {
       "customerName": "حمدان احمد ابو هوله - دوار",
@@ -5711,7 +6509,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 54
+      "index": 76
     },
     {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
@@ -5725,7 +6523,7 @@
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 55
+      "index": 77
     },
     {
       "customerName": "جمعه محمد عزوز(العياط)",
@@ -5739,7 +6537,7 @@
       "remaining": 0.0,
       "notes": "دورة جديدة",
       "isPinned": false,
-      "index": 56
+      "index": 78
     },
     {
       "customerName": "فرج محمد مسلم (السحابه)",
@@ -5753,7 +6551,7 @@
       "remaining": 0.0,
       "notes": "الاربعاء 2/9",
       "isPinned": false,
-      "index": 57
+      "index": 79
     },
     {
       "customerName": "مزرعة سمير مينا ( عيد احمد)",
@@ -5767,7 +6565,7 @@
       "remaining": 0.0,
       "notes": "اخر دورة البط",
       "isPinned": false,
-      "index": 58
+      "index": 80
     },
     {
       "customerName": "عبد الله كمال شاهين (معوض)",
@@ -5781,7 +6579,7 @@
       "remaining": 0.0,
       "notes": "على رمضان لو في قبل هيجيب دورة كل 3 شهو",
       "isPinned": false,
-      "index": 59
+      "index": 81
     },
     {
       "customerName": "اسماعيل يوسف (الحموي)",
@@ -5795,7 +6593,21 @@
       "remaining": 0.0,
       "notes": "دورة جديدة ودفعات كل علفة",
       "isPinned": false,
-      "index": 60
+      "index": 82
+    },
+    {
+      "customerName": "الحمد للاعلاف",
+      "normalizedName": "الحمد للاعلاف",
+      "currentBalance": -127000.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 127000.0,
+      "dueDate": "",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
+      "isPinned": false,
+      "index": 83
     }
   ]
 }
