@@ -4896,8 +4896,8 @@
     {
       "customerName": "الحمد للاعلاف",
       "currentBalance": -127000.0,
-      "dueDate": "",
-      "notes": "",
+      "dueDate": "2026-11-29",
+      "notes": "الباقي يوم الاحد 29/11/2026",
       "isActive2026": true,
       "isKhalis": true,
       "collectedFromSheet": 0.0
@@ -5511,30 +5511,9 @@
     {
       "receipt": "live_2026-11-24_6",
       "amount": 300.0,
-      "description": "احمد عدلي مصطفي",
+      "description": "اشرف عدلي مصطفي",
       "type": "كاش",
       "date": "2026-11-24"
-    },
-    {
-      "receipt": "live_2026-11-18_8",
-      "amount": 39000.0,
-      "description": "محمود اسماعيل",
-      "type": "كاش",
-      "date": "2026-11-18"
-    },
-    {
-      "receipt": "live_2026-11-18_10",
-      "amount": 140020.0,
-      "description": "ابو حمزه",
-      "type": "كاش",
-      "date": "2026-11-18"
-    },
-    {
-      "receipt": "K3863",
-      "amount": 2000.0,
-      "description": "اسماعيل يوسف (الحموي)",
-      "type": "كاش",
-      "date": "2026-11-18"
     }
   ],
   "customers": [
@@ -6463,6 +6442,20 @@
       "index": 66
     },
     {
+      "customerName": "الحمد للاعلاف",
+      "normalizedName": "الحمد للاعلاف",
+      "currentBalance": -127000.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-29",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "الباقي يوم الاحد 29/11/2026",
+      "isPinned": false,
+      "index": 67
+    },
+    {
       "customerName": "د.محمد العسكري (اطفيح)",
       "normalizedName": "د محمد العسكري اطفيح",
       "currentBalance": -368018.3499999996,
@@ -6474,7 +6467,7 @@
       "remaining": 0.0,
       "notes": "السبت 15/11/2026 1,570,000  من ياسر عبدالصمد",
       "isPinned": false,
-      "index": 67
+      "index": 68
     },
     {
       "customerName": "جمعه محمد (مصطفى الصعيدي)",
@@ -6488,7 +6481,7 @@
       "remaining": 0.0,
       "notes": "جمعه محمد هيكلم اخوه يبعت فلوس",
       "isPinned": false,
-      "index": 68
+      "index": 69
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -6502,7 +6495,7 @@
       "remaining": 0.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 69
+      "index": 70
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -6516,7 +6509,7 @@
       "remaining": 0.0,
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
       "isPinned": false,
-      "index": 70
+      "index": 71
     },
     {
       "customerName": "فرج محمد مسلم (السحابه)",
@@ -6530,7 +6523,7 @@
       "remaining": 0.0,
       "notes": "الاربعاء 2/9",
       "isPinned": false,
-      "index": 71
+      "index": 72
     },
     {
       "customerName": "سيد محمد عبود - قيصر",
@@ -6544,7 +6537,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 72
+      "index": 73
     },
     {
       "customerName": "قرنى احمد محمد حسين (كمال علوى)",
@@ -6558,7 +6551,7 @@
       "remaining": 0.0,
       "notes": "باخد علف واسدد القديم",
       "isPinned": false,
-      "index": 73
+      "index": 74
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -6572,7 +6565,7 @@
       "remaining": 0.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 74
+      "index": 75
     },
     {
       "customerName": "محمود دبور",
@@ -6586,7 +6579,7 @@
       "remaining": 0.0,
       "notes": "العلفة الجاية هيسد القديم والجديد",
       "isPinned": false,
-      "index": 75
+      "index": 76
     },
     {
       "customerName": "حماده عبدالجيد فريد (الخرابه)",
@@ -6600,7 +6593,7 @@
       "remaining": 0.0,
       "notes": "دورة 4 شهور سدد القديم",
       "isPinned": false,
-      "index": 76
+      "index": 77
     },
     {
       "customerName": "احمد محمد مرداشي (وحيد كامل)",
@@ -6614,7 +6607,7 @@
       "remaining": 0.0,
       "notes": "الاربعاء بعد السوق 18/11/2026",
       "isPinned": false,
-      "index": 77
+      "index": 78
     },
     {
       "customerName": "حمدان احمد ابو هوله - دوار",
@@ -6628,7 +6621,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 78
+      "index": 79
     },
     {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
@@ -6642,7 +6635,7 @@
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 79
+      "index": 80
     },
     {
       "customerName": "جمعه محمد عزوز(العياط)",
@@ -6656,7 +6649,7 @@
       "remaining": 0.0,
       "notes": "دورة جديدة",
       "isPinned": false,
-      "index": 80
+      "index": 81
     },
     {
       "customerName": "محمد رمضان ابو نجيلة",
@@ -6670,7 +6663,7 @@
       "remaining": 0.0,
       "notes": "تصفية بعد  4 شهور من اول فاتورة وكل نقلة 20 الف",
       "isPinned": false,
-      "index": 81
+      "index": 82
     },
     {
       "customerName": "سامي قرني(اسعد نصيف)",
@@ -6684,7 +6677,7 @@
       "remaining": 0.0,
       "notes": "اسبوع بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 82
+      "index": 83
     },
     {
       "customerName": "مزرعة سمير مينا ( عيد احمد)",
@@ -6698,7 +6691,7 @@
       "remaining": 0.0,
       "notes": "اخر دورة البط",
       "isPinned": false,
-      "index": 83
+      "index": 84
     },
     {
       "customerName": "عبد الله كمال شاهين (معوض)",
@@ -6712,7 +6705,7 @@
       "remaining": 0.0,
       "notes": "على رمضان لو في قبل هيجيب دورة كل 3 شهو",
       "isPinned": false,
-      "index": 84
+      "index": 85
     },
     {
       "customerName": "اسماعيل يوسف (الحموي)",
@@ -6725,20 +6718,6 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "دورة جديدة ودفعات كل علفة",
-      "isPinned": false,
-      "index": 85
-    },
-    {
-      "customerName": "الحمد للاعلاف",
-      "normalizedName": "الحمد للاعلاف",
-      "currentBalance": -127000.0,
-      "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 0.0,
-      "notes": "",
       "isPinned": false,
       "index": 86
     }
