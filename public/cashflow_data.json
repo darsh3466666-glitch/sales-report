@@ -1512,8 +1512,8 @@
     {
       "customerName": "محمود اسماعيل",
       "currentBalance": 89850.0,
-      "dueDate": "2026-12-21",
-      "notes": "20  يوم بلاغ محمد شعبان",
+      "dueDate": "2026-11-26",
+      "notes": "باقي الفاتورة يوم الخميس 26/11/2026",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 60000.0
@@ -6232,6 +6232,20 @@
       "index": 56
     },
     {
+      "customerName": "محمود اسماعيل",
+      "normalizedName": "محمود اسماعيل",
+      "currentBalance": 89850.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 60000.0,
+      "dueDate": "2026-11-26",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "20  يوم بلاغ محمد شعبان",
+      "isPinned": false,
+      "index": 57
+    },
+    {
       "customerName": "محمد احمد (الوسطى)",
       "normalizedName": "محمد احمد الوسطي",
       "currentBalance": 22040.0,
@@ -6243,7 +6257,7 @@
       "remaining": 0.0,
       "notes": "مطالبة ب استمرار محمد ابو احمد بكره",
       "isPinned": false,
-      "index": 57
+      "index": 58
     },
     {
       "customerName": "اشرف عدلي مصطفي",
@@ -6257,7 +6271,7 @@
       "remaining": 0.0,
       "notes": "وصل 1000 فاضل الباقي",
       "isPinned": false,
-      "index": 58
+      "index": 59
     },
     {
       "customerName": "جمعه محمد حسن (الحطي)",
@@ -6271,7 +6285,7 @@
       "remaining": 0.0,
       "notes": "هيدفع قديم 55175 يوم13/11/2026",
       "isPinned": false,
-      "index": 59
+      "index": 60
     },
     {
       "customerName": "احمد سامي (الخيرات)",
@@ -6285,7 +6299,7 @@
       "remaining": 0.0,
       "notes": "بعد بكرا هياخد ربع طن وهياحسب ع القديم",
       "isPinned": false,
-      "index": 60
+      "index": 61
     },
     {
       "customerName": "توفيق محمد (نجع العرب)",
@@ -6299,7 +6313,7 @@
       "remaining": 0.0,
       "notes": "بعد 10 ايام الباقي",
       "isPinned": false,
-      "index": 61
+      "index": 62
     },
     {
       "customerName": "طارق ايوب (باديه فارم)",
@@ -6313,7 +6327,7 @@
       "remaining": 0.0,
       "notes": "السسبت 21/11 بلاغ طارق",
       "isPinned": false,
-      "index": 62
+      "index": 63
     },
     {
       "customerName": "د.محمد العسكري (اطفيح)",
@@ -6327,7 +6341,7 @@
       "remaining": 0.0,
       "notes": "السبت 15/11/2026 1,570,000  من ياسر عبدالصمد",
       "isPinned": false,
-      "index": 63
+      "index": 64
     },
     {
       "customerName": "جمعه محمد (مصطفى الصعيدي)",
@@ -6341,7 +6355,7 @@
       "remaining": 0.0,
       "notes": "جمعه محمد هيكلم اخوه يبعت فلوس",
       "isPinned": false,
-      "index": 64
+      "index": 65
     },
     {
       "customerName": "الحاج /شريف الديب - البحيرة",
@@ -6355,7 +6369,7 @@
       "remaining": 0.0,
       "notes": "كل ١٥ يوم هيحول 50 الف من العلف اللي هياخده  اتصال من مصطفى",
       "isPinned": false,
-      "index": 65
+      "index": 66
     },
     {
       "customerName": "عبد الرحمن علي - مصطفى الصعيدي",
@@ -6369,7 +6383,7 @@
       "remaining": 0.0,
       "notes": "وبعد 15 يوم هيجهز 20 : 30 الف وخلال شهرين  يوم من تاريخ فاتورة اليوم تصفية الحساب",
       "isPinned": false,
-      "index": 66
+      "index": 67
     },
     {
       "customerName": "فرج محمد مسلم (السحابه)",
@@ -6383,7 +6397,7 @@
       "remaining": 0.0,
       "notes": "الاربعاء 2/9",
       "isPinned": false,
-      "index": 67
+      "index": 68
     },
     {
       "customerName": "سيد محمد عبود - قيصر",
@@ -6397,7 +6411,7 @@
       "remaining": 0.0,
       "notes": "",
       "isPinned": false,
-      "index": 68
+      "index": 69
     },
     {
       "customerName": "عيد ادريس (ابو بساط)",
@@ -6411,7 +6425,7 @@
       "remaining": 0.0,
       "notes": "بكرا",
       "isPinned": false,
-      "index": 69
+      "index": 70
     },
     {
       "customerName": "محمود دبور",
@@ -6424,20 +6438,6 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "العلفة الجاية هيسد القديم والجديد",
-      "isPinned": false,
-      "index": 70
-    },
-    {
-      "customerName": "محمود اسماعيل",
-      "normalizedName": "محمود اسماعيل",
-      "currentBalance": 89850.0,
-      "expectedAmount": 0.0,
-      "collectedFromSheet": 60000.0,
-      "dueDate": "2026-12-21",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 0.0,
-      "notes": "20  يوم بلاغ محمد شعبان",
       "isPinned": false,
       "index": 71
     },
