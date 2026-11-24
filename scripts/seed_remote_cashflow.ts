@@ -12,6 +12,8 @@ async function main() {
 
   // 1. Get current authentic cashflow summary from local engine
   const summary = await getLiveCashFlowData();
+  const mahmoudInSummary = summary.customers.find((c: any) => c.customerName.includes("محمود اسماعيل"));
+  console.log("Mahmoud in summary before saving to Firestore:", mahmoudInSummary);
   console.log(`Extracted summary: ${summary.customers.length} customers, Total Expected: ${summary.totalExpected}, Total Collected: ${summary.totalCollected}`);
 
   // 2. Read notes and fixedAmounts from cashflow_config.json if available
@@ -60,7 +62,7 @@ async function main() {
     weeklyGoal: summary.weeklyGoal || 4000000,
     customers: summary.customers,
     updatedAt: new Date().toISOString(),
-    source: "seed_sync_v7"
+    source: "seed_sync_v8"
   };
 
   console.log("Saving user overrides to Firestore...");

@@ -443,7 +443,7 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v7";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v8";
 export const FIRESTORE_CF_COLLECTION = "cashflow_settings";
 export const FIRESTORE_CF_CYCLE_DOC = "active_cycle";
 export const FIRESTORE_CF_OVERRIDES_DOC = "user_overrides";
@@ -569,6 +569,7 @@ export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
     // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v7");
     localStorage.removeItem("cashflow_active_cycle_state_v6");
     localStorage.removeItem("cashflow_active_cycle_state_v5");
     localStorage.removeItem("cashflow_active_cycle_state_v4");
@@ -1670,7 +1671,8 @@ export async function getLiveCashFlowData(options?: {
     if (isRemoteValid && remoteCycle) {
       const remoteTime = remoteCycle.updatedAt ? new Date(remoteCycle.updatedAt).getTime() : 0;
       const localTime = localSavedCycle?.updatedAt ? new Date(localSavedCycle.updatedAt).getTime() : 0;
-      if (!localSavedCycle || remoteTime >= localTime) {
+      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v8"));
+      if (!localSavedCycle || isRemoteFreshSeed || remoteTime >= localTime) {
         savedCycle = remoteCycle;
         if (typeof window !== "undefined") {
           try {
@@ -1679,7 +1681,6 @@ export async function getLiveCashFlowData(options?: {
         }
       } else {
         savedCycle = localSavedCycle;
-        saveRemoteCycleState(localSavedCycle).catch(() => {});
       }
     }
 
