@@ -1438,7 +1438,10 @@ export function recalculateCashFlowSummary(
     let expectedAmount = Number(updates.expectedAmount) || 0;
     const isPinned = Boolean(updates.isPinned);
     const notes = String(updates.notes || "");
-    const totalCollected = c.collectedFromSheet + c.collectedFromTreasury;
+    const totalCollected =
+      c.totalCollected !== undefined
+        ? c.totalCollected
+        : c.collectedFromSheet + c.collectedFromTreasury;
 
     const isCashCust =
       c.customerName === "عميل نقدي (كاش)" ||
@@ -2198,33 +2201,51 @@ export async function getLiveCashFlowData(options?: {
     for (const tx of cycleTreasuryTx) {
       let matched = false;
 
-      for (const cust of tier1Customers) {
-        if (matchTreasuryDescriptionToCustomer(tx.description, cust.customerName)) {
-          // Prevent attaching duplicate transaction with same amount and date to the same customer
-          const isCash = isCashNorm(normalizeArabicName(cust.customerName));
-          const alreadyHasTx = (cust.treasuryTransactions || []).some((t) => {
-            if (t.receipt && tx.receipt) {
-              return t.receipt === tx.receipt;
-            }
-            if (isCash) {
-              return false;
-            }
-            return (
-              (t.date === tx.date || !t.date || !tx.date) &&
-              Math.abs(t.amount - tx.amount) < 1
-            );
-          });
-          if (alreadyHasTx) {
-            matched = true;
-            break;
+      // Find all candidate customers that match the transaction description
+      const candidateCusts = tier1Customers.filter((c) =>
+        matchTreasuryDescriptionToCustomer(tx.description, c.customerName)
+      );
+
+      // If multiple candidates match (e.g. "محمد رمضان" or "باديه فارم"),
+      // prioritize the one whose collectedFromSheet matches tx.amount, or who has an expected amount
+      let prioritizedCandidates = candidateCusts;
+      if (candidateCusts.length > 1) {
+        prioritizedCandidates = [...candidateCusts].sort((a, b) => {
+          const aSheetMatch = Math.abs((a.collectedFromSheet || 0) - tx.amount) < 1 ? 1 : 0;
+          const bSheetMatch = Math.abs((b.collectedFromSheet || 0) - tx.amount) < 1 ? 1 : 0;
+          if (bSheetMatch !== aSheetMatch) return bSheetMatch - aSheetMatch;
+
+          const aExp = (a.expectedAmount || 0) > 0 ? 1 : 0;
+          const bExp = (b.expectedAmount || 0) > 0 ? 1 : 0;
+          return bExp - aExp;
+        });
+      }
+
+      for (const cust of prioritizedCandidates) {
+        // Prevent attaching duplicate transaction with same amount and date to the same customer
+        const isCash = isCashNorm(normalizeArabicName(cust.customerName));
+        const alreadyHasTx = (cust.treasuryTransactions || []).some((t) => {
+          if (t.receipt && tx.receipt) {
+            return t.receipt === tx.receipt;
           }
-          cust.collectedFromTreasury += tx.amount;
-          cust.treasuryTransactions = cust.treasuryTransactions || [];
-          cust.treasuryTransactions.push(tx);
-          tx.matchedCustomer = cust.customerName;
+          if (isCash) {
+            return false;
+          }
+          return (
+            (t.date === tx.date || !t.date || !tx.date) &&
+            Math.abs(t.amount - tx.amount) < 1
+          );
+        });
+        if (alreadyHasTx) {
           matched = true;
           break;
         }
+        cust.collectedFromTreasury += tx.amount;
+        cust.treasuryTransactions = cust.treasuryTransactions || [];
+        cust.treasuryTransactions.push(tx);
+        tx.matchedCustomer = cust.customerName;
+        matched = true;
+        break;
       }
 
       // Tier 2: If not matched in Tier 1, search Master Data narrowed by:
@@ -2389,14 +2410,20 @@ export async function getLiveCashFlowData(options?: {
     const todayStr = new Date().toISOString().split("T")[0];
 
     for (const cust of baseCustomers) {
-      // Avoid double-counting if the exact same collection was recorded in both Sheet and Treasury
-      const sheetAmt = cust.collectedFromSheet || 0;
-      const treasAmt = cust.collectedFromTreasury || 0;
+      // Avoid double-counting only if a specific treasury transaction already represents the sheet collection (same amount within 1 EGP)
+      const sheetAmt = Number(cust.collectedFromSheet) || 0;
+      const treasAmt = Number(cust.collectedFromTreasury) || 0;
+      const treasTxs = cust.treasuryTransactions || [];
+
+      const hasMatchingTreasTx = treasTxs.some(
+        (tx) => Math.abs((Number(tx.amount) || 0) - sheetAmt) < 1
+      );
+
       if (sheetAmt > 0 && treasAmt > 0) {
-        if (Math.abs(sheetAmt - treasAmt) < 1 || treasAmt >= sheetAmt) {
+        if (hasMatchingTreasTx) {
           cust.totalCollected = treasAmt;
         } else {
-          cust.totalCollected = treasAmt + (sheetAmt - treasAmt);
+          cust.totalCollected = treasAmt + sheetAmt;
         }
       } else {
         cust.totalCollected = sheetAmt + treasAmt;
