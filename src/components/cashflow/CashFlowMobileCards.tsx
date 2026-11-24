@@ -12,6 +12,7 @@ import {
   Landmark,
   User,
   FileText,
+  FileSpreadsheet,
 } from "lucide-react";
 
 interface CashFlowMobileCardsProps {
@@ -41,7 +42,14 @@ export function CashFlowMobileCards({
             (cust.rate || 0) < 0.9
         );
         const isDueToday = cust.dueDate === todayStr;
-        const totalColl = (cust.collectedFromSheet || 0) + (cust.collectedFromTreasury || 0);
+        const totalColl =
+          cust.totalCollected !== undefined
+            ? cust.totalCollected
+            : (cust.collectedFromSheet || 0) + (cust.collectedFromTreasury || 0);
+        const additionalSheet = Math.max(
+          0,
+          (totalColl || 0) - (cust.collectedFromTreasury || 0)
+        );
         const ratePct = Math.min(100, Math.max(0, (cust.rate || 0) * 100));
 
         // Treasury Breakdown (Only computed if money was ACTUALLY collected)
@@ -173,6 +181,12 @@ export function CashFlowMobileCards({
                   <div className="inline-flex items-center gap-1 text-[10px] font-bold text-blue-800 dark:text-blue-200 mt-1 bg-blue-100 dark:bg-blue-900/50 px-1.5 py-0.5 rounded-md">
                     <Landmark className="w-3 h-3 text-blue-600 dark:text-blue-400" />
                     <span>بنك: {fmtMoney(custBank)}</span>
+                  </div>
+                )}
+                {additionalSheet > 0 && (
+                  <div className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-800 dark:text-amber-200 mt-1 bg-amber-100 dark:bg-amber-900/50 px-1.5 py-0.5 rounded-md">
+                    <FileSpreadsheet className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                    <span>شيت: {fmtMoney(additionalSheet)}</span>
                   </div>
                 )}
               </div>

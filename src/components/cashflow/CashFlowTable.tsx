@@ -36,6 +36,7 @@ import {
   LayoutGrid,
   TableProperties,
   Filter,
+  FileSpreadsheet,
 } from "lucide-react";
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
@@ -1754,10 +1755,10 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
                       {/* Collected */}
                       <TableCell className="text-center py-3 whitespace-nowrap col-collected">
-                        <div className={`${FONT.money} text-emerald-700 dark:text-emerald-400`}>
+                        <div className={`${FONT.money} text-emerald-700 dark:text-emerald-400 font-extrabold text-base`}>
                           {fmtMoney(cust.totalCollected)}
                         </div>
-                        {hasTreasuryPayment && !isEditingThisRow && (() => {
+                        {!isEditingThisRow && (() => {
                           let custCash = 0;
                           let custBank = 0;
                           if (Array.isArray(cust.treasuryTransactions) && cust.treasuryTransactions.length > 0) {
@@ -1770,10 +1771,16 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                             }
                           } else {
                             if (isBankCustomer(cust.customerName, cust.notes)) {
-                              custBank = cust.collectedFromTreasury;
+                              custBank = cust.collectedFromTreasury || 0;
                             } else {
-                              custCash = cust.collectedFromTreasury;
+                              custCash = cust.collectedFromTreasury || 0;
                             }
+                          }
+
+                          const additionalSheet = Math.max(0, (cust.totalCollected || 0) - (cust.collectedFromTreasury || 0));
+
+                          if (custCash === 0 && custBank === 0 && additionalSheet === 0) {
+                            return null;
                           }
 
                           return (
@@ -1788,6 +1795,12 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
                                 <div className="inline-flex items-center gap-1 text-xs font-black text-blue-800 dark:text-blue-300 bg-blue-100 dark:bg-blue-950 px-2 py-0.5 rounded-md border border-blue-300">
                                   <Landmark className="h-3 w-3 text-blue-600 dark:text-blue-400" />
                                   <span>+{fmtMoney(custBank)} بنك</span>
+                                </div>
+                              )}
+                              {additionalSheet > 0 && (
+                                <div className="inline-flex items-center gap-1 text-xs font-black text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950 px-2 py-0.5 rounded-md border border-amber-300">
+                                  <FileSpreadsheet className="h-3 w-3 text-amber-600 dark:text-amber-400" />
+                                  <span>+{fmtMoney(additionalSheet)} شيت</span>
                                 </div>
                               )}
                             </div>
