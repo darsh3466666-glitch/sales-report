@@ -230,100 +230,116 @@ def extract_cashflow():
     notes = existing_config.get("notes", {})
 
     # 1. Load active week treasury transactions dynamically:
-    # Rule (أ) Fresh Snapshot لليوم الحالي (Today) مباشرة من شيت الخزينة اللحظي
-    # Rule (ب) تجميد الأيام السابقة (Past Days) من نفس الأسبوع دون مساس ولا تكرار
+    # Auto-fetch all daily snapshots directly from cowshedelnour-glitch/treasury-dashboard repository history
+    # This guarantees 100% independence from user PC, absences, and local watcher pauses!
     week_start, week_end = get_current_week_window()
     data_path = os.path.join(PUBLIC_DIR, 'cashflow_data.json')
     
-    live_incoming_tx = []
-    t_rep_date = datetime.date.today().strftime('%Y-%m-%d')
+    all_weekly_tx = []
+    seen_tx_sigs = set()
+
+    # (A) Query GitHub repository commits for all days in this active week
     try:
         import urllib.request
-        req = urllib.request.Request(
+        commits_url = f"https://api.github.com/repos/cowshedelnour-glitch/treasury-dashboard/commits?since={week_start}T00:00:00Z&until={week_end}T23:59:59Z&per_page=100"
+        req = urllib.request.Request(commits_url, headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=8) as resp:
+            commits = json.loads(resp.read().decode('utf-8'))
+        
+        latest_by_date = {}
+        for c in commits:
+            dt = c['commit']['author']['date'].split('T')[0]
+            if dt not in latest_by_date and week_start <= dt <= week_end:
+                latest_by_date[dt] = c['sha']
+        
+        print(f"Discovered {len(latest_by_date)} daily treasury snapshots in active week: {sorted(latest_by_date.keys())}")
+        
+        for dt in sorted(latest_by_date.keys()):
+            sha = latest_by_date[dt]
+            raw_url = f"https://raw.githubusercontent.com/cowshedelnour-glitch/treasury-dashboard/{sha}/data.json"
+            try:
+                r_snap = urllib.request.Request(raw_url, headers={"User-Agent": "Mozilla/5.0"})
+                with urllib.request.urlopen(r_snap, timeout=6) as resp_snap:
+                    snap_data = json.loads(resp_snap.read().decode('utf-8'))
+                    incoming_list = snap_data.get('transactions', {}).get('incoming', [])
+                    for idx, item in enumerate(incoming_list):
+                        i_amt = float(item.get('amount', 0))
+                        i_desc = str(item.get('description', '')).strip()
+                        i_type = str(item.get('type', 'خزينة')).strip()
+                        i_date = str(item.get('date', dt)).strip() or dt
+                        i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
+                        norm_i = normalize_arabic(i_desc)
+                        sig = f"{i_date}_{norm_i}_{i_amt}_{i_rcpt}"
+                        if i_amt > 0 and norm_i and sig not in seen_tx_sigs:
+                            # Exclude internal non-customer movements
+                            if any(x in norm_i for x in ['النور نقد', 'نقديه النور', 'نقدية النور', 'نقدي النور']) or norm_i in ['النور', 'معلف النور']:
+                                continue
+                            seen_tx_sigs.add(sig)
+                            all_weekly_tx.append({
+                                "receipt": i_rcpt,
+                                "amount": i_amt,
+                                "description": i_desc,
+                                "type": i_type,
+                                "date": i_date
+                            })
+            except Exception as e_snap:
+                print(f"Note: error fetching snapshot for {dt}:", e_snap)
+    except Exception as e_commits:
+        print("Note: GitHub commits fetch failed or offline, falling back to cached/live data:", e_commits)
+
+    # (B) Fallback / Real-time Today overlay from live URL
+    try:
+        req_live = urllib.request.Request(
             "https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json",
             headers={"User-Agent": "Mozilla/5.0"}
         )
-        with urllib.request.urlopen(req, timeout=6) as resp:
-            t_data = json.loads(resp.read().decode('utf-8'))
-            t_rep_date = str(t_data.get('reportDate', '')).strip() or t_rep_date
-            incoming_list = t_data.get('transactions', {}).get('incoming', [])
-            for idx, item in enumerate(incoming_list):
+        with urllib.request.urlopen(req_live, timeout=5) as resp_live:
+            t_data = json.loads(resp_live.read().decode('utf-8'))
+            t_rep_date = str(t_data.get('reportDate', '')).strip() or datetime.date.today().strftime('%Y-%m-%d')
+            for idx, item in enumerate(t_data.get('transactions', {}).get('incoming', [])):
                 i_amt = float(item.get('amount', 0))
                 i_desc = str(item.get('description', '')).strip()
                 i_type = str(item.get('type', 'خزينة')).strip()
-                i_date = str(item.get('date', t_rep_date)).strip()
+                i_date = str(item.get('date', t_rep_date)).strip() or t_rep_date
                 i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
                 norm_i = normalize_arabic(i_desc)
-                if i_amt > 0 and norm_i:
-                    # Exclude internal non-customer movements like "النور نقدية"
-                    if 'النور نقد' in norm_i or 'نقديه النور' in norm_i or 'نقدية النور' in norm_i or 'نقدي النور' in norm_i or norm_i in ('النور', 'معلف النور'):
+                sig = f"{i_date}_{norm_i}_{i_amt}_{i_rcpt}"
+                if i_amt > 0 and norm_i and sig not in seen_tx_sigs:
+                    if any(x in norm_i for x in ['النور نقد', 'نقديه النور', 'نقدية النور', 'نقدي النور']) or norm_i in ['النور', 'معلف النور']:
                         continue
-                    live_incoming_tx.append({
+                    seen_tx_sigs.add(sig)
+                    all_weekly_tx.append({
                         "receipt": i_rcpt,
                         "amount": i_amt,
                         "description": i_desc,
                         "type": i_type,
                         "date": i_date
                     })
-    except Exception as e:
-        print("Note: live treasury incoming fetch failed or offline:", e)
+    except Exception as e_live:
+        print("Note: live treasury incoming fetch failed:", e_live)
 
-    # Rule (ب): تجميد الأيام السابقة من الداتا المحفوظة
-    past_days_tx = []
-    cached_today_tx = []
+    # (C) Merge with cached past transactions from local cashflow_data.json if available
     if os.path.exists(data_path):
         try:
             with open(data_path, 'r', encoding='utf-8') as f:
                 prev_d = json.load(f)
                 if isinstance(prev_d, dict) and 'weeklyTreasuryTransactions' in prev_d:
-                    seen_past_sigs = set()
                     for idx, t in enumerate(prev_d['weeklyTreasuryTransactions']):
                         t_date = str(t.get('date', '')).strip()
                         t_desc = normalize_arabic(t.get('description', ''))
                         t_amt = float(t.get('amount', 0))
                         t_rcpt = str(t.get('receipt', '')).strip()
-                        if t_amt <= 0 or not t_desc:
-                            continue
-                        if t_date and (t_date < week_start or t_date > week_end):
-                            continue
-                        if 'النور نقد' in t_desc or 'نقديه النور' in t_desc or 'نقدية النور' in t_desc or 'نقدي النور' in t_desc or t_desc in ('النور', 'معلف النور'):
-                            continue
-                        
-                        # Cleanup duplicate transaction for Mahmoud Ismail (live_2026-11-18_11)
-                        if t_rcpt == 'live_2026-11-18_11':
-                            continue
+                        sig = f"{t_date}_{t_desc}_{t_amt}_{t_rcpt}"
+                        if t_amt > 0 and t_desc and (week_start <= t_date <= week_end) and sig not in seen_tx_sigs:
+                            if any(x in t_desc for x in ['النور نقد', 'نقديه النور', 'نقدية النور', 'نقدي النور']) or t_desc in ['النور', 'معلف النور']:
+                                continue
+                            seen_tx_sigs.add(sig)
+                            all_weekly_tx.append(t)
+        except Exception as e_cached:
+            print("Note: cached data read:", e_cached)
 
-                        if t_date and t_date < t_rep_date:
-                            # Frozen past day of this active cycle
-                            sig = f"{t_date}_{t_rcpt}" if t_rcpt else f"{t_date}_{t_desc}_{t_amt}_{idx}"
-                            if sig not in seen_past_sigs:
-                                past_days_tx.append(t)
-                                seen_past_sigs.add(sig)
-                        else:
-                            # Cached copy of today (fallback in case live fetch fails)
-                            cached_today_tx.append(t)
-        except Exception as e:
-            print("Could not read previous weekly treasury data:", e)
-
-    # Exception for K3863 (Ismail Youssef) from 2026-11-18 (dropped due to index collision)
-    k3863_found = any(
-        (t.get('receipt') == 'K3863' or (t.get('date') == '2026-11-18' and 'اسماعيل يوسف' in t.get('description', '')))
-        for t in past_days_tx
-    )
-    if not k3863_found:
-        past_days_tx.append({
-            "receipt": "K3863",
-            "amount": 2000.0,
-            "description": "اسماعيل يوسف (الحموي)",
-            "type": "كاش",
-            "date": "2026-11-18"
-        })
-
-    # Rule (أ): إذا تم جلب حركات اليوم طازجة من الخزينة نعتمدها هي فقط لليوم، وإلا نستخدم الكاش
-    if live_incoming_tx:
-        existing_weekly_tx = past_days_tx + live_incoming_tx
-    else:
-        existing_weekly_tx = past_days_tx + cached_today_tx
+    existing_weekly_tx = all_weekly_tx
+    print(f"Total authentic weekly treasury transactions assembled: {len(existing_weekly_tx)}, sum = {sum(t['amount'] for t in existing_weekly_tx)}")
 
     paid_names_set = set()
     for t in existing_weekly_tx:
@@ -405,7 +421,8 @@ def extract_cashflow():
     # Populate master_customers_list and update master_dict with collectedFromSheet
     for norm, m_info in master_dict.items():
         m_name = m_info['name']
-        sheet_amt = matched_sheet_collections.get(norm, 0.0)
+        # User instruction: sheet 'قبض' is for comparison only; official collections come strictly from Treasury vouchers!
+        sheet_amt = 0.0
         m_info['collectedFromSheet'] = sheet_amt
 
         is_expense = any(k in norm for k in ['ريع نقل', 'سولار', 'مصاريف', 'مرتبات', 'كهرباء', 'مياه', 'صيانة', 'بوفيه', 'ادوات', 'ايجار', 'ايراد'])
@@ -423,7 +440,7 @@ def extract_cashflow():
             })
 
     def get_sheet_collection(c_name, c_norm):
-        return matched_sheet_collections.get(c_norm, 0.0)
+        return 0.0
 
     # 3. Extract baseline customers strictly from Master_Data for current cycle window
     data_rows = []
