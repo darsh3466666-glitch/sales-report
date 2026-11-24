@@ -2,9 +2,9 @@ name: Treasury Auto Sync
 
 on:
   schedule:
-    # يعمل تلقائياً كل 30 دقيقة خلال ساعات العمل (من 8 صباحاً حتى 6 مساءً بتوقيت مصر)
+    # يعمل تلقائياً كل 30 دقيقة خلال ساعات العمل (من 8 ص حتى 6 م بتوقيت مصر)
     - cron: '*/30 6-16 * * *'
-  workflow_dispatch: # يتيح لك أيضاً تشغيله يدوياً بضغطة زر
+  workflow_dispatch: # يتيح لك تشغيله يدوياً في أي وقت بضغطة زر
 
 jobs:
   sync:
@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -22,14 +24,14 @@ jobs:
 
       - name: Run Treasury Extraction
         run: |
-          python -c "
-          import urllib.request, json
-          # تحديث ومعالجة بيانات الخزينة مباشرة في الخلفية
-          "
+          python scripts/sync_treasury_cloud.py
 
       - name: Commit and push changes
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git diff --quiet && git diff --staged --quiet || (git commit -m 'chore: auto-sync treasury data' && git push)
+          git add public/cashflow_data.json dist/cashflow_data.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m 'chore: auto-sync treasury data' && git push origin main)
+          tree=$(git write-tree --prefix=dist/)
+          commit=$(git commit-tree $tree -p origin/gh-pages -m "deploy: auto-sync treasury data")
+          git push origin ${commit}:refs/heads/gh-pages
