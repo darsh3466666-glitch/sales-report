@@ -331,7 +331,27 @@ def extract_cashflow():
         if p_desc:
             paid_names_set.add(p_desc)
 
-    # 2. Index Master_Data - The ONLY authoritative sheet
+    # 2. Extract actual collections from 'قبض' sheet in 'شيت تحصيل.xlsm' for the active week
+    week_start, week_end = get_current_week_window()
+    sheet_collections = {}
+    sheet_cash_amt = 0.0
+    if 'قبض' in wb.sheetnames:
+        ws_q = wb['قبض']
+        for r in list(ws_q.iter_rows(values_only=True))[1:]:
+            if r and len(r) > 2 and r[0] and r[1] and r[2]:
+                q_name = str(r[0]).strip()
+                q_date = format_date(r[1])
+                q_amt = float(r[2]) if r[2] is not None and isinstance(r[2], (int, float)) else 0.0
+                if q_amt > 0 and q_date and week_start <= q_date <= week_end:
+                    norm_q = normalize_arabic(q_name)
+                    if 'النور نقد' in norm_q or 'نقديه النور' in norm_q or 'نقدية النور' in norm_q or 'نقدي النور' in norm_q or norm_q in ('النور', 'معلف النور'):
+                        continue
+                    if norm_q in ('عميل نقدي', 'عميل نقدى', 'نقدي', 'نقدى', 'كاش', 'مبيعات نقدية'):
+                        sheet_cash_amt += q_amt
+                        continue
+                    sheet_collections[norm_q] = sheet_collections.get(norm_q, 0.0) + q_amt
+
+    # 2.5 Index Master_Data - The ONLY authoritative sheet
     master_dict = {}
     master_names_list = []
     master_names_set = set()
@@ -368,22 +388,44 @@ def extract_cashflow():
                     'lastInvoiceYear': inv_yr,
                 }
 
-                # Include legitimate master customers in searchable list
-                is_expense = any(k in norm for k in ['ريع نقل', 'سولار', 'مصاريف', 'مرتبات', 'كهرباء', 'مياه', 'صيانة', 'بوفيه', 'ادوات', 'ايجار', 'ايراد'])
-                if not is_expense and m_name:
-                    master_names_list.append(m_name)
-                    master_names_set.add(norm)
-                    master_customers_list.append({
-                        'customerName': m_name,
-                        'currentBalance': m_bal,
-                        'dueDate': m_due,
-                        'notes': m_note,
-                        'isActive2026': is_active_2026,
-                        'isKhalis': is_khalis,
-                    })
+    # Map each collection in sheet_collections strictly to ONE customer in master_dict
+    matched_sheet_collections = {}
+    for sq_norm, sq_amt in sheet_collections.items():
+        if sq_norm in master_dict:
+            matched_sheet_collections[sq_norm] = matched_sheet_collections.get(sq_norm, 0.0) + sq_amt
+        else:
+            best_match = None
+            for m_norm, m_info in master_dict.items():
+                if match_treasury_to_customer(sq_norm, m_info['name']):
+                    best_match = m_norm
+                    break
+            if best_match:
+                matched_sheet_collections[best_match] = matched_sheet_collections.get(best_match, 0.0) + sq_amt
+
+    # Populate master_customers_list and update master_dict with collectedFromSheet
+    for norm, m_info in master_dict.items():
+        m_name = m_info['name']
+        sheet_amt = matched_sheet_collections.get(norm, 0.0)
+        m_info['collectedFromSheet'] = sheet_amt
+
+        is_expense = any(k in norm for k in ['ريع نقل', 'سولار', 'مصاريف', 'مرتبات', 'كهرباء', 'مياه', 'صيانة', 'بوفيه', 'ادوات', 'ايجار', 'ايراد'])
+        if not is_expense and m_name:
+            master_names_list.append(m_name)
+            master_names_set.add(norm)
+            master_customers_list.append({
+                'customerName': m_name,
+                'currentBalance': m_info['balance'],
+                'dueDate': m_info['dueDate'],
+                'notes': m_info['notes'],
+                'isActive2026': m_info['isActive2026'],
+                'isKhalis': m_info['isKhalis'],
+                'collectedFromSheet': sheet_amt,
+            })
+
+    def get_sheet_collection(c_name, c_norm):
+        return matched_sheet_collections.get(c_norm, 0.0)
 
     # 3. Extract baseline customers strictly from Master_Data for current cycle window
-    week_start, week_end = get_current_week_window()
     data_rows = []
 
     for norm, m_info in master_dict.items():
@@ -395,14 +437,16 @@ def extract_cashflow():
         is_active_2026 = m_info['isActive2026']
 
         is_pinned = bool(pinned_customers.get(m_name, False))
+        sheet_amt = get_sheet_collection(m_name, norm)
         has_paid = (
+            sheet_amt > 0 or
             norm in paid_names_set or
             any(norm in pn or pn in norm for pn in paid_names_set) or
             any(match_treasury_to_customer(tx.get('description', ''), m_name) for tx in existing_weekly_tx)
         )
 
-        # Exclusion 1: Settled accounts (عميل خالص / تم التصفية)
-        if is_khalis:
+        # Exclusion 1: Settled accounts (عميل خالص / تم التصفية) unless customer paid this week or is pinned
+        if is_khalis and not has_paid and not is_pinned:
             continue
 
         # Exclusion 2: Must have balance >= 5000 EGP unless customer paid this week or is pinned
@@ -424,11 +468,11 @@ def extract_cashflow():
         # 2. Unexpected payer who paid during week but wasn't due gets 0.0
         # 3. Otherwise current balance is the baseline target
         if m_name in fixed_amounts:
-            expected = float(fixed_amounts[m_name])
+            expected = max(0.0, float(fixed_amounts[m_name]))
         elif not is_due_this_week and has_paid:
             expected = 0.0
         else:
-            expected = bal
+            expected = max(0.0, bal)
 
         # Notes: User-saved notes (from config) take priority; fall back to Master_Data if not set
         if m_name in notes and notes[m_name] != '':
@@ -443,7 +487,7 @@ def extract_cashflow():
             'normalizedName': norm,
             'currentBalance': bal,
             'expectedAmount': expected,
-            'collectedFromSheet': 0.0,
+            'collectedFromSheet': sheet_amt,
             'dueDate': due,
             'rate': 0.0,
             'status': 'لم يسدد',
@@ -464,7 +508,7 @@ def extract_cashflow():
             'normalizedName': normalize_arabic(CASH_CUSTOMER_NAME),
             'currentBalance': 0.0,
             'expectedAmount': cash_exp,
-            'collectedFromSheet': 0.0,
+            'collectedFromSheet': sheet_cash_amt,
             'dueDate': '',
             'rate': 1.0 if cash_exp == 0 else 0.0,
             'status': 'مكتمل' if cash_exp == 0 else 'لم يسدد',
@@ -475,6 +519,10 @@ def extract_cashflow():
         fixed_amounts[CASH_CUSTOMER_NAME] = cash_exp
         if CASH_CUSTOMER_NAME not in notes:
             notes[CASH_CUSTOMER_NAME] = cash_note
+    else:
+        for r in data_rows:
+            if r['customerName'] == CASH_CUSTOMER_NAME or 'نقدي' in r['customerName']:
+                r['collectedFromSheet'] = max(r.get('collectedFromSheet', 0.0), sheet_cash_amt)
 
     # Sort customers: Pinned first, then by due date ascending, then balance descending
     def customer_sort_order(c):

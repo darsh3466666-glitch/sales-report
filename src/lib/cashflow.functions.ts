@@ -400,7 +400,7 @@ export async function fetchLiveTreasuryIncoming(): Promise<TreasuryIncomingTx[]>
   try {
     const res = await fetch(
       `https://cowshedelnour-glitch.github.io/treasury-dashboard/data.json?t=${Date.now()}`,
-      { cache: "no-store" }
+      { cache: "no-store", signal: AbortSignal.timeout(3000) }
     );
     if (!res.ok) return [];
     const data = await res.json();
@@ -1805,14 +1805,18 @@ export async function getLiveCashFlowData(options?: {
       });
 
       // Two-way sync: If any customer in Master_Data had their dueDate advanced INTO this active week (<= weekInfo.weekEnd),
-      // and they are not yet in baseCustomers (and balance >= 5000 and not settled):
+      // OR they made an actual collection payment in sheet 'قبض' this week:
       // They ENTER the active cycle list immediately UNLESS explicitly deleted by user for this active week!
       const activeDeletedNormSet = new Set(
         (overrides.deletedCustomers || []).map((n) => normalizeArabicName(n))
       );
       for (const mc of rawData?.masterCustomers || []) {
-        if (!mc.customerName || mc.currentBalance < 5000) continue;
-        if (mc.notes?.includes("عميل خالص") || mc.notes?.includes("تم التصفية")) continue;
+        if (!mc.customerName) continue;
+        const hasPaidInSheet = (Number(mc.collectedFromSheet) || 0) > 0;
+        const isSettled = Boolean(mc.notes?.includes("عميل خالص") || mc.notes?.includes("تم التصفية") || mc.isKhalis);
+        if (isSettled && !hasPaidInSheet) continue;
+        if (mc.currentBalance < 5000 && !hasPaidInSheet) continue;
+
         const norm = normalizeArabicName(mc.customerName);
         if (
           activeDeletedNormSet.has(norm) ||
@@ -1826,12 +1830,14 @@ export async function getLiveCashFlowData(options?: {
         const isAlreadyInBase = baseCustomers.some(
           (bc) => bc.customerName === mc.customerName || normalizeArabicName(bc.customerName) === norm
         );
-        if (!isAlreadyInBase && mc.dueDate && mc.dueDate <= weekInfo.weekEnd) {
+        const qualifiesByDate = Boolean(mc.dueDate && mc.dueDate <= weekInfo.weekEnd);
+        if (!isAlreadyInBase && (qualifiesByDate || hasPaidInSheet)) {
           const overrideAmt = getOverrideFixedAmount(overrides, mc.customerName, rawConfig);
+          // If customer entered solely because they paid (unexpected / future due date), expectedAmount is strictly 0!
           const expAmt =
             overrideAmt !== undefined
               ? overrideAmt
-              : mc.currentBalance;
+              : (!qualifiesByDate && hasPaidInSheet ? 0 : mc.currentBalance);
           baseCustomers.push({
             index: baseCustomers.length + 1,
             customerName: mc.customerName,
@@ -1847,6 +1853,7 @@ export async function getLiveCashFlowData(options?: {
             remaining: Number(expAmt) || 0,
             notes: mc.notes !== undefined ? mc.notes : (getOverrideNote(overrides, mc.customerName, rawConfig) || ""),
             isPinned: false,
+            isUnexpectedInflow: !qualifiesByDate && hasPaidInSheet,
             treasuryTransactions: [],
           });
         }
@@ -1902,8 +1909,9 @@ export async function getLiveCashFlowData(options?: {
       // Strict validation: Filter out < 5000, settled, and next-week unpaid customers
       baseCustomers = baseCustomers.filter((c) => {
         if (c.customerName === CASH_NAME || c.customerName.includes("نقدي")) return true;
-        if (c.currentBalance < 5000) return false;
-        if (c.notes?.includes("عميل خالص") || c.notes?.includes("تم التصفية")) return false;
+        const hasPaid = ((c.collectedFromSheet || 0) > 0 || (c.collectedFromTreasury || 0) > 0);
+        if (c.currentBalance < 5000 && !hasPaid && !c.isPinned) return false;
+        if ((c.notes?.includes("عميل خالص") || c.notes?.includes("تم التصفية")) && !hasPaid && !c.isPinned) return false;
         const norm = normalizeArabicName(c.customerName);
         if (norm.includes("ريع نقل") || /^(ريع|نقل|سولار|مصاريف|مرتبات|كهرباء|مياه|صيانة|بوفيه|ادوات|ايجار|ايراد|ايرادات)$/.test(norm)) {
           return false;
@@ -1913,13 +1921,12 @@ export async function getLiveCashFlowData(options?: {
         }
 
         const isDueThisWeekOrPast = !c.dueDate || c.dueDate <= weekInfo.weekEnd;
-        const hasPaid = (c.collectedFromSheet > 0 || c.collectedFromTreasury > 0);
 
-        if (!isSavedCycleValid && !isDueThisWeekOrPast && !hasPaid) {
+        if (!isSavedCycleValid && !isDueThisWeekOrPast && !hasPaid && !c.isPinned) {
           return false;
         }
 
-        if (!isDueThisWeekOrPast && hasPaid) {
+        if (!isDueThisWeekOrPast && hasPaid && !c.isPinned) {
           const overrideAmt = getOverrideFixedAmount(overrides, c.customerName, rawConfig);
           if (overrideAmt !== undefined) {
             c.expectedAmount = overrideAmt;
@@ -1986,6 +1993,11 @@ export async function getLiveCashFlowData(options?: {
       }
     }
     // Ensure permanent Cash Customer exists and is pinned weekly
+    const rawCashCust = (rawData?.customers || []).find(
+      (c: any) => c.customerName === CASH_NAME || c.customerName.includes("نقدي")
+    );
+    const rawCashSheet = Number(rawCashCust?.collectedFromSheet) || 0;
+
     let cashCust = baseCustomers.find(
       (c) => c.customerName === CASH_NAME || c.customerName.includes("نقدي")
     );
@@ -2008,9 +2020,9 @@ export async function getLiveCashFlowData(options?: {
         normalizedName: normalizeArabicName(CASH_NAME),
         currentBalance: 0,
         expectedAmount: Number(expectedAmount) || 0,
-        collectedFromSheet: 0,
+        collectedFromSheet: rawCashSheet,
         collectedFromTreasury: 0,
-        totalCollected: 0,
+        totalCollected: rawCashSheet,
         dueDate: "",
         rate: expectedAmount > 0 ? 0 : 1,
         status: expectedAmount > 0 ? "لم يسدد" : "مكتمل",
@@ -2022,6 +2034,9 @@ export async function getLiveCashFlowData(options?: {
       baseCustomers.push(cashCust);
     } else {
       cashCust.isPinned = true;
+      if (rawCashSheet > 0) {
+        cashCust.collectedFromSheet = Math.max(cashCust.collectedFromSheet || 0, rawCashSheet);
+      }
     }
 
     // Determine active week cycle boundaries for treasury transaction isolation
