@@ -62,7 +62,7 @@ async function main() {
     weeklyGoal: summary.weeklyGoal || 4000000,
     customers: summary.customers,
     updatedAt: new Date().toISOString(),
-    source: "seed_sync_v9"
+    source: "seed_sync_v10"
   };
 
   console.log("Saving user overrides to Firestore...");

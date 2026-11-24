@@ -20,6 +20,15 @@ TREASURY_CUSTOMER_ALIASES = {
     normalize_arabic("احمد عدلي"): "اشرف عدلي مصطفي",
     normalize_arabic("احمد عدلى مصطفى"): "اشرف عدلي مصطفي",
     normalize_arabic("احمد عدلى"): "اشرف عدلي مصطفي",
+    normalize_arabic("جمعه محمد عزوز"): "جمعه محمد عزوز(العياط)",
+    normalize_arabic("جمعه محمد عزوز العياط"): "جمعه محمد عزوز(العياط)",
+    normalize_arabic("سيد خالد السواق"): "سيد خالد السواق-الحموي",
+    normalize_arabic("سيد خالد"): "سيد خالد السواق-الحموي",
+    normalize_arabic("عيد احمد عبدالفتاح"): "عيد احمد عبد الفتاح(ابو السعود)",
+    normalize_arabic("عيد احمد عبد الفتاح"): "عيد احمد عبد الفتاح(ابو السعود)",
+    normalize_arabic("توفيق محمد"): "توفيق محمد (نجع العرب)",
+    normalize_arabic("سلامه حمدي"): "سلامه حمدي ( البرنسة)",
+    normalize_arabic("حسام عدلي عبود"): "حسام عدلي عبود(قيصر)",
 }
 
 def get_current_week_window(ref_date=None):

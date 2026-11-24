@@ -281,6 +281,15 @@ export const TREASURY_CUSTOMER_ALIASES: Record<string, string> = {
   "احمد عدلي": "اشرف عدلي مصطفي",
   "احمد عدلى مصطفى": "اشرف عدلي مصطفي",
   "احمد عدلى": "اشرف عدلي مصطفي",
+  "جمعه محمد عزوز": "جمعه محمد عزوز(العياط)",
+  "جمعه محمد عزوز العياط": "جمعه محمد عزوز(العياط)",
+  "سيد خالد السواق": "سيد خالد السواق-الحموي",
+  "سيد خالد": "سيد خالد السواق-الحموي",
+  "عيد احمد عبدالفتاح": "عيد احمد عبد الفتاح(ابو السعود)",
+  "عيد احمد عبد الفتاح": "عيد احمد عبد الفتاح(ابو السعود)",
+  "توفيق محمد": "توفيق محمد (نجع العرب)",
+  "سلامه حمدي": "سلامه حمدي ( البرنسة)",
+  "حسام عدلي عبود": "حسام عدلي عبود(قيصر)",
 };
 
 export function resolveTreasuryCustomerAlias(desc: string): string {
@@ -457,7 +466,7 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v9";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v10";
 export const FIRESTORE_CF_COLLECTION = "cashflow_settings";
 export const FIRESTORE_CF_CYCLE_DOC = "active_cycle";
 export const FIRESTORE_CF_OVERRIDES_DOC = "user_overrides";
@@ -583,6 +592,7 @@ export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
     // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v9");
     localStorage.removeItem("cashflow_active_cycle_state_v8");
     localStorage.removeItem("cashflow_active_cycle_state_v7");
     localStorage.removeItem("cashflow_active_cycle_state_v6");
@@ -1686,7 +1696,7 @@ export async function getLiveCashFlowData(options?: {
     if (isRemoteValid && remoteCycle) {
       const remoteTime = remoteCycle.updatedAt ? new Date(remoteCycle.updatedAt).getTime() : 0;
       const localTime = localSavedCycle?.updatedAt ? new Date(localSavedCycle.updatedAt).getTime() : 0;
-      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v9"));
+      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v10"));
       if (!localSavedCycle || isRemoteFreshSeed || remoteTime >= localTime) {
         savedCycle = remoteCycle;
         if (typeof window !== "undefined") {
@@ -2231,6 +2241,14 @@ export async function getLiveCashFlowData(options?: {
       let prioritizedCandidates = candidateCusts;
       if (candidateCusts.length > 1) {
         prioritizedCandidates = [...candidateCusts].sort((a, b) => {
+          // Exact clean name match should ALWAYS win over partial prefix match!
+          const cleanDesc = cleanCustomerMatchingName(resolveTreasuryCustomerAlias(tx.description));
+          const cleanA = cleanCustomerMatchingName(a.customerName);
+          const cleanB = cleanCustomerMatchingName(b.customerName);
+          const aExact = (cleanA === cleanDesc || a.customerName === resolveTreasuryCustomerAlias(tx.description)) ? 1 : 0;
+          const bExact = (cleanB === cleanDesc || b.customerName === resolveTreasuryCustomerAlias(tx.description)) ? 1 : 0;
+          if (bExact !== aExact) return bExact - aExact;
+
           const aSheetMatch = Math.abs((a.collectedFromSheet || 0) - tx.amount) < 1 ? 1 : 0;
           const bSheetMatch = Math.abs((b.collectedFromSheet || 0) - tx.amount) < 1 ? 1 : 0;
           if (bSheetMatch !== aSheetMatch) return bSheetMatch - aSheetMatch;
