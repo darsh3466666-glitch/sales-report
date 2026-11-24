@@ -276,12 +276,26 @@ function wordsMatch(w1: string, w2: string, allowFuzzy = false): boolean {
   return false;
 }
 
+export const TREASURY_CUSTOMER_ALIASES: Record<string, string> = {
+  "احمد عدلي مصطفي": "اشرف عدلي مصطفي",
+  "احمد عدلي": "اشرف عدلي مصطفي",
+  "احمد عدلى مصطفى": "اشرف عدلي مصطفي",
+  "احمد عدلى": "اشرف عدلي مصطفي",
+};
+
+export function resolveTreasuryCustomerAlias(desc: string): string {
+  if (!desc) return desc;
+  const nd = normalizeArabicName(desc);
+  return TREASURY_CUSTOMER_ALIASES[nd] || desc;
+}
+
 export function matchTreasuryDescriptionToCustomer(
   desc: string,
   customerName: string
 ): boolean {
   if (!desc || !customerName) return false;
-  const nd = normalizeArabicName(desc);
+  const resolvedDesc = resolveTreasuryCustomerAlias(desc);
+  const nd = normalizeArabicName(resolvedDesc);
   const nc = normalizeArabicName(customerName);
   if (!nd || !nc) return false;
 
@@ -443,7 +457,7 @@ export interface ActiveCashFlowCycleState {
   updatedAt: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v8";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v9";
 export const FIRESTORE_CF_COLLECTION = "cashflow_settings";
 export const FIRESTORE_CF_CYCLE_DOC = "active_cycle";
 export const FIRESTORE_CF_OVERRIDES_DOC = "user_overrides";
@@ -569,6 +583,7 @@ export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
     // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v8");
     localStorage.removeItem("cashflow_active_cycle_state_v7");
     localStorage.removeItem("cashflow_active_cycle_state_v6");
     localStorage.removeItem("cashflow_active_cycle_state_v5");
@@ -1671,7 +1686,7 @@ export async function getLiveCashFlowData(options?: {
     if (isRemoteValid && remoteCycle) {
       const remoteTime = remoteCycle.updatedAt ? new Date(remoteCycle.updatedAt).getTime() : 0;
       const localTime = localSavedCycle?.updatedAt ? new Date(localSavedCycle.updatedAt).getTime() : 0;
-      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v8"));
+      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v9"));
       if (!localSavedCycle || isRemoteFreshSeed || remoteTime >= localTime) {
         savedCycle = remoteCycle;
         if (typeof window !== "undefined") {
@@ -2082,7 +2097,8 @@ export async function getLiveCashFlowData(options?: {
 
       const receiptNo = String(tx.receipt || "").trim();
       const isNormCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(desc);
-      const normDesc = isNormCash ? "نقدي" : normalizeArabicName(desc);
+      const resolvedDesc = resolveTreasuryCustomerAlias(desc);
+      const normDesc = isNormCash ? "نقدي" : normalizeArabicName(resolvedDesc);
 
       // Strictly exclude non-customer internal transactions like "النور نقدية" / "النور نقديه"
       if (
@@ -2103,14 +2119,20 @@ export async function getLiveCashFlowData(options?: {
         if (existDate !== curDate) continue;
 
         const existIsCash = /^(نقدي|نقدى|كاش|عميل نقدي|عميل نقدى)$/.test(existing.description);
-        const existNormDesc = existIsCash ? "نقدي" : normalizeArabicName(existing.description);
+        const existResolved = resolveTreasuryCustomerAlias(existing.description);
+        const existNormDesc = existIsCash ? "نقدي" : normalizeArabicName(existResolved);
         const isSameCustomer = (isNormCash && existIsCash) || (existNormDesc === normDesc);
 
         if (isSameCustomer && Math.abs(existing.amount - amt) < 1) {
-          // If both have receipts and they are authentic distinct system receipts (e.g. K3801 vs K3807), keep both!
-          const isSynthetic = (r: string) => !r || r.startsWith("live_") || r.startsWith("raw_");
-          if (existing.receipt && receiptNo && existing.receipt !== receiptNo && !isSynthetic(existing.receipt) && !isSynthetic(receiptNo)) {
-            continue;
+          // If both have receipts and they are authentic distinct system receipts or distinct cash receipts
+          if (existing.receipt && receiptNo && existing.receipt !== receiptNo) {
+            if (isNormCash) {
+              continue;
+            }
+            const isSynthetic = (r: string) => !r || r.startsWith("live_") || r.startsWith("raw_");
+            if (!isSynthetic(existing.receipt) && !isSynthetic(receiptNo)) {
+              continue;
+            }
           }
           // Otherwise, it's the exact same transaction being synced across seeds/localStorage
           if (receiptNo && !existing.receipt) {
@@ -2151,9 +2173,6 @@ export async function getLiveCashFlowData(options?: {
     // 1a. Rule (ب) تجميد الأيام السابقة: From cashflow_data.json, load past days of the active week (frozen)
     if (Array.isArray(rawData?.weeklyTreasuryTransactions)) {
       rawData.weeklyTreasuryTransactions.forEach((tx: any, idx: number) => {
-        // Drop known duplicate transaction for Mahmoud Ismail
-        if (tx.receipt === "live_2026-11-18_11") return;
-
         const txDate = String(tx.date || "").trim();
         // Rule (أ) Fresh Snapshot لليوم الحالي: If live feed is active for liveReportDate, skip cached copy of that day
         if (liveReportDate && txDate === liveReportDate && liveTreasuryTx && liveTreasuryTx.length > 0) {
@@ -2254,7 +2273,8 @@ export async function getLiveCashFlowData(options?: {
       // 2. Active debtors sorted by closest due date to tx.date
       // 3. Remaining master customers
       if (!matched) {
-        const normTxDesc = normalizeArabicName(tx.description);
+        const resolvedTxDesc = resolveTreasuryCustomerAlias(tx.description);
+        const normTxDesc = normalizeArabicName(resolvedTxDesc);
         let matchedMasterName = masterExactNormMap.get(normTxDesc) || "";
 
         // Narrow candidates by active balance & due date proximity

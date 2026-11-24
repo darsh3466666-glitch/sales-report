@@ -94,10 +94,19 @@ def words_match(w1, w2, allow_fuzzy=False):
         return True
     return False
 
+TREASURY_CUSTOMER_ALIASES = {
+    normalize_arabic("احمد عدلي مصطفي"): "اشرف عدلي مصطفي",
+    normalize_arabic("احمد عدلي"): "اشرف عدلي مصطفي",
+    normalize_arabic("احمد عدلى مصطفى"): "اشرف عدلي مصطفي",
+    normalize_arabic("احمد عدلى"): "اشرف عدلي مصطفي",
+}
+
 def match_treasury_to_customer(desc, cust_name):
     if not desc or not cust_name:
         return False
-    cd = clean_arabic_matching(desc)
+    norm_d = normalize_arabic(desc)
+    resolved_desc = TREASURY_CUSTOMER_ALIASES.get(norm_d, desc)
+    cd = clean_arabic_matching(resolved_desc)
     cc = clean_arabic_matching(cust_name)
     if not cd or not cc:
         return False
@@ -274,6 +283,8 @@ def extract_cashflow():
                             # Exclude internal non-customer movements
                             if any(x in norm_i for x in ['النور نقد', 'نقديه النور', 'نقدية النور', 'نقدي النور']) or norm_i in ['النور', 'معلف النور']:
                                 continue
+                            if norm_i in TREASURY_CUSTOMER_ALIASES:
+                                i_desc = TREASURY_CUSTOMER_ALIASES[norm_i]
                             seen_tx_sigs.add(sig)
                             all_weekly_tx.append({
                                 "receipt": i_rcpt,
@@ -307,6 +318,8 @@ def extract_cashflow():
                 if i_amt > 0 and norm_i and sig not in seen_tx_sigs:
                     if any(x in norm_i for x in ['النور نقد', 'نقديه النور', 'نقدية النور', 'نقدي النور']) or norm_i in ['النور', 'معلف النور']:
                         continue
+                    if norm_i in TREASURY_CUSTOMER_ALIASES:
+                        i_desc = TREASURY_CUSTOMER_ALIASES[norm_i]
                     seen_tx_sigs.add(sig)
                     all_weekly_tx.append({
                         "receipt": i_rcpt,
@@ -318,8 +331,8 @@ def extract_cashflow():
     except Exception as e_live:
         print("Note: live treasury incoming fetch failed:", e_live)
 
-    # (C) Merge with cached past transactions from local cashflow_data.json if available
-    if os.path.exists(data_path):
+    # (C) Merge with cached past transactions only if no transactions were discovered
+    if len(all_weekly_tx) == 0 and os.path.exists(data_path):
         try:
             with open(data_path, 'r', encoding='utf-8') as f:
                 prev_d = json.load(f)
