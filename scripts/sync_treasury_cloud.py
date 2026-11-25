@@ -74,6 +74,8 @@ def sync_treasury():
                         i_desc = str(item.get('description', '')).strip()
                         i_type = str(item.get('type', 'كاش')).strip()
                         i_date = str(item.get('date', dt)).strip() or dt
+                        if not (week_start <= i_date <= week_end):
+                            continue
                         i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
                         norm_i = normalize_arabic(i_desc)
 
@@ -114,6 +116,8 @@ def sync_treasury():
                     i_desc = str(item.get('description', '')).strip()
                     i_type = str(item.get('type', 'كاش')).strip()
                     i_date = str(item.get('date', t_rep_date)).strip() or t_rep_date
+                    if not (week_start <= i_date <= week_end):
+                        continue
                     i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
                     norm_i = normalize_arabic(i_desc)
 

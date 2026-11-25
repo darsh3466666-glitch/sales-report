@@ -285,6 +285,8 @@ def extract_cashflow():
                         i_desc = str(item.get('description', '')).strip()
                         i_type = str(item.get('type', 'خزينة')).strip()
                         i_date = str(item.get('date', dt)).strip() or dt
+                        if not (week_start <= i_date <= week_end):
+                            continue
                         i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
                         norm_i = normalize_arabic(i_desc)
                         sig = f"{i_date}_{norm_i}_{i_amt}_{i_rcpt}"
@@ -321,6 +323,8 @@ def extract_cashflow():
                 i_desc = str(item.get('description', '')).strip()
                 i_type = str(item.get('type', 'خزينة')).strip()
                 i_date = str(item.get('date', t_rep_date)).strip() or t_rep_date
+                if not (week_start <= i_date <= week_end):
+                    continue
                 i_rcpt = str(item.get('receipt', '')).strip() or f"live_{i_date}_{idx}"
                 norm_i = normalize_arabic(i_desc)
                 sig = f"{i_date}_{norm_i}_{i_amt}_{i_rcpt}"
@@ -503,10 +507,10 @@ def extract_cashflow():
             continue
 
         # Determine expected amount:
-        # 1. Manual user override takes absolute priority
+        # 1. Manual user override applies across weeks ONLY when pinned
         # 2. Unexpected payer who paid during week but wasn't due gets 0.0
         # 3. Otherwise current balance is the baseline target
-        if m_name in fixed_amounts:
+        if is_pinned and m_name in fixed_amounts:
             expected = max(0.0, float(fixed_amounts[m_name]))
         elif not is_due_this_week and has_paid:
             expected = 0.0
@@ -574,7 +578,10 @@ def extract_cashflow():
         r['index'] = i + 1
 
     existing_config["pinnedCustomers"] = pinned_customers
-    existing_config["fixedAmounts"] = fixed_amounts  # Preserve ALL user overrides, not just pinned
+    # Keep permanent fixed amounts ONLY for pinned weekly-installment customers so non-pinned edits never pollute future weeks
+    existing_config["fixedAmounts"] = {
+        k: v for k, v in fixed_amounts.items() if pinned_customers.get(k, False)
+    }
     existing_config["notes"] = notes
     existing_config["updatedAt"] = datetime.datetime.now().isoformat()
 

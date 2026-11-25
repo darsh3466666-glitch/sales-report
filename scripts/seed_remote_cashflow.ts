@@ -1,7 +1,15 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, doc, setDoc, getDoc } from "firebase/firestore";
 import config from "../firebase-applet-config.json";
-import { getLiveCashFlowData, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC, FIRESTORE_CF_OVERRIDES_DOC } from "../src/lib/cashflow.functions";
+import {
+  getLiveCashFlowData,
+  getCurrentCashFlowWeekWindow,
+  pruneExpiredNonPinnedOverrides,
+  FIRESTORE_CF_COLLECTION,
+  FIRESTORE_CF_CYCLE_DOC,
+  FIRESTORE_CF_OVERRIDES_DOC,
+} from "../src/lib/cashflow.functions";
+import { normalizeArabicName } from "../src/lib/excel-parser.functions";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -10,18 +18,11 @@ async function main() {
   const app = initializeApp(config);
   const db = getFirestore(app, config.firestoreDatabaseId);
 
-  // 1. Get current authentic cashflow summary from local engine
-  const summary = await getLiveCashFlowData();
-  const mahmoudInSummary = summary.customers.find((c: any) => c.customerName.includes("محمود اسماعيل"));
-  console.log("Mahmoud in summary before saving to Firestore:", mahmoudInSummary);
-  console.log(`Extracted summary: ${summary.customers.length} customers, Total Expected: ${summary.totalExpected}, Total Collected: ${summary.totalCollected}`);
-
-  // 2. Read notes and fixedAmounts from cashflow_config.json if available
+  // 1. Load & clean User Overrides in Firestore FIRST (remove stale non-pinned fixedAmounts from older cycles!)
+  const cfgPath = path.resolve(process.cwd(), "public", "cashflow_config.json");
   let cfgNotes: Record<string, string> = {};
   let cfgFixed: Record<string, number> = {};
   let cfgPinned: Record<string, boolean> = {};
-
-  const cfgPath = path.resolve(process.cwd(), "public", "cashflow_config.json");
   if (fs.existsSync(cfgPath)) {
     try {
       const cfg = JSON.parse(fs.readFileSync(cfgPath, "utf8"));
@@ -31,29 +32,60 @@ async function main() {
     } catch (e) {}
   }
 
-  // 3. Prepare User Overrides, strictly preserving user-deleted and manually added customers!
-  let existingDeleted: string[] = [];
-  let existingAdded: any[] = [];
   const ovRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
+  let remoteOv: any = {};
   try {
     const ovSnap = await getDoc(ovRef);
-    if (ovSnap.exists()) {
-      const d = ovSnap.data();
-      if (Array.isArray(d?.deletedCustomers)) existingDeleted = d.deletedCustomers;
-      if (Array.isArray(d?.addedCustomers)) existingAdded = d.addedCustomers;
-    }
+    if (ovSnap.exists()) remoteOv = ovSnap.data() || {};
   } catch (e) {}
 
-  const userOverrides = {
-    fixedAmounts: cfgFixed,
-    notes: cfgNotes,
-    pinnedStatus: cfgPinned,
-    deletedCustomers: existingDeleted,
-    addedCustomers: existingAdded,
-    updatedAt: new Date().toISOString()
+  const weekInfo = getCurrentCashFlowWeekWindow();
+  const currentCycleId = `week_${weekInfo.weekStart}_to_${weekInfo.weekEnd}`;
+
+  // Merge pinned & notes without overwriting live Firestore browser edits or resurrecting deleted customers
+  const mergedPinned: Record<string, boolean> = { ...cfgPinned, ...(remoteOv.pinnedStatus || {}) };
+  const mergedNotes: Record<string, string> = { ...cfgNotes, ...(remoteOv.notes || {}) };
+  const mergedFixed: Record<string, number> = { ...(remoteOv.fixedAmounts || {}) };
+  for (const [k, v] of Object.entries(cfgFixed)) {
+    const norm = normalizeArabicName(k);
+    const hasRemote = Object.keys(mergedFixed).some((rk) => normalizeArabicName(rk) === norm);
+    if (!hasRemote && mergedPinned[k]) {
+      mergedFixed[k] = Number(v);
+    }
+  }
+
+  const rawMergedOverrides = {
+    fixedAmounts: mergedFixed,
+    fixedCycleIds: remoteOv.fixedCycleIds || {},
+    notes: mergedNotes,
+    pinnedStatus: mergedPinned,
+    deletedCustomers: Array.isArray(remoteOv.deletedCustomers) ? remoteOv.deletedCustomers : [],
+    addedCustomers: Array.isArray(remoteOv.addedCustomers) ? remoteOv.addedCustomers : [],
+    updatedAt: new Date().toISOString(),
+    itemTimestamps: remoteOv.itemTimestamps || {},
   };
 
-  // 4. Prepare Active Cycle State
+  const { cleaned: cleanedOverrides, changed } = pruneExpiredNonPinnedOverrides(rawMergedOverrides, currentCycleId);
+  if (changed || !remoteOv.updatedAt) {
+    console.log("Cleaning expired non-pinned fixedAmounts in Firestore user_overrides...");
+  }
+  // Replace whole overrides doc (no merge:true) so deleted/pruned fixedAmounts keys are actually removed from Firestore
+  await setDoc(ovRef, JSON.parse(JSON.stringify(cleanedOverrides)));
+
+  const cycleRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
+  let remoteCycleSource = "";
+  try {
+    const cSnap = await getDoc(cycleRef);
+    if (cSnap.exists()) remoteCycleSource = String(cSnap.data()?.source || "");
+  } catch (e) {}
+
+  // 2. Get current authentic cashflow summary using cleaned Firestore overrides & live Master_Data
+  // If migrating from an older schema before seed_sync_v11, force refreshing non-pinned baseline from Master_Data
+  const forceRefreshNonPinnedBaseline = remoteCycleSource !== "seed_sync_v11";
+  const summary = await getLiveCashFlowData({ forceRefreshNonPinnedBaseline });
+  console.log(`Extracted summary: ${summary.customers.length} customers, Total Expected: ${summary.totalExpected}, Total Collected: ${summary.totalCollected}`);
+
+  // 3. Prepare Active Cycle State
   const activeCycleState = {
     cycleId: `week_${summary.weekStart}_to_${summary.weekEnd}`,
     weekStart: summary.weekStart,
@@ -61,19 +93,14 @@ async function main() {
     weekLabel: summary.weekLabel,
     weeklyGoal: summary.weeklyGoal || 4000000,
     customers: summary.customers,
+    weeklyTreasuryTransactions: summary.weeklyTreasuryTransactions || [],
     updatedAt: new Date().toISOString(),
-    source: "seed_sync_v10"
+    source: "seed_sync_v11",
   };
 
-  console.log("Saving user overrides to Firestore...");
-  await setDoc(ovRef, userOverrides, { merge: true });
-
   console.log("Saving active cycle state to Firestore...");
-  const cycleRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
-  const cleanActiveCycleState = JSON.parse(JSON.stringify(activeCycleState));
-  await setDoc(cycleRef, cleanActiveCycleState, { merge: true });
+  await setDoc(cycleRef, JSON.parse(JSON.stringify(activeCycleState)));
 
-  // 5. Verify Firestore write
   const verifySnap = await getDoc(cycleRef);
   if (verifySnap.exists()) {
     const d = verifySnap.data();

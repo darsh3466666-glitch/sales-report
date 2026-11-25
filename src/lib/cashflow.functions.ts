@@ -446,6 +446,7 @@ export async function fetchLiveTreasuryIncoming(): Promise<TreasuryIncomingTx[]>
 
 export interface UserOverrides {
   fixedAmounts: Record<string, number>;
+  fixedCycleIds?: Record<string, string>;
   notes: Record<string, string>;
   pinnedStatus: Record<string, boolean>;
   deletedCustomers?: string[];
@@ -464,9 +465,10 @@ export interface ActiveCashFlowCycleState {
   archivedTxSignatures?: string[];
   weeklyTreasuryTransactions?: TreasuryIncomingTx[];
   updatedAt: string;
+  source?: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v10";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v11";
 export const FIRESTORE_CF_COLLECTION = "cashflow_settings";
 export const FIRESTORE_CF_CYCLE_DOC = "active_cycle";
 export const FIRESTORE_CF_OVERRIDES_DOC = "user_overrides";
@@ -504,7 +506,7 @@ export async function saveRemoteCycleState(state: ActiveCashFlowCycleState): Pro
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
     const cleanState = JSON.parse(JSON.stringify(state));
     await Promise.race([
-      setDoc(docRef, cleanState, { merge: true }),
+      setDoc(docRef, cleanState),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 6000)),
     ]);
   } catch (e) {
@@ -539,8 +541,9 @@ export async function saveRemoteUserOverrides(overrides: UserOverrides): Promise
   if (!overrides) return;
   try {
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
+    const cleanOverrides = JSON.parse(JSON.stringify(overrides));
     await Promise.race([
-      setDoc(docRef, overrides, { merge: true }),
+      setDoc(docRef, cleanOverrides),
       new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 6000)),
     ]);
   } catch (e) {
@@ -592,6 +595,7 @@ export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
     // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v10");
     localStorage.removeItem("cashflow_active_cycle_state_v9");
     localStorage.removeItem("cashflow_active_cycle_state_v8");
     localStorage.removeItem("cashflow_active_cycle_state_v7");
@@ -624,42 +628,88 @@ export function saveActiveCycleState(state: ActiveCashFlowCycleState) {
 }
 
 /**
+ * Remove non-pinned temporary expectedAmount overrides that belong to past cycles.
+ * Ensures non-pinned customers carrying over into a new week always reset to their live currentBalance.
+ */
+export function pruneExpiredNonPinnedOverrides(
+  overrides: UserOverrides,
+  currentCycleId: string,
+  rawConfig?: any
+): { cleaned: UserOverrides; changed: boolean } {
+  let changed = false;
+  const nextFixed: Record<string, number> = {};
+  const nextCycleIds: Record<string, string> = { ...(overrides.fixedCycleIds || {}) };
+
+  for (const [name, val] of Object.entries(overrides.fixedAmounts || {})) {
+    const norm = normalizeArabicName(name);
+    const isPinned = Boolean(getOverridePinned(overrides, name, rawConfig));
+    const boundCycle = nextCycleIds[norm];
+    if (isPinned || (boundCycle && boundCycle === currentCycleId)) {
+      nextFixed[name] = val;
+    } else {
+      delete nextCycleIds[norm];
+      changed = true;
+    }
+  }
+
+  // Also strip any orphaned cycle bindings
+  for (const normKey of Object.keys(nextCycleIds)) {
+    if (nextCycleIds[normKey] !== currentCycleId) {
+      delete nextCycleIds[normKey];
+      changed = true;
+    }
+  }
+
+  return {
+    cleaned: {
+      ...overrides,
+      fixedAmounts: nextFixed,
+      fixedCycleIds: nextCycleIds,
+    },
+    changed,
+  };
+}
+
+/**
  * Helper to match and retrieve fixed amounts across exact and normalized Arabic variants.
+ * Non-pinned edits apply strictly within their bound active cycle and never carry over to future weeks.
  */
 export function getOverrideFixedAmount(
   overrides?: UserOverrides | null,
   customerName?: string,
-  rawConfig?: any
+  rawConfig?: any,
+  currentCycleId?: string,
+  isPinned?: boolean
 ): number | undefined {
   if (!customerName) return undefined;
   const norm = normalizeArabicName(customerName);
+  const effectivePinned =
+    isPinned !== undefined
+      ? isPinned
+      : Boolean(getOverridePinned(overrides, customerName, rawConfig));
 
-  // 1. Exact match in user overrides
-  if (overrides?.fixedAmounts?.[customerName] !== undefined) {
-    return Number(overrides.fixedAmounts[customerName]);
-  }
-
-  // 2. Normalized match in user overrides
-  if (overrides?.fixedAmounts) {
-    for (const [key, val] of Object.entries(overrides.fixedAmounts)) {
-      if (normalizeArabicName(key) === norm) {
+  const findInMap = (map?: Record<string, number>, enforceCycle = true): number | undefined => {
+    if (!map) return undefined;
+    for (const [key, val] of Object.entries(map)) {
+      if (key === customerName || normalizeArabicName(key) === norm) {
+        if (!effectivePinned && enforceCycle) {
+          const boundCycle = overrides?.fixedCycleIds?.[norm];
+          if (!currentCycleId || boundCycle !== currentCycleId) {
+            return undefined;
+          }
+        }
         return Number(val);
       }
     }
-  }
+    return undefined;
+  };
 
-  // 3. Exact match in rawConfig
-  if (rawConfig?.fixedAmounts?.[customerName] !== undefined) {
-    return Number(rawConfig.fixedAmounts[customerName]);
-  }
+  const fromOverrides = findInMap(overrides?.fixedAmounts, true);
+  if (fromOverrides !== undefined) return fromOverrides;
 
-  // 4. Normalized match in rawConfig
-  if (rawConfig?.fixedAmounts) {
-    for (const [key, val] of Object.entries(rawConfig.fixedAmounts)) {
-      if (normalizeArabicName(key) === norm) {
-        return Number(val);
-      }
-    }
+  if (effectivePinned) {
+    const fromCfg = findInMap(rawConfig?.fixedAmounts, false);
+    if (fromCfg !== undefined) return fromCfg;
   }
 
   return undefined;
@@ -730,16 +780,20 @@ export function getOverridePinned(
  */
 export function getUserOverrides(): UserOverrides {
   if (typeof window === "undefined") {
-    return { fixedAmounts: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
+    return { fixedAmounts: {}, fixedCycleIds: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
   }
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) return { fixedAmounts: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
+    if (!raw) return { fixedAmounts: {}, fixedCycleIds: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
     const parsed = JSON.parse(raw);
     return {
       fixedAmounts:
         parsed && typeof parsed.fixedAmounts === "object" && parsed.fixedAmounts !== null
           ? parsed.fixedAmounts
+          : {},
+      fixedCycleIds:
+        parsed && typeof parsed.fixedCycleIds === "object" && parsed.fixedCycleIds !== null
+          ? parsed.fixedCycleIds
           : {},
       notes:
         parsed && typeof parsed.notes === "object" && parsed.notes !== null
@@ -755,22 +809,36 @@ export function getUserOverrides(): UserOverrides {
       itemTimestamps: parsed?.itemTimestamps || {},
     };
   } catch {
-    return { fixedAmounts: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
+    return { fixedAmounts: {}, fixedCycleIds: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
   }
 }
 
 /**
  * Synchronize remote Firestore overrides into LocalStorage cache intelligently.
- * Ensures recent local user modifications are NEVER overwritten by stale remote cache.
+ * Ensures recent local user modifications are NEVER overwritten by stale remote cache,
+ * and returns the merged overrides so Node-side sync scripts also honor live Firestore overrides.
  */
-export function syncRemoteOverridesToLocal(remote: UserOverrides) {
-  if (typeof window === "undefined" || !remote) return;
+export function syncRemoteOverridesToLocal(remote: UserOverrides): UserOverrides {
+  if (!remote) return getUserOverrides();
+  if (typeof window === "undefined") {
+    return {
+      fixedAmounts: remote.fixedAmounts || {},
+      fixedCycleIds: remote.fixedCycleIds || {},
+      notes: remote.notes || {},
+      pinnedStatus: remote.pinnedStatus || {},
+      deletedCustomers: Array.isArray(remote.deletedCustomers) ? remote.deletedCustomers : [],
+      addedCustomers: Array.isArray(remote.addedCustomers) ? remote.addedCustomers : [],
+      updatedAt: remote.updatedAt,
+      itemTimestamps: remote.itemTimestamps || {},
+    };
+  }
   try {
     const local = getUserOverrides();
     const localTime = local.updatedAt ? new Date(local.updatedAt).getTime() : 0;
     const remoteTime = remote.updatedAt ? new Date(remote.updatedAt).getTime() : 0;
 
     const mergedFixed: Record<string, number> = { ...(remote.fixedAmounts || {}) };
+    const mergedFixedCycles: Record<string, string> = { ...(remote.fixedCycleIds || {}) };
     const mergedTimestamps: Record<string, number> = { ...(remote.itemTimestamps || {}) };
 
     // Any local fixed amount modified more recently than remote must be preserved!
@@ -785,6 +853,11 @@ export function syncRemoteOverridesToLocal(remote: UserOverrides) {
           }
         }
         mergedFixed[name] = amt;
+        if (local.fixedCycleIds?.[norm]) {
+          mergedFixedCycles[norm] = local.fixedCycleIds[norm];
+        } else {
+          delete mergedFixedCycles[norm];
+        }
         mergedTimestamps[norm] = lTime;
       }
     }
@@ -821,6 +894,7 @@ export function syncRemoteOverridesToLocal(remote: UserOverrides) {
 
     const merged: UserOverrides = {
       fixedAmounts: mergedFixed,
+      fixedCycleIds: mergedFixedCycles,
       notes: mergedNotes,
       pinnedStatus: mergedPinned,
       deletedCustomers: Array.from(new Set([...(local.deletedCustomers || []), ...(remote.deletedCustomers || [])])),
@@ -834,8 +908,10 @@ export function syncRemoteOverridesToLocal(remote: UserOverrides) {
     if (localTime > remoteTime) {
       saveRemoteUserOverrides(merged).catch(() => {});
     }
+    return merged;
   } catch (e) {
     console.warn("Failed to sync remote overrides to local:", e);
+    return getUserOverrides();
   }
 }
 
@@ -921,8 +997,13 @@ export function saveCustomerOverride(
 
     const current = getUserOverrides();
     current.itemTimestamps = current.itemTimestamps || {};
+    current.fixedCycleIds = current.fixedCycleIds || {};
     current.itemTimestamps[normTarget] = nowMs;
     current.updatedAt = nowIso;
+
+    const cycle = getActiveCycleState();
+    const wInfo = getCurrentCashFlowWeekWindow();
+    const activeCycleId = cycle?.cycleId || `week_${wInfo.weekStart}_to_${wInfo.weekEnd}`;
 
     if (updates.expectedAmount !== undefined) {
       // Clean up conflicting spelling variants
@@ -952,11 +1033,21 @@ export function saveCustomerOverride(
       current.pinnedStatus[customerName] = updates.isPinned;
     }
 
+    const effectivePinned =
+      updates.isPinned !== undefined
+        ? updates.isPinned
+        : Boolean(getOverridePinned(current, customerName));
+
+    if (effectivePinned) {
+      delete current.fixedCycleIds[normTarget];
+    } else if (updates.expectedAmount !== undefined || updates.isPinned === false) {
+      current.fixedCycleIds[normTarget] = activeCycleId;
+    }
+
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
     saveRemoteUserOverrides(current).catch(() => {});
 
     // Also update customer in active cycle state if present
-    const cycle = getActiveCycleState();
     if (cycle && Array.isArray(cycle.customers)) {
       const target = cycle.customers.find(
         (c) =>
@@ -1579,6 +1670,7 @@ export function recalculateCashFlowSummary(
  */
 export async function getLiveCashFlowData(options?: {
   referenceDate?: string;
+  forceRefreshNonPinnedBaseline?: boolean;
 }): Promise<CashFlowSummary> {
   const basePath =
     typeof window !== "undefined" &&
@@ -1675,13 +1767,23 @@ export async function getLiveCashFlowData(options?: {
       remotePrevWeek = rPrevWeek;
     }
 
-    if (remoteOverrides) {
-      syncRemoteOverridesToLocal(remoteOverrides);
-    }
-    const overrides = getUserOverrides();
-
     const weekInfo = getCurrentCashFlowWeekWindow(options?.referenceDate || rawData?.reportDate || new Date());
     const currentCycleId = `week_${weekInfo.weekStart}_to_${weekInfo.weekEnd}`;
+
+    const rawOverrides = remoteOverrides
+      ? syncRemoteOverridesToLocal(remoteOverrides)
+      : getUserOverrides();
+    const { cleaned: overrides, changed: overridesPruned } = pruneExpiredNonPinnedOverrides(
+      rawOverrides,
+      currentCycleId,
+      rawConfig
+    );
+    if (overridesPruned && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(overrides));
+        saveRemoteUserOverrides(overrides).catch(() => {});
+      } catch (e) {}
+    }
 
     const localSavedCycle = getActiveCycleState();
     const isRemoteValid = Boolean(
@@ -1696,7 +1798,7 @@ export async function getLiveCashFlowData(options?: {
     if (isRemoteValid && remoteCycle) {
       const remoteTime = remoteCycle.updatedAt ? new Date(remoteCycle.updatedAt).getTime() : 0;
       const localTime = localSavedCycle?.updatedAt ? new Date(localSavedCycle.updatedAt).getTime() : 0;
-      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v10"));
+      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v11"));
       if (!localSavedCycle || isRemoteFreshSeed || remoteTime >= localTime) {
         savedCycle = remoteCycle;
         if (typeof window !== "undefined") {
@@ -1721,6 +1823,7 @@ export async function getLiveCashFlowData(options?: {
     }
 
     const isSavedCycleValid = Boolean(
+      !options?.forceRefreshNonPinnedBaseline &&
       savedCycle &&
       (savedCycle.cycleId === currentCycleId ||
         (!savedCycle.weekEnd || savedCycle.weekEnd >= weekInfo.weekStart)) &&
@@ -1736,14 +1839,6 @@ export async function getLiveCashFlowData(options?: {
       let hasAutoCorrected = false;
       baseCustomers = savedCycle.customers.map((c) => {
         const norm = c.normalizedName || normalizeArabicName(c.customerName);
-        let overrideAmt = getOverrideFixedAmount(overrides, c.customerName, rawConfig);
-
-
-        let expectedAmount =
-          overrideAmt !== undefined
-            ? overrideAmt
-            : c.expectedAmount;
-
         const masterCust = (rawData?.masterCustomers || []).find(
           (mc: any) =>
             mc.customerName === c.customerName ||
@@ -1759,6 +1854,13 @@ export async function getLiveCashFlowData(options?: {
 
         const isPinned =
           getOverridePinned(overrides, c.customerName, rawConfig) ?? Boolean(c.isPinned);
+
+        const overrideAmt = getOverrideFixedAmount(overrides, c.customerName, rawConfig, currentCycleId, isPinned);
+
+        let expectedAmount =
+          overrideAmt !== undefined
+            ? overrideAmt
+            : c.expectedAmount;
 
         const isCurrentWeekDue = Boolean(liveDueDate && liveDueDate >= weekInfo.weekStart && liveDueDate <= weekInfo.weekEnd);
         const isUnexpected = isCurrentWeekDue ? false : Boolean(c.isUnexpectedInflow);
@@ -1861,7 +1963,8 @@ export async function getLiveCashFlowData(options?: {
         );
         const qualifiesByDate = Boolean(mc.dueDate && mc.dueDate <= weekInfo.weekEnd);
         if (!isAlreadyInBase && (qualifiesByDate || hasPaidInSheet)) {
-          const overrideAmt = getOverrideFixedAmount(overrides, mc.customerName, rawConfig);
+          const isCustPinned = Boolean(getOverridePinned(overrides, mc.customerName, rawConfig));
+          const overrideAmt = getOverrideFixedAmount(overrides, mc.customerName, rawConfig, currentCycleId, isCustPinned);
           // If customer entered solely because they paid (unexpected / future due date), expectedAmount is strictly 0!
           const expAmt =
             overrideAmt !== undefined
@@ -1881,7 +1984,7 @@ export async function getLiveCashFlowData(options?: {
             status: "لم يسدد",
             remaining: Number(expAmt) || 0,
             notes: mc.notes !== undefined ? mc.notes : (getOverrideNote(overrides, mc.customerName, rawConfig) || ""),
-            isPinned: false,
+            isPinned: isCustPinned,
             isUnexpectedInflow: !qualifiesByDate && hasPaidInSheet,
             treasuryTransactions: [],
           });
@@ -1894,19 +1997,21 @@ export async function getLiveCashFlowData(options?: {
         const isPinned =
           getOverridePinned(overrides, name, rawConfig) ?? Boolean(c.isPinned ?? false);
 
-        const overrideAmt = getOverrideFixedAmount(overrides, name, rawConfig);
-        const expectedAmount =
-          overrideAmt !== undefined
-            ? overrideAmt
-            : c.expectedAmount !== undefined
-            ? c.expectedAmount
-            : c.currentBalance || 0;
-
+        const overrideAmt = getOverrideFixedAmount(overrides, name, rawConfig, currentCycleId, isPinned);
         const masterCust = (rawData?.masterCustomers || []).find(
           (mc: any) =>
             mc.customerName === name ||
             normalizeArabicName(mc.customerName) === (c.normalizedName || normalizeArabicName(name))
         );
+        const liveBal = masterCust?.currentBalance !== undefined ? Number(masterCust.currentBalance) : (Number(c.currentBalance) || 0);
+        const expectedAmount =
+          overrideAmt !== undefined
+            ? overrideAmt
+            : isPinned && c.expectedAmount !== undefined
+            ? c.expectedAmount
+            : c.expectedAmount !== undefined
+            ? c.expectedAmount
+            : liveBal;
 
         const overrideNote = getOverrideNote(overrides, name, rawConfig);
         const notes =
@@ -1920,12 +2025,12 @@ export async function getLiveCashFlowData(options?: {
           index: idx + 1,
           customerName: name,
           normalizedName: c.normalizedName || normalizeArabicName(name),
-          currentBalance: Number(c.currentBalance) || 0,
+          currentBalance: liveBal,
           expectedAmount: Number(expectedAmount) || 0,
           collectedFromSheet: Number(c.collectedFromSheet) || 0,
           collectedFromTreasury: 0,
           totalCollected: Number(c.collectedFromSheet) || 0,
-          dueDate: c.dueDate || "",
+          dueDate: masterCust?.dueDate !== undefined ? masterCust.dueDate : (c.dueDate || ""),
           rate: 0,
           status: "لم يسدد" as const,
           remaining: 0,
@@ -1956,7 +2061,7 @@ export async function getLiveCashFlowData(options?: {
         }
 
         if (!isDueThisWeekOrPast && hasPaid && !c.isPinned) {
-          const overrideAmt = getOverrideFixedAmount(overrides, c.customerName, rawConfig);
+          const overrideAmt = getOverrideFixedAmount(overrides, c.customerName, rawConfig, currentCycleId, c.isPinned);
           if (overrideAmt !== undefined) {
             c.expectedAmount = overrideAmt;
           } else {
@@ -1967,26 +2072,62 @@ export async function getLiveCashFlowData(options?: {
         return true;
       });
 
-      // Rollover unpaid customers from previous cycle (User Rule: ينزل بالمبلغ المتبقي الذي لم يسدده من الأسبوع المنتهي)
-      if (savedCycle && Array.isArray(savedCycle.customers)) {
+      // Rollover unpaid customers from genuinely previous cycle using their ACTUAL live Master_Data balance
+      if (
+        !options?.forceRefreshNonPinnedBaseline &&
+        savedCycle &&
+        savedCycle.weekEnd &&
+        savedCycle.weekEnd < weekInfo.weekStart &&
+        Array.isArray(savedCycle.customers)
+      ) {
+        const masterMap = new Map<string, any>();
+        for (const mc of rawData?.masterCustomers || []) {
+          if (mc.customerName) masterMap.set(normalizeArabicName(mc.customerName), mc);
+        }
         for (const prevCust of savedCycle.customers) {
           const norm = prevCust.normalizedName || normalizeArabicName(prevCust.customerName);
           const alreadyIn = baseCustomers.some(
             (b) => b.customerName === prevCust.customerName || normalizeArabicName(b.customerName) === norm
           );
+          if (alreadyIn) continue;
+
+          const liveMaster = masterMap.get(norm);
+          const actualBal = liveMaster?.currentBalance !== undefined
+            ? Number(liveMaster.currentBalance)
+            : (Number(prevCust.currentBalance) || 0);
+          const actualDue = liveMaster?.dueDate !== undefined ? liveMaster.dueDate : (prevCust.dueDate || "");
+          const actualNotes = liveMaster?.notes !== undefined ? liveMaster.notes : (prevCust.notes || "");
+          const isKhalis = Boolean(liveMaster?.isKhalis || actualNotes.includes("عميل خالص") || actualNotes.includes("تم التصفية"));
+          const isCustPinned = Boolean(getOverridePinned(overrides, prevCust.customerName, rawConfig) ?? prevCust.isPinned);
+
+          if (isKhalis && !isCustPinned) continue;
+          if (actualBal < 5000 && !isCustPinned) continue;
+          if (actualDue && actualDue > weekInfo.weekEnd && !isCustPinned) continue;
+
           const remAmt = prevCust.remaining !== undefined ? prevCust.remaining : prevCust.expectedAmount;
-          if (!alreadyIn && remAmt > 0 && prevCust.currentBalance >= 5000) {
-            if (prevCust.notes?.includes("عميل خالص") || prevCust.notes?.includes("تم التصفية")) continue;
+          if (remAmt > 0 || isCustPinned) {
+            const overrideAmt = getOverrideFixedAmount(overrides, prevCust.customerName, rawConfig, currentCycleId, isCustPinned);
+            const carriedExpected =
+              isCustPinned && overrideAmt !== undefined
+                ? overrideAmt
+                : isCustPinned
+                ? prevCust.expectedAmount
+                : Math.max(0, actualBal);
+
             baseCustomers.push({
               ...prevCust,
               index: baseCustomers.length + 1,
-              expectedAmount: remAmt, // Carry over UNPAID REMAINING ONLY!
+              currentBalance: actualBal,
+              dueDate: actualDue,
+              notes: getOverrideNote(overrides, prevCust.customerName, rawConfig) || actualNotes,
+              isPinned: isCustPinned,
+              expectedAmount: carriedExpected,
               collectedFromSheet: 0,
               collectedFromTreasury: 0,
               totalCollected: 0,
-              remaining: remAmt,
-              rate: 0,
-              status: "لم يسدد",
+              remaining: carriedExpected,
+              rate: carriedExpected > 0 ? 0 : 1,
+              status: carriedExpected > 0 ? "لم يسدد" : "لا يوجد استحقاق",
               treasuryTransactions: [],
             });
           }
@@ -2372,7 +2513,7 @@ export async function getLiveCashFlowData(options?: {
             const isCustPinned = Boolean(
               getOverridePinned(overrides, custName, rawConfig) ?? false
             );
-            const overrideAmt = getOverrideFixedAmount(overrides, custName, rawConfig);
+            const overrideAmt = getOverrideFixedAmount(overrides, custName, rawConfig, currentCycleId, isCustPinned);
             const expectedAmount = isCustPinned
               ? (overrideAmt ?? 0)
               : 0; // Strictly 0 for unexpected inflow!
@@ -2535,6 +2676,7 @@ export async function getLiveCashFlowData(options?: {
       archivedTxSignatures: Array.from(archivedTxSet),
       weeklyTreasuryTransactions: cycleTreasuryTx,
       updatedAt: new Date().toISOString(),
+      source: "browser_sync",
     });
 
     // Build Weekly Comparison Metrics (Executive Totals)
@@ -2871,24 +3013,36 @@ export async function archiveCurrentWeekAndStartNew(
   nextStart.setHours(0, 0, 0, 0);
 
   const nextWeekInfo = getCurrentCashFlowWeekWindow(nextStart);
+  const nextCycleId = `week_${nextWeekInfo.weekStart}_to_${nextWeekInfo.weekEnd}`;
 
   // 5. Build clean customers list for the new week from Master Data + Pinned Accounts
   // User Criteria:
   // - "يجيب كل الي عليهم مستحقات من شيت الماستر لحد يوم التلات الجي 17/11 وهكذا"
   // - "لازم يكون حسابه مش صفر يعني فيه رصيد"
   // - "الي متثبت له مبلغ متلعبش فيه خالص مش بيتغير ولا مبلغه بيتغير"
+  // - Non-pinned customers carrying over from the ended week show their ACTUAL live currentBalance!
   const newCustomersMap = new Map<string, CashFlowCustomer>();
+  const masterList = currentSummary.masterCustomers || [];
+  const masterMap = new Map<string, MasterCustomerItem>();
+  for (const m of masterList) {
+    if (m.customerName) masterMap.set(normalizeArabicName(m.customerName), m);
+  }
 
-  // A) Carry over all pinned customers (preserving their exact fixed amounts)
+  // A) Carry over all pinned customers (preserving their exact fixed amounts, updating live balance)
   for (const c of currentSummary.customers) {
     const isPinned = c.isPinned || getOverridePinned(overrides, c.customerName) || false;
     if (isPinned) {
-      const overrideAmt = getOverrideFixedAmount(overrides, c.customerName);
+      const overrideAmt = getOverrideFixedAmount(overrides, c.customerName, undefined, nextCycleId, true);
       const fixedAmt = overrideAmt !== undefined ? overrideAmt : c.expectedAmount;
+      const liveM = masterMap.get(c.normalizedName || normalizeArabicName(c.customerName));
+      const actualBal = liveM?.currentBalance !== undefined ? Number(liveM.currentBalance) : c.currentBalance;
+      const actualDue = liveM?.dueDate || c.dueDate;
 
       newCustomersMap.set(c.customerName, {
         ...c,
         index: newCustomersMap.size + 1,
+        currentBalance: actualBal,
+        dueDate: actualDue,
         expectedAmount: fixedAmt,
         collectedFromSheet: 0,
         collectedFromTreasury: 0,
@@ -2927,7 +3081,6 @@ export async function archiveCurrentWeekAndStartNew(
 
   // B) Populate eligible customers from Master Data
   // Criteria: currentBalance >= 5000 AND not settled AND (due date <= nextWeekEnd OR dueDate in past/empty)
-  const masterList = currentSummary.masterCustomers || [];
   for (const m of masterList) {
     if (!m.customerName) continue;
     if (m.currentBalance < 5000) continue; // Minimum balance threshold >= 5000 EGP!
@@ -2939,7 +3092,6 @@ export async function archiveCurrentWeekAndStartNew(
     }
 
     if (newCustomersMap.has(m.customerName)) {
-      // Update balance if already present as pinned
       const existing = newCustomersMap.get(m.customerName)!;
       existing.currentBalance = m.currentBalance;
       if (m.dueDate && !existing.dueDate) existing.dueDate = m.dueDate;
@@ -2949,7 +3101,8 @@ export async function archiveCurrentWeekAndStartNew(
     // Check due date limit (up to next Tuesday)
     const isDueInNextWeek = !m.dueDate || m.dueDate <= nextWeekInfo.weekEnd;
     if (isDueInNextWeek) {
-      const overrideAmt = getOverrideFixedAmount(overrides, m.customerName);
+      const isCustPinned = Boolean(getOverridePinned(overrides, m.customerName));
+      const overrideAmt = getOverrideFixedAmount(overrides, m.customerName, undefined, nextCycleId, isCustPinned);
       const expAmt =
         overrideAmt !== undefined
           ? overrideAmt
@@ -2971,25 +3124,40 @@ export async function archiveCurrentWeekAndStartNew(
         status: expAmt > 0 ? "لم يسدد" : "لا يوجد استحقاق",
         remaining: expAmt,
         notes: custNotes,
-        isPinned: Boolean(overrides.pinnedStatus?.[m.customerName]),
+        isPinned: isCustPinned,
         treasuryTransactions: [],
       });
     }
   }
 
-  // Also include any customer from ending week who still had unpaid remaining (provided balance >= 5000 and not settled)
+  // C) Carry over any non-pinned customer from ending week who still had unpaid remaining,
+  // STRICTLY using their ACTUAL live Master_Data balance (so partial payments last week reduce this week's expected!)
   for (const c of currentSummary.customers) {
-    if (!newCustomersMap.has(c.customerName) && c.remaining > 0 && c.currentBalance >= 5000) {
-      if (c.notes?.includes("عميل خالص") || c.notes?.includes("تم التصفية")) continue;
+    if (!newCustomersMap.has(c.customerName) && c.remaining > 0) {
+      const norm = c.normalizedName || normalizeArabicName(c.customerName);
+      const liveM = masterMap.get(norm);
+      const actualBal = liveM?.currentBalance !== undefined ? Number(liveM.currentBalance) : c.currentBalance;
+      const actualDue = liveM?.dueDate !== undefined ? liveM.dueDate : c.dueDate;
+      const actualNotes = liveM?.notes !== undefined ? liveM.notes : (c.notes || "");
+
+      if (actualBal < 5000) continue;
+      if (actualNotes.includes("عميل خالص") || actualNotes.includes("تم التصفية")) continue;
+      if (actualDue && actualDue > nextWeekInfo.weekEnd) continue;
+
       newCustomersMap.set(c.customerName, {
         ...c,
         index: newCustomersMap.size + 1,
+        currentBalance: actualBal,
+        dueDate: actualDue,
+        expectedAmount: actualBal,
         collectedFromSheet: 0,
         collectedFromTreasury: 0,
         totalCollected: 0,
-        remaining: c.expectedAmount,
+        remaining: actualBal,
         rate: 0,
-        status: c.expectedAmount > 0 ? "لم يسدد" : "لا يوجد استحقاق",
+        status: actualBal > 0 ? "لم يسدد" : "لا يوجد استحقاق",
+        notes: getOverrideNote(overrides, c.customerName) || actualNotes,
+        isPinned: false,
         treasuryTransactions: [],
       });
     }
@@ -3000,11 +3168,13 @@ export async function archiveCurrentWeekAndStartNew(
     index: idx + 1,
   }));
 
-  // Clear cycle-specific temporary customer deletions and additions for the clean new week
+  // Clear cycle-specific temporary customer deletions, additions, and non-pinned expected overrides for the clean new week
   try {
-    const freshOverrides = getUserOverrides();
-    freshOverrides.deletedCustomers = [];
-    freshOverrides.addedCustomers = [];
+    const rawFreshOverrides = getUserOverrides();
+    rawFreshOverrides.deletedCustomers = [];
+    rawFreshOverrides.addedCustomers = [];
+    const { cleaned: freshOverrides } = pruneExpiredNonPinnedOverrides(rawFreshOverrides, nextCycleId);
+    freshOverrides.updatedAt = new Date().toISOString();
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(freshOverrides));
     saveRemoteUserOverrides(freshOverrides).catch(() => {});
   } catch (e) {}
