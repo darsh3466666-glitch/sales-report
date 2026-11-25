@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-25",
-  "generatedAt": "2026-11-25T14:21:05.778370",
+  "generatedAt": "2026-11-25T15:42:51.003292",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -4960,6 +4960,13 @@
       "receipt": "live_2026-11-25_6",
       "amount": 15000.0,
       "description": "حمدي عبدالحميد",
+      "type": "كاش",
+      "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_7",
+      "amount": 105.0,
+      "description": "نقدي",
       "type": "كاش",
       "date": "2026-11-25"
     }
