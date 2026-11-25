@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-25",
-  "generatedAt": "2026-11-25T14:05:34.836581",
+  "generatedAt": "2026-11-25T14:09:43.535747",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -1783,8 +1783,8 @@
     {
       "customerName": "جمعه صابر غالب",
       "currentBalance": 2650.0,
-      "dueDate": "2026-11-26",
-      "notes": "بلاغ ا احمد",
+      "dueDate": "2026-12-25",
+      "notes": "هيجي خلال شهر بلاغ ا احمد",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
