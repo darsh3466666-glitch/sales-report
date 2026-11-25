@@ -45,6 +45,9 @@ def sync_treasury():
 
     seen_tx_sigs = set()
     all_weekly_tx = []
+    latest_by_date = {}
+    commits_ok = False
+    live_ok = False
 
     # 1. Fetch GitHub snapshots from cowshedelnour-glitch/treasury-dashboard
     try:
@@ -52,8 +55,8 @@ def sync_treasury():
         req = urllib.request.Request(commits_url, headers={"User-Agent": "Mozilla/5.0"})
         with urllib.request.urlopen(req, timeout=10) as resp:
             commits = json.loads(resp.read().decode('utf-8'))
+        commits_ok = True
 
-        latest_by_date = {}
         for c in commits:
             dt = c['commit']['author']['date'].split('T')[0]
             if dt not in latest_by_date and week_start <= dt <= week_end:
@@ -109,6 +112,7 @@ def sync_treasury():
         )
         with urllib.request.urlopen(req_live, timeout=6) as resp_live:
             t_data = json.loads(resp_live.read().decode('utf-8'))
+            live_ok = True
             t_rep_date = str(t_data.get('reportDate', '')).strip() or datetime.date.today().strftime('%Y-%m-%d')
             if t_rep_date not in latest_by_date:
                 for idx, item in enumerate(t_data.get('transactions', {}).get('incoming', [])):
@@ -142,17 +146,39 @@ def sync_treasury():
 
     print(f"Assembled {len(all_weekly_tx)} authentic weekly treasury transactions, total sum = {sum(t['amount'] for t in all_weekly_tx)}")
 
-    # 3. Update public/cashflow_data.json and dist/cashflow_data.json
+    if not commits_ok and not live_ok:
+        print("Both GitHub snapshot and live treasury fetches failed; preserving existing cashflow_data.json untouched.")
+        return
+
+    if len(all_weekly_tx) == 0:
+        print("Fetched 0 weekly treasury transactions; preserving existing cashflow_data.json untouched.")
+        return
+
+    # 3. Safely merge into public/cashflow_data.json and dist/cashflow_data.json (only write if changed)
     paths = ['public/cashflow_data.json', 'dist/cashflow_data.json']
     for p in paths:
         if os.path.exists(p):
             try:
                 with open(p, 'r', encoding='utf-8') as f:
                     cf_data = json.load(f)
-                cf_data['weeklyTreasuryTransactions'] = all_weekly_tx
+
+                existing_txs = cf_data.get('weeklyTreasuryTransactions') or []
+                merged_txs = list(all_weekly_tx)
+                # Keep any valid active-week transactions from dates not covered by the remote fetch
+                fetched_dates = {t.get('date') for t in all_weekly_tx if t.get('date')}
+                for old_tx in existing_txs:
+                    old_date = str(old_tx.get('date', '')).strip()
+                    if old_date and week_start <= old_date <= week_end and old_date not in fetched_dates:
+                        merged_txs.append(old_tx)
+
+                if existing_txs == merged_txs:
+                    print(f"No changes for {p}; skipping write.")
+                    continue
+
+                cf_data['weeklyTreasuryTransactions'] = merged_txs
                 with open(p, 'w', encoding='utf-8') as f:
                     json.dump(cf_data, f, ensure_ascii=False, indent=2)
-                print(f"Updated {p} successfully.")
+                print(f"Updated {p} successfully ({len(merged_txs)} transactions).")
             except Exception as e:
                 print(f"Error updating {p}:", e)
 
