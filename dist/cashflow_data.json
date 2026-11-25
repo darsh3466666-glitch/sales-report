@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-25",
-  "generatedAt": "2026-11-25T16:00:32.447050",
+  "generatedAt": "2026-11-25T16:50:27.197746",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -1009,8 +1009,8 @@
     {
       "customerName": "مزرعه الخيرات",
       "currentBalance": 1623098.4700000007,
-      "dueDate": "2026-11-29",
-      "notes": "التلات 24/11/2026",
+      "dueDate": "2026-11-26",
+      "notes": "الخيرات بكرا 26/11/2026",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -4969,6 +4969,48 @@
       "description": "نقدي",
       "type": "كاش",
       "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_8",
+      "amount": 850.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_9",
+      "amount": 88000.0,
+      "description": "ايه بي ديري",
+      "type": "تنمية",
+      "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_10",
+      "amount": 1400.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_11",
+      "amount": 250.0,
+      "description": "نقدي",
+      "type": "أ احمد",
+      "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_12",
+      "amount": 20000.0,
+      "description": "خالد عبدالوهاب",
+      "type": "كاش",
+      "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_13",
+      "amount": 1700.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-25"
     }
   ],
   "customers": [
@@ -4987,6 +5029,20 @@
       "index": 1
     },
     {
+      "customerName": "مزرعه الخيرات",
+      "normalizedName": "مزرعه الخيرات",
+      "currentBalance": 1623098.4700000007,
+      "expectedAmount": 200000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-26",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 200000.0,
+      "notes": "الخيرات بكرا 26/11/2026",
+      "isPinned": true,
+      "index": 2
+    },
+    {
       "customerName": "د.هاني محمود يوسف (طاميه)",
       "normalizedName": "د هاني محمود يوسف طاميه",
       "currentBalance": 1529001.0,
@@ -4998,7 +5054,7 @@
       "remaining": 1529001.0,
       "notes": "",
       "isPinned": true,
-      "index": 2
+      "index": 3
     },
     {
       "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
@@ -5012,7 +5068,7 @@
       "remaining": 200000.0,
       "notes": "خلال الاسبوع ده هيجيب من 450 ل500 الف",
       "isPinned": true,
-      "index": 3
+      "index": 4
     },
     {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
@@ -5025,20 +5081,6 @@
       "status": "لم يسدد",
       "remaining": 100000.0,
       "notes": "جهينة",
-      "isPinned": true,
-      "index": 4
-    },
-    {
-      "customerName": "مزرعه الخيرات",
-      "normalizedName": "مزرعه الخيرات",
-      "currentBalance": 1623098.4700000007,
-      "expectedAmount": 200000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-29",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 200000.0,
-      "notes": "التلات 24/11/2026",
       "isPinned": true,
       "index": 5
     },
