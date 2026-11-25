@@ -510,22 +510,20 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           if (statusDiff !== 0) {
             cmp = statusDiff;
           } else {
-            // Secondary sorting within status groups
-            if (orderA === 1) {
-              // Within "لم يسدد": sort by earliest dueDate, then highest expectedAmount
-              const dA = a.dueDate || "9999-99-99";
-              const dB = b.dueDate || "9999-99-99";
-              const dateDiff = dA.localeCompare(dB);
-              cmp = dateDiff !== 0 ? dateDiff : (b.expectedAmount || 0) - (a.expectedAmount || 0);
-            } else if (orderA === 2) {
-              // Within "جزئي": sort by collection rate descending, then totalCollected
-              const rateDiff = (b.rate || 0) - (a.rate || 0);
-              cmp = rateDiff !== 0 ? rateDiff : (b.totalCollected || 0) - (a.totalCollected || 0);
-            } else if (orderA === 3) {
-              // Within "مكتمل": sort by totalCollected descending
-              cmp = (b.totalCollected || 0) - (a.totalCollected || 0);
+            // Within every payment status group, sort descending by expectedAmount (المتوقع)
+            const expectedDiff = (b.expectedAmount || 0) - (a.expectedAmount || 0);
+            if (expectedDiff !== 0) {
+              cmp = expectedDiff;
             } else {
-              cmp = a.index - b.index;
+              const collectedDiff = (b.totalCollected || 0) - (a.totalCollected || 0);
+              if (collectedDiff !== 0) {
+                cmp = collectedDiff;
+              } else {
+                const dA = a.dueDate || "9999-99-99";
+                const dB = b.dueDate || "9999-99-99";
+                const dateDiff = dA.localeCompare(dB);
+                cmp = dateDiff !== 0 ? dateDiff : a.index - b.index;
+              }
             }
           }
           break;
@@ -608,7 +606,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
 
   const handleExport = () => {
     try {
-      exportCashFlowToExcel(summary);
+      exportCashFlowToExcel({ ...summary, customers: filteredCustomers });
       toast.success("تم تصدير ملف الكاش فلو بنجاح");
     } catch (err) {
       console.error(err);

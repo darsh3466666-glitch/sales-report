@@ -3,9 +3,9 @@
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
-  "totalExpected": 15903569.777139,
+  "totalExpected": 16043799.777139,
   "totalCollected": 0.0,
-  "customerCount": 54,
+  "customerCount": 55,
   "remainingToTarget": 4000000.0,
   "collectionRate": 0.0,
   "masterCustomerNames": [
@@ -1007,7 +1007,7 @@
     },
     {
       "customerName": "مزرعه الخيرات",
-      "currentBalance": 1593218.4700000007,
+      "currentBalance": 1623098.4700000007,
       "dueDate": "2026-11-29",
       "notes": "التلات 24/11/2026",
       "isActive2026": true,
@@ -1304,7 +1304,7 @@
     },
     {
       "customerName": "حمدي صلاح عبود قيصر",
-      "currentBalance": 268855.07,
+      "currentBalance": 279250.07,
       "dueDate": "2026-12-19",
       "notes": "بهايم صغيرة  شهرين",
       "isActive2026": true,
@@ -2357,7 +2357,7 @@
     },
     {
       "customerName": "د.هاني محمود يوسف (طاميه)",
-      "currentBalance": 1388771.0,
+      "currentBalance": 1529001.0,
       "dueDate": "2026-11-26",
       "notes": "",
       "isActive2026": true,
@@ -4643,7 +4643,7 @@
     },
     {
       "customerName": "توفيق محمد - اللاطه",
-      "currentBalance": -2200.0,
+      "currentBalance": 0.0,
       "dueDate": "2026-08-09",
       "notes": "",
       "isActive2026": true,
@@ -4926,6 +4926,20 @@
       "description": "نقدي",
       "type": "كاش",
       "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_2",
+      "amount": 1000.0,
+      "description": "ابراهيم عبدالمولي",
+      "type": "أ احمد",
+      "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_3",
+      "amount": 200000.0,
+      "description": "عبدالفتاح ربيع",
+      "type": "ب مصر",
+      "date": "2026-11-25"
     }
   ],
   "customers": [
@@ -4960,13 +4974,13 @@
     {
       "customerName": "د.هاني محمود يوسف (طاميه)",
       "normalizedName": "د هاني محمود يوسف طاميه",
-      "currentBalance": 1388771.0,
-      "expectedAmount": 1388771.0,
+      "currentBalance": 1529001.0,
+      "expectedAmount": 1529001.0,
       "collectedFromSheet": 0.0,
       "dueDate": "2026-11-26",
       "rate": 0.0,
       "status": "لم يسدد",
-      "remaining": 1388771.0,
+      "remaining": 1529001.0,
       "notes": "",
       "isPinned": true,
       "index": 3
@@ -5002,7 +5016,7 @@
     {
       "customerName": "مزرعه الخيرات",
       "normalizedName": "مزرعه الخيرات",
-      "currentBalance": 1593218.4700000007,
+      "currentBalance": 1623098.4700000007,
       "expectedAmount": 200000.0,
       "collectedFromSheet": 0.0,
       "dueDate": "2026-11-29",
@@ -5684,6 +5698,20 @@
       "notes": "باقى 7400ياحج أحمد يوم 1فى الشهر المقبل",
       "isPinned": false,
       "index": 54
+    },
+    {
+      "customerName": "ابراهيم عبدالمولى - الهداهدة",
+      "normalizedName": "ابراهيم عبدالمولي الهداهده",
+      "currentBalance": 1440.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-22",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "بلاغ ا احمد",
+      "isPinned": false,
+      "index": 55
     }
   ]
 }
