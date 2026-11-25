@@ -47,7 +47,7 @@ interface CashFlowTableProps {
   summary: CashFlowSummary;
   onCustomerSave: (
     customerName: string,
-    updates: { expectedAmount: number; isPinned: boolean; notes: string }
+    updates: { expectedAmount: number; isPinned: boolean; notes?: string }
   ) => void;
   onCustomerDelete?: (customerName: string) => void;
   onCustomersBulkDelete?: (customerNames: string[]) => void;
@@ -102,6 +102,7 @@ interface EditingState {
   expectedAmount: string;
   isPinned: boolean;
   notes: string;
+  originalNotes: string;
 }
 
 export const CashFlowTable: React.FC<CashFlowTableProps> = ({
@@ -218,6 +219,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       expectedAmount: String(cust.expectedAmount || 0),
       isPinned: Boolean(cust.isPinned),
       notes: cust.notes || "",
+      originalNotes: cust.notes || "",
     });
   }, []);
 
@@ -237,10 +239,12 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
     }
     const parsed = parseFloat(editing.expectedAmount) || 0;
     const targetName = editing.customerName;
+    const trimmedNotes = editing.notes.trim();
+    const notesChanged = trimmedNotes !== (editing.originalNotes || "").trim();
     const updates = {
       expectedAmount: parsed,
       isPinned: editing.isPinned,
-      notes: editing.notes.trim(),
+      ...(notesChanged ? { notes: trimmedNotes } : {}),
     };
     setTimeout(() => {
       setEditing(null);

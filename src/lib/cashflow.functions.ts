@@ -1754,7 +1754,7 @@ export function addCustomerToSummary(
 export function recalculateCashFlowSummary(
   currentSummary: CashFlowSummary,
   customerName: string,
-  updates: { expectedAmount: number; isPinned: boolean; notes: string },
+  updates: { expectedAmount: number; isPinned: boolean; notes?: string },
   options?: { skipSaveCycle?: boolean }
 ): CashFlowSummary {
   const todayStr = new Date().toISOString().split("T")[0];
@@ -1767,7 +1767,7 @@ export function recalculateCashFlowSummary(
 
     let expectedAmount = Number(updates.expectedAmount) || 0;
     const isPinned = Boolean(updates.isPinned);
-    const notes = String(updates.notes || "");
+    const notes = updates.notes !== undefined ? String(updates.notes) : (c.notes || "");
     const totalCollected =
       c.totalCollected !== undefined
         ? c.totalCollected
@@ -2092,14 +2092,21 @@ export async function getLiveCashFlowData(options?: {
           expectedAmount = 0;
         }
 
-        // Notes: Explicit user override (even empty string when cleared) takes priority over Master_Data / saved
-        const overrideNote = getOverrideNote(overrides, c.customerName, rawConfig);
-        let notes =
-          overrideNote !== undefined
-            ? overrideNote
-            : masterCust?.notes !== undefined
-            ? masterCust.notes
-            : c.notes || "";
+        // Notes: Compare Excel sheet timestamp (generatedAt) vs explicit browser note edit timestamp
+        // Whichever was updated more recently (Excel Master_Data vs manual browser edit) wins!
+        const overrideNote = getOverrideNote(overrides, c.customerName);
+        const noteEditTs = overrides.itemTimestamps?.[norm] || 0;
+        const sheetGenTs = rawData?.generatedAt ? new Date(rawData.generatedAt).getTime() : 0;
+        const useSheetOverOverride =
+          masterCust?.notes !== undefined &&
+          (overrideNote === undefined || (sheetGenTs > 0 && sheetGenTs > noteEditTs));
+        let notes = useSheetOverOverride
+          ? (masterCust.notes || "")
+          : overrideNote !== undefined
+          ? overrideNote
+          : masterCust?.notes !== undefined
+          ? masterCust.notes
+          : c.notes || getOverrideNote(undefined, c.customerName, rawConfig) || "";
 
         // Strictly remove synthetic "سداد وارد غير متوقع" note as instructed by user!
         if (notes && notes.includes("سداد وارد غير متوقع")) {

@@ -517,13 +517,9 @@ def extract_cashflow():
         else:
             expected = max(0.0, bal)
 
-        # Notes: User-saved notes (from config) take priority; fall back to Master_Data if not set
-        if m_name in notes and notes[m_name] != '':
-            note = notes[m_name]  # Keep user's saved note
-        else:
-            note = m_note or ''  # Use Excel note as default only if no saved note
-            if note:
-                notes[m_name] = note  # Save new note from Excel (only if not already set)
+        # Notes: Always take live notes from Master_Data (Excel sheet) so sheet edits update immediately!
+        note = m_note if m_note is not None else ''
+        notes[m_name] = note
 
         data_rows.append({
             'customerName': m_name,
@@ -594,6 +590,7 @@ def extract_cashflow():
 
     summary = {
         'reportDate': datetime.date.today().strftime('%Y-%m-%d'),
+        'generatedAt': datetime.datetime.now().isoformat(),
         'weekStart': week_start,
         'weekEnd': week_end,
         'weeklyGoal': existing_config.get('weeklyGoal', 4000000),

@@ -132,7 +132,7 @@ function CashFlowPage() {
   const handleCustomerSave = useCallback(
     (
       customerName: string,
-      updates: { expectedAmount: number; isPinned: boolean; notes: string }
+      updates: { expectedAmount: number; isPinned: boolean; notes?: string }
     ) => {
       saveCustomerOverride(customerName, updates);
 

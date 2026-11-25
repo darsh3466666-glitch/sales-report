@@ -42,9 +42,9 @@ async function main() {
   const weekInfo = getCurrentCashFlowWeekWindow();
   const currentCycleId = `week_${weekInfo.weekStart}_to_${weekInfo.weekEnd}`;
 
-  // Merge pinned & notes without overwriting live Firestore browser edits or resurrecting deleted customers
+  // Merge pinned without overwriting live Firestore browser edits or resurrecting stale config notes over Excel
   const mergedPinned: Record<string, boolean> = { ...cfgPinned, ...(remoteOv.pinnedStatus || {}) };
-  const mergedNotes: Record<string, string> = { ...cfgNotes, ...(remoteOv.notes || {}) };
+  const mergedNotes: Record<string, string> = { ...(remoteOv.notes || {}) };
   const mergedFixed: Record<string, number> = { ...(remoteOv.fixedAmounts || {}) };
   for (const [k, v] of Object.entries(cfgFixed)) {
     const norm = normalizeArabicName(k);
