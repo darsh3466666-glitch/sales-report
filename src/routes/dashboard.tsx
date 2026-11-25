@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { collection, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { getLatestReportFull } from "@/lib/reports.functions";
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
 import { Moon, Sun, History, Download, BarChart3, Wallet, RefreshCw } from "lucide-react";
@@ -31,6 +33,7 @@ export const Route = createFileRoute("/dashboard")({
 
 function Dashboard() {
   const { reportId } = Route.useSearch();
+  const queryClient = useQueryClient();
   const [autoReady, setAutoReady] = useState(false);
 
   useEffect(() => {
@@ -43,8 +46,36 @@ function Dashboard() {
     enabled: autoReady,
     refetchInterval: 30000, // Live poll every 30 seconds exactly like treasury-dashboard
     refetchOnWindowFocus: true,
-    staleTime: 15000,
+    refetchOnReconnect: true,
+    staleTime: 0,
   });
+
+  // Real-time Firestore listener so newly uploaded/updated sales reports sync immediately across PC and Mobile
+  useEffect(() => {
+    let isInitial = true;
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const unsub = onSnapshot(
+      collection(db, "reports"),
+      (snap) => {
+        if (isInitial) {
+          isInitial = false;
+          return;
+        }
+        if (snap.metadata.hasPendingWrites) return;
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["latestReport"] });
+        }, 250);
+      },
+      (err) => {
+        console.warn("Reports realtime listener warning:", err);
+      }
+    );
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      unsub();
+    };
+  }, [queryClient]);
 
   const [dark, setDark] = useState(() => {
     if (typeof document !== "undefined") {

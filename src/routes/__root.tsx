@@ -14,6 +14,7 @@ import {
   reportLovableError,
 } from "../lib/lovable-error-reporting";
 import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 function NotFoundComponent() {
   return (
@@ -170,8 +171,115 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function useAppVersionAutoSync() {
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    // Clean temporary cache-buster param from URL bar after fresh reload
+    try {
+      const currentUrl = new URL(window.location.href);
+      if (currentUrl.searchParams.has("_v")) {
+        currentUrl.searchParams.delete("_v");
+        window.history.replaceState({}, "", currentUrl.toString());
+      }
+    } catch {
+      // ignore
+    }
+
+    const extractEntryScriptName = (): string | null => {
+      const scripts = Array.from(
+        document.querySelectorAll('script[type="module"][src*="assets/index-"]')
+      );
+      for (const s of scripts) {
+        const src = s.getAttribute("src") || "";
+        const m = src.match(/(index-[^/?#]+\.js)/);
+        if (m) return m[1];
+      }
+      return null;
+    };
+
+    const currentEntry = extractEntryScriptName();
+    if (!currentEntry) return; // Dev mode or non-hashed entry
+
+    const basePath = window.location.pathname.includes("/sales-report")
+      ? "/sales-report/"
+      : "./";
+
+    let cancelled = false;
+    let checking = false;
+
+    const checkForNewBuild = async () => {
+      if (cancelled || checking || document.visibilityState === "hidden") return;
+      checking = true;
+      try {
+        const res = await fetch(`${basePath}version.json?t=${Date.now()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const remoteEntry = String(data?.entry || "").trim();
+        if (!remoteEntry || remoteEntry === currentEntry) return;
+
+        // Loop guard: do not infinitely reload to the same version within 20s
+        const guardKey = "__app_auto_updated_to__";
+        const lastAttempt = sessionStorage.getItem(guardKey);
+        if (lastAttempt) {
+          const [prevEntry, prevTs] = lastAttempt.split("|");
+          if (prevEntry === remoteEntry && Date.now() - Number(prevTs || 0) < 20000) {
+            return;
+          }
+        }
+        sessionStorage.setItem(guardKey, `${remoteEntry}|${Date.now()}`);
+
+        if ("caches" in window) {
+          try {
+            const keys = await window.caches.keys();
+            await Promise.all(keys.map((k) => window.caches.delete(k)));
+          } catch {
+            // ignore cache clear issues
+          }
+        }
+
+        toast.info("تم توفر تحديث جديد للنظام، جاري التحديث تلقائياً...", {
+          duration: 2000,
+        });
+
+        setTimeout(() => {
+          const nextUrl = new URL(window.location.href);
+          nextUrl.searchParams.set("_v", remoteEntry);
+          window.location.replace(nextUrl.toString());
+        }, 500);
+      } catch {
+        // Offline or transient network error; skip silently
+      } finally {
+        checking = false;
+      }
+    };
+
+    const initialTimer = window.setTimeout(checkForNewBuild, 2500);
+    const pollInterval = window.setInterval(checkForNewBuild, 45000);
+    const onFocusOrVisible = () => {
+      if (document.visibilityState === "visible") {
+        checkForNewBuild();
+      }
+    };
+
+    window.addEventListener("focus", onFocusOrVisible);
+    document.addEventListener("visibilitychange", onFocusOrVisible);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(initialTimer);
+      window.clearInterval(pollInterval);
+      window.removeEventListener("focus", onFocusOrVisible);
+      document.removeEventListener("visibilitychange", onFocusOrVisible);
+    };
+  }, []);
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useAppVersionAutoSync();
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

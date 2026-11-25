@@ -3,7 +3,9 @@ import {
   collection,
   doc,
   getDocs,
+  getDocsFromServer,
   getDoc,
+  getDocFromServer,
   setDoc,
   deleteDoc,
   updateDoc,
@@ -128,10 +130,15 @@ export async function getLocalReports() {
     }
   }
 
-  // 3. Live sync with cloud Firestore (with non-blocking 1.5s timeout)
+  // 3. Live sync with cloud Firestore (server-first with fallback & non-blocking 4s timeout)
   try {
     const fetchFirestore = async () => {
-      const snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
+      let snap;
+      try {
+        snap = await getDocsFromServer(collection(db, FIRESTORE_COLLECTION));
+      } catch {
+        snap = await getDocs(collection(db, FIRESTORE_COLLECTION));
+      }
       if (!snap.empty) {
         for (const docSnap of snap.docs) {
           const data = docSnap.data();
@@ -139,7 +146,18 @@ export async function getLocalReports() {
             const date = data.report.report_date;
             const id = data.report.id || docSnap.id;
             data.report.id = id;
-            if (!reportsByDate.has(date)) {
+            const existing = reportsByDate.get(date);
+            const remoteUpdated = new Date(
+              data.report.updated_at || data.report.created_at || 0
+            ).getTime();
+            const existingUpdated = new Date(
+              existing?.report?.updated_at || existing?.report?.created_at || 0
+            ).getTime();
+            const shouldUseRemote =
+              !existing ||
+              (remoteUpdated > 0 && remoteUpdated >= existingUpdated) ||
+              (existing?.report?.id && existing.report.id !== id);
+            if (shouldUseRemote) {
               reportsByDate.set(date, data);
               if (typeof window !== "undefined") {
                 set(DB_PREFIX + id, data).catch(() => {});
@@ -152,7 +170,7 @@ export async function getLocalReports() {
 
     await Promise.race([
       fetchFirestore(),
-      new Promise((resolve) => setTimeout(resolve, 1500)),
+      new Promise((resolve) => setTimeout(resolve, 4000)),
     ]);
   } catch (error: any) {
     console.warn("Firestore sync warning:", error);
@@ -169,17 +187,7 @@ export async function getLocalReports() {
 }
 
 export async function getLocalReport(id: string) {
-  // 1. Try IndexedDB first (instant)
-  if (typeof window !== "undefined") {
-    try {
-      const data = await get(DB_PREFIX + id);
-      if (data) return data;
-    } catch (error) {
-      console.error("Error fetching from IndexedDB", error);
-    }
-  }
-
-  // 2. Fallback to sales_data.json next (instant)
+  // 1. Check authoritative server sales_data.json first so stale IndexedDB never blocks updates
   if (typeof window !== "undefined") {
     try {
       const basePath = window.location.pathname.includes("/sales-report")
@@ -195,7 +203,10 @@ export async function getLocalReport(id: string) {
             (item) =>
               item?.report?.id === id || item?.report?.report_date === id,
           );
-          if (match) return match;
+          if (match) {
+            set(DB_PREFIX + (match.report?.id || id), match).catch(() => {});
+            return match;
+          }
         } else if (
           staticData &&
           (staticData.report?.id === id || staticData.report?.report_date === id)
@@ -208,10 +219,16 @@ export async function getLocalReport(id: string) {
     }
   }
 
-  // 3. Try Firestore fallback with 1.5s timeout
+  // 2. Try Firestore server-first (with 4s timeout) so cross-device uploads sync immediately
   try {
     const fetchDoc = async () => {
-      const docSnap = await getDoc(doc(db, FIRESTORE_COLLECTION, id));
+      const ref = doc(db, FIRESTORE_COLLECTION, id);
+      let docSnap;
+      try {
+        docSnap = await getDocFromServer(ref);
+      } catch {
+        docSnap = await getDoc(ref);
+      }
       if (docSnap.exists()) {
         const data = docSnap.data();
         if (!data.report.id) data.report.id = docSnap.id;
@@ -224,11 +241,21 @@ export async function getLocalReport(id: string) {
     };
     const res = await Promise.race([
       fetchDoc(),
-      new Promise((resolve) => setTimeout(() => resolve(null), 1500)),
+      new Promise((resolve) => setTimeout(() => resolve(null), 4000)),
     ]);
     if (res) return res;
   } catch (error: any) {
     console.warn("Firestore getDoc failed:", error);
+  }
+
+  // 3. Offline fallback to IndexedDB
+  if (typeof window !== "undefined") {
+    try {
+      const data = await get(DB_PREFIX + id);
+      if (data) return data;
+    } catch (error) {
+      console.error("Error fetching from IndexedDB", error);
+    }
   }
 
   return undefined;

@@ -54,6 +54,27 @@ if (fs.existsSync(distDir)) {
     }
   }
 
+  // 4. Write version.json containing the active built entry bundle hash for zero-delay client auto-updates
+  const assetsDir = path.join(distDir, 'assets');
+  let entryChunk = '';
+  let styleChunk = '';
+  if (fs.existsSync(assetsDir)) {
+    const assetFiles = fs.readdirSync(assetsDir);
+    entryChunk = assetFiles.find((f) => /^index-.*\.js$/.test(f)) || '';
+    styleChunk = assetFiles.find((f) => /^styles-.*\.css$/.test(f)) || '';
+  }
+  const versionPayload = {
+    entry: entryChunk,
+    style: styleChunk,
+    builtAt: new Date().toISOString(),
+  };
+  fs.writeFileSync(
+    path.join(distDir, 'version.json'),
+    JSON.stringify(versionPayload, null, 2),
+    'utf8'
+  );
+  console.log(`✓ Created version.json (entry=${entryChunk || 'none'})`);
+
   console.log('SUCCESS_BUILD_VERIFIED');
 } else {
   console.error('Dist directory does not exist!');

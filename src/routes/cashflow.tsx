@@ -1,6 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useMemo, useCallback } from "react";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import {
   getLiveCashFlowData,
   recalculateCashFlowSummary,
@@ -9,6 +11,12 @@ import {
   deleteCustomerFromSummary,
   deleteMultipleCustomersFromSummary,
   addCustomerToSummary,
+  subscribeCloudSyncStatus,
+  FIRESTORE_CF_COLLECTION,
+  FIRESTORE_CF_CYCLE_DOC,
+  FIRESTORE_CF_OVERRIDES_DOC,
+  FIRESTORE_CF_PREV_WEEK_DOC,
+  type CloudSyncStatus,
   type CashFlowSummary,
 } from "@/lib/cashflow.functions";
 import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
@@ -25,6 +33,9 @@ export const Route = createFileRoute("/cashflow")({
 });
 
 function CashFlowPage() {
+  const queryClient = useQueryClient();
+  const [cloudSyncStatus, setCloudSyncStatus] = useState<CloudSyncStatus>("idle");
+
   const {
     data: fetchedSummary,
     isLoading,
@@ -34,10 +45,59 @@ function CashFlowPage() {
   } = useQuery({
     queryKey: ["liveCashFlow"],
     queryFn: () => getLiveCashFlowData(),
-    refetchInterval: 30000, // Live poll every 30 seconds exactly like treasury dashboard!
-    refetchOnWindowFocus: true, // Auto-refetch when user focuses/switches to tab
-    staleTime: 15000,
+    refetchInterval: 30000, // Live poll every 30 seconds for JSON/treasury changes
+    refetchOnWindowFocus: true, // Auto-refetch when user switches back to tab
+    refetchOnReconnect: true,
+    staleTime: 0,
   });
+
+  // Real-time Firestore cloud subscription: any edit on PC or Mobile reflects instantly on all other devices!
+  useEffect(() => {
+    const unsubscribeStatus = subscribeCloudSyncStatus((nextStatus) => {
+      setCloudSyncStatus(nextStatus);
+      if (nextStatus === "error") {
+        toast.error("تعذر حفظ التعديل على السحابة — تأكد من اتصال الإنترنت");
+      }
+    });
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const triggerRealtimeRefresh = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["liveCashFlow"] });
+      }, 150);
+    };
+
+    const watchDoc = (docId: string) => {
+      let isInitial = true;
+      return onSnapshot(
+        doc(db, FIRESTORE_CF_COLLECTION, docId),
+        (snap) => {
+          if (isInitial) {
+            isInitial = false;
+            return;
+          }
+          if (snap.metadata.hasPendingWrites) return;
+          triggerRealtimeRefresh();
+        },
+        (err) => {
+          console.warn(`Realtime listener warning (${docId}):`, err);
+        }
+      );
+    };
+
+    const unsubCycle = watchDoc(FIRESTORE_CF_CYCLE_DOC);
+    const unsubOverrides = watchDoc(FIRESTORE_CF_OVERRIDES_DOC);
+    const unsubPrevWeek = watchDoc(FIRESTORE_CF_PREV_WEEK_DOC);
+
+    return () => {
+      unsubscribeStatus();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      unsubCycle();
+      unsubOverrides();
+      unsubPrevWeek();
+    };
+  }, [queryClient]);
 
   // Local optimistic summary state (for 0ms instant UI responses without freeze)
   const [activeSummary, setActiveSummary] = useState<CashFlowSummary | null>(null);
@@ -78,7 +138,9 @@ function CashFlowPage() {
 
       setActiveSummary((prev) => {
         if (!prev) return prev;
-        return recalculateCashFlowSummary(prev, customerName, updates);
+        return recalculateCashFlowSummary(prev, customerName, updates, {
+          skipSaveCycle: true,
+        });
       });
 
       toast.success(`تم حفظ بيانات العميل: ${customerName}`);
@@ -200,6 +262,33 @@ function CashFlowPage() {
 
           {/* Action Toolbar */}
           <div className="flex items-center gap-1.5 sm:gap-2 mr-auto">
+            <div
+              className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+                cloudSyncStatus === "syncing"
+                  ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300"
+                  : cloudSyncStatus === "error"
+                  ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300"
+                  : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
+              }`}
+              title="حالة المزامنة اللحظية بين الكمبيوتر والموبايل"
+            >
+              <span
+                className={`h-2 w-2 rounded-full ${
+                  cloudSyncStatus === "syncing"
+                    ? "bg-amber-500 animate-ping"
+                    : cloudSyncStatus === "error"
+                    ? "bg-rose-500"
+                    : "bg-emerald-500 animate-pulse"
+                }`}
+              />
+              <span>
+                {cloudSyncStatus === "syncing"
+                  ? "جاري المزامنة..."
+                  : cloudSyncStatus === "error"
+                  ? "خطأ مزامنة"
+                  : "متزامن لحظياً"}
+              </span>
+            </div>
             <PrintDialog
               printLayout={printLayout}
               setPrintLayout={setPrintLayout}

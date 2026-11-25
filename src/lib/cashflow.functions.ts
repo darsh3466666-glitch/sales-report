@@ -1,6 +1,6 @@
 import { normalizeArabicName } from "./excel-parser.functions";
 import { get, set, keys } from "idb-keyval";
-import { collection, doc, getDocs, setDoc, getDoc } from "firebase/firestore";
+import { collection, doc, getDocs, setDoc, getDoc, getDocFromServer } from "firebase/firestore";
 import { db } from "./firebase";
 
 export interface ArchivedCashFlowWeek {
@@ -453,6 +453,8 @@ export interface UserOverrides {
   addedCustomers?: CashFlowCustomer[];
   updatedAt?: string;
   itemTimestamps?: Record<string, number>;
+  deletedTimestamps?: Record<string, number>;
+  addedTimestamps?: Record<string, number>;
 }
 
 export interface ActiveCashFlowCycleState {
@@ -473,17 +475,62 @@ export const FIRESTORE_CF_COLLECTION = "cashflow_settings";
 export const FIRESTORE_CF_CYCLE_DOC = "active_cycle";
 export const FIRESTORE_CF_OVERRIDES_DOC = "user_overrides";
 
+export type CloudSyncStatus = "idle" | "syncing" | "synced" | "error";
+
+let currentCloudSyncStatus: CloudSyncStatus = "idle";
+const syncStatusListeners = new Set<(status: CloudSyncStatus) => void>();
+let pendingCycleWrites = 0;
+let pendingOverrideWrites = 0;
+let overridesWriteChain: Promise<void> = Promise.resolve();
+let cycleWriteChain: Promise<void> = Promise.resolve();
+
+function emitCloudSyncStatus(next: CloudSyncStatus) {
+  currentCloudSyncStatus = next;
+  syncStatusListeners.forEach((cb) => {
+    try {
+      cb(next);
+    } catch {
+      // ignore listener errors
+    }
+  });
+}
+
+export function subscribeCloudSyncStatus(cb: (status: CloudSyncStatus) => void): () => void {
+  syncStatusListeners.add(cb);
+  cb(currentCloudSyncStatus);
+  return () => {
+    syncStatusListeners.delete(cb);
+  };
+}
+
+export function hasPendingLocalCycleWrite(): boolean {
+  return pendingCycleWrites > 0 || pendingOverrideWrites > 0;
+}
+
+async function fetchDocServerFirst(docRef: any, timeoutMs = 8000) {
+  const withTimeout = <T>(p: Promise<T>) =>
+    Promise.race<T>([
+      p,
+      new Promise<T>((_, reject) =>
+        setTimeout(() => reject(new Error("Firestore timeout")), timeoutMs)
+      ),
+    ]);
+
+  try {
+    return await withTimeout(getDocFromServer(docRef));
+  } catch {
+    return await withTimeout(getDoc(docRef));
+  }
+}
+
 /**
- * Fetch remote active cycle state from Firestore cloud database.
+ * Fetch remote active cycle state directly from Firestore server (bypassing stale local SDK cache).
  * Enables 100% real-time synchronization across Mobile, PC, and Incognito browsers.
  */
 export async function fetchRemoteCycleState(): Promise<ActiveCashFlowCycleState | null> {
   try {
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
-    const snap = await Promise.race([
-      getDoc(docRef),
-      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 5000)),
-    ]);
+    const snap = await fetchDocServerFirst(docRef, 8000);
     if (snap && snap.exists()) {
       const data = snap.data() as ActiveCashFlowCycleState;
       if (data && data.cycleId && Array.isArray(data.customers) && data.customers.length > 0) {
@@ -498,32 +545,39 @@ export async function fetchRemoteCycleState(): Promise<ActiveCashFlowCycleState 
 }
 
 /**
- * Save active cycle state to Firestore cloud database so all devices stay identical.
+ * Save active cycle state to Firestore cloud database sequentially so all devices stay identical.
  */
 export async function saveRemoteCycleState(state: ActiveCashFlowCycleState): Promise<void> {
   if (!state) return;
-  try {
-    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
-    const cleanState = JSON.parse(JSON.stringify(state));
-    await Promise.race([
-      setDoc(docRef, cleanState),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 6000)),
-    ]);
-  } catch (e) {
-    console.warn("Could not save remote cycle state to Firestore:", e);
-  }
+  pendingCycleWrites++;
+  emitCloudSyncStatus("syncing");
+  const runWrite = async () => {
+    try {
+      const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_CYCLE_DOC);
+      const cleanState = JSON.parse(JSON.stringify(state));
+      await Promise.race([
+        setDoc(docRef, cleanState),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 8000)),
+      ]);
+      pendingCycleWrites = Math.max(0, pendingCycleWrites - 1);
+      if (!hasPendingLocalCycleWrite()) emitCloudSyncStatus("synced");
+    } catch (e) {
+      pendingCycleWrites = Math.max(0, pendingCycleWrites - 1);
+      emitCloudSyncStatus("error");
+      console.warn("Could not save remote cycle state to Firestore:", e);
+    }
+  };
+  cycleWriteChain = cycleWriteChain.then(runWrite, runWrite);
+  return cycleWriteChain;
 }
 
 /**
- * Fetch remote user overrides (notes, custom amounts, pins, additions, deletions) from Firestore.
+ * Fetch remote user overrides directly from Firestore server (bypassing stale local SDK cache).
  */
 export async function fetchRemoteUserOverrides(): Promise<UserOverrides | null> {
   try {
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
-    const snap = await Promise.race([
-      getDoc(docRef),
-      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 5000)),
-    ]);
+    const snap = await fetchDocServerFirst(docRef, 8000);
     if (snap && snap.exists()) {
       return snap.data() as UserOverrides;
     }
@@ -535,35 +589,41 @@ export async function fetchRemoteUserOverrides(): Promise<UserOverrides | null> 
 }
 
 /**
- * Save user overrides to Firestore cloud database so notes and expected amounts are never lost.
+ * Save user overrides to Firestore cloud database sequentially so notes and expected amounts stay in sync.
  */
 export async function saveRemoteUserOverrides(overrides: UserOverrides): Promise<void> {
   if (!overrides) return;
-  try {
-    const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
-    const cleanOverrides = JSON.parse(JSON.stringify(overrides));
-    await Promise.race([
-      setDoc(docRef, cleanOverrides),
-      new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 6000)),
-    ]);
-  } catch (e) {
-    console.warn("Could not save remote overrides to Firestore:", e);
-  }
+  pendingOverrideWrites++;
+  emitCloudSyncStatus("syncing");
+  const runWrite = async () => {
+    try {
+      const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_OVERRIDES_DOC);
+      const cleanOverrides = JSON.parse(JSON.stringify(overrides));
+      await Promise.race([
+        setDoc(docRef, cleanOverrides),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Firestore save timeout")), 8000)),
+      ]);
+      pendingOverrideWrites = Math.max(0, pendingOverrideWrites - 1);
+      if (!hasPendingLocalCycleWrite()) emitCloudSyncStatus("synced");
+    } catch (e) {
+      pendingOverrideWrites = Math.max(0, pendingOverrideWrites - 1);
+      emitCloudSyncStatus("error");
+      console.warn("Could not save remote overrides to Firestore:", e);
+    }
+  };
+  overridesWriteChain = overridesWriteChain.then(runWrite, runWrite);
+  return overridesWriteChain;
 }
 
 export const FIRESTORE_CF_PREV_WEEK_DOC = "previous_week";
 
 /**
- * Fetch remote previous week comparison metrics from Firestore.
- * Ensures all devices (mobile, incognito, PC) have identical last-week comparison metrics.
+ * Fetch remote previous week comparison metrics directly from Firestore server.
  */
 export async function fetchRemotePreviousWeek(): Promise<CashFlowComparisonMetrics | null> {
   try {
     const docRef = doc(db, FIRESTORE_CF_COLLECTION, FIRESTORE_CF_PREV_WEEK_DOC);
-    const snap = await Promise.race([
-      getDoc(docRef),
-      new Promise<null>((_, reject) => setTimeout(() => reject(new Error("Firestore timeout")), 5000)),
-    ]);
+    const snap = await fetchDocServerFirst(docRef, 8000);
     if (snap && snap.exists()) {
       return snap.data() as CashFlowComparisonMetrics;
     }
@@ -791,11 +851,33 @@ export function getOverridePinned(
  */
 export function getUserOverrides(): UserOverrides {
   if (typeof window === "undefined") {
-    return { fixedAmounts: {}, fixedCycleIds: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
+    return {
+      fixedAmounts: {},
+      fixedCycleIds: {},
+      notes: {},
+      pinnedStatus: {},
+      deletedCustomers: [],
+      addedCustomers: [],
+      itemTimestamps: {},
+      deletedTimestamps: {},
+      addedTimestamps: {},
+    };
   }
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) return { fixedAmounts: {}, fixedCycleIds: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
+    if (!raw) {
+      return {
+        fixedAmounts: {},
+        fixedCycleIds: {},
+        notes: {},
+        pinnedStatus: {},
+        deletedCustomers: [],
+        addedCustomers: [],
+        itemTimestamps: {},
+        deletedTimestamps: {},
+        addedTimestamps: {},
+      };
+    }
     const parsed = JSON.parse(raw);
     return {
       fixedAmounts:
@@ -818,16 +900,28 @@ export function getUserOverrides(): UserOverrides {
       addedCustomers: Array.isArray(parsed?.addedCustomers) ? parsed.addedCustomers : [],
       updatedAt: parsed?.updatedAt,
       itemTimestamps: parsed?.itemTimestamps || {},
+      deletedTimestamps: parsed?.deletedTimestamps || {},
+      addedTimestamps: parsed?.addedTimestamps || {},
     };
   } catch {
-    return { fixedAmounts: {}, fixedCycleIds: {}, notes: {}, pinnedStatus: {}, deletedCustomers: [], addedCustomers: [] };
+    return {
+      fixedAmounts: {},
+      fixedCycleIds: {},
+      notes: {},
+      pinnedStatus: {},
+      deletedCustomers: [],
+      addedCustomers: [],
+      itemTimestamps: {},
+      deletedTimestamps: {},
+      addedTimestamps: {},
+    };
   }
 }
 
 /**
  * Synchronize remote Firestore overrides into LocalStorage cache intelligently.
- * Ensures recent local user modifications are NEVER overwritten by stale remote cache,
- * and returns the merged overrides so Node-side sync scripts also honor live Firestore overrides.
+ * Only preserves local fields whose real edit timestamp is strictly newer than remote,
+ * and never invents fake Date.now() timestamps for untouched clients.
  */
 export function syncRemoteOverridesToLocal(remote: UserOverrides): UserOverrides {
   if (!remote) return getUserOverrides();
@@ -841,23 +935,28 @@ export function syncRemoteOverridesToLocal(remote: UserOverrides): UserOverrides
       addedCustomers: Array.isArray(remote.addedCustomers) ? remote.addedCustomers : [],
       updatedAt: remote.updatedAt,
       itemTimestamps: remote.itemTimestamps || {},
+      deletedTimestamps: remote.deletedTimestamps || {},
+      addedTimestamps: remote.addedTimestamps || {},
     };
   }
   try {
     const local = getUserOverrides();
     const localTime = local.updatedAt ? new Date(local.updatedAt).getTime() : 0;
     const remoteTime = remote.updatedAt ? new Date(remote.updatedAt).getTime() : 0;
+    const hasUnsyncedLocalEdit = hasPendingLocalCycleWrite();
+    let hasLocalWins = false;
 
     const mergedFixed: Record<string, number> = { ...(remote.fixedAmounts || {}) };
     const mergedFixedCycles: Record<string, string> = { ...(remote.fixedCycleIds || {}) };
     const mergedTimestamps: Record<string, number> = { ...(remote.itemTimestamps || {}) };
 
-    // Any local fixed amount modified more recently than remote must be preserved!
+    // Only keep a local override over remote if this item was edited more recently (not stale idle cache)
     for (const [name, amt] of Object.entries(local.fixedAmounts || {})) {
       const norm = normalizeArabicName(name);
-      const lTime = local.itemTimestamps?.[norm] || localTime;
+      const lTime = local.itemTimestamps?.[norm] || 0;
       const rTime = remote.itemTimestamps?.[norm] || remoteTime;
-      if (lTime >= rTime) {
+      if (lTime > rTime || (hasUnsyncedLocalEdit && lTime >= rTime && lTime > 0)) {
+        hasLocalWins = true;
         for (const remKey of Object.keys(mergedFixed)) {
           if (normalizeArabicName(remKey) === norm) {
             delete mergedFixed[remKey];
@@ -876,49 +975,108 @@ export function syncRemoteOverridesToLocal(remote: UserOverrides): UserOverrides
     const mergedNotes: Record<string, string> = { ...(remote.notes || {}) };
     for (const [name, note] of Object.entries(local.notes || {})) {
       const norm = normalizeArabicName(name);
-      const lTime = local.itemTimestamps?.[norm] || localTime;
+      const lTime = local.itemTimestamps?.[norm] || 0;
       const rTime = remote.itemTimestamps?.[norm] || remoteTime;
-      if (lTime >= rTime) {
+      if (lTime > rTime || (hasUnsyncedLocalEdit && lTime >= rTime && lTime > 0)) {
+        hasLocalWins = true;
         for (const remKey of Object.keys(mergedNotes)) {
           if (normalizeArabicName(remKey) === norm) {
             delete mergedNotes[remKey];
           }
         }
         mergedNotes[name] = note;
+        mergedTimestamps[norm] = lTime;
       }
     }
 
     const mergedPinned: Record<string, boolean> = { ...(remote.pinnedStatus || {}) };
     for (const [name, pin] of Object.entries(local.pinnedStatus || {})) {
       const norm = normalizeArabicName(name);
-      const lTime = local.itemTimestamps?.[norm] || localTime;
+      const lTime = local.itemTimestamps?.[norm] || 0;
       const rTime = remote.itemTimestamps?.[norm] || remoteTime;
-      if (lTime >= rTime) {
+      if (lTime > rTime || (hasUnsyncedLocalEdit && lTime >= rTime && lTime > 0)) {
+        hasLocalWins = true;
         for (const remKey of Object.keys(mergedPinned)) {
           if (normalizeArabicName(remKey) === norm) {
             delete mergedPinned[remKey];
           }
         }
         mergedPinned[name] = pin;
+        mergedTimestamps[norm] = lTime;
       }
     }
+
+    // Merge deletedCustomers and addedCustomers per customer using delete vs add timestamps
+    const deletedTsMap: Record<string, number> = { ...(remote.deletedTimestamps || {}) };
+    const deletedNameByNorm = new Map<string, string>();
+    for (const name of remote.deletedCustomers || []) {
+      const norm = normalizeArabicName(name);
+      deletedNameByNorm.set(norm, name);
+      if (!deletedTsMap[norm]) deletedTsMap[norm] = remoteTime || 1;
+    }
+    for (const name of local.deletedCustomers || []) {
+      const norm = normalizeArabicName(name);
+      const lDelTs = local.deletedTimestamps?.[norm] || 0;
+      const rDelTs = remote.deletedTimestamps?.[norm] || 0;
+      if (lDelTs > rDelTs || (hasUnsyncedLocalEdit && lDelTs > 0)) {
+        deletedNameByNorm.set(norm, name);
+        deletedTsMap[norm] = Math.max(lDelTs, rDelTs);
+        hasLocalWins = true;
+      }
+    }
+
+    const addedTsMap: Record<string, number> = { ...(remote.addedTimestamps || {}) };
+    const addedByNorm = new Map<string, CashFlowCustomer>();
+    for (const cust of remote.addedCustomers || []) {
+      if (!cust?.customerName) continue;
+      const norm = normalizeArabicName(cust.customerName);
+      addedByNorm.set(norm, cust);
+      if (!addedTsMap[norm]) addedTsMap[norm] = remoteTime || 1;
+    }
+    for (const cust of local.addedCustomers || []) {
+      if (!cust?.customerName) continue;
+      const norm = normalizeArabicName(cust.customerName);
+      const lAddTs = local.addedTimestamps?.[norm] || 0;
+      const rAddTs = addedTsMap[norm] || 0;
+      if (!addedByNorm.has(norm) ? (lAddTs > remoteTime || hasUnsyncedLocalEdit) : lAddTs > rAddTs) {
+        addedByNorm.set(norm, cust);
+        addedTsMap[norm] = Math.max(lAddTs, rAddTs);
+        hasLocalWins = true;
+      }
+    }
+
+    // Resolve conflicts where the same customer was added and deleted across devices
+    for (const norm of new Set([...deletedNameByNorm.keys(), ...addedByNorm.keys()])) {
+      const delTs = deletedTsMap[norm] || 0;
+      const addTs = addedTsMap[norm] || 0;
+      if (deletedNameByNorm.has(norm) && addedByNorm.has(norm)) {
+        if (addTs > delTs) {
+          deletedNameByNorm.delete(norm);
+        } else {
+          addedByNorm.delete(norm);
+        }
+      }
+    }
+
+    const effectiveTimestamp = hasLocalWins
+      ? Math.max(localTime, remoteTime, Date.now())
+      : Math.max(remoteTime, ...Object.values(mergedTimestamps), 0);
 
     const merged: UserOverrides = {
       fixedAmounts: mergedFixed,
       fixedCycleIds: mergedFixedCycles,
       notes: mergedNotes,
       pinnedStatus: mergedPinned,
-      deletedCustomers: Array.from(new Set([...(local.deletedCustomers || []), ...(remote.deletedCustomers || [])])),
-      addedCustomers: Array.isArray(remote.addedCustomers)
-        ? (remoteTime >= localTime ? remote.addedCustomers : (local.addedCustomers || []))
-        : (local.addedCustomers || []),
-      updatedAt: new Date(Math.max(localTime, remoteTime, Date.now())).toISOString(),
+      deletedCustomers: Array.from(deletedNameByNorm.values()),
+      addedCustomers: Array.from(addedByNorm.values()),
+      updatedAt: effectiveTimestamp > 0 ? new Date(effectiveTimestamp).toISOString() : remote.updatedAt,
       itemTimestamps: mergedTimestamps,
+      deletedTimestamps: deletedTsMap,
+      addedTimestamps: addedTsMap,
     };
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(merged));
 
-    // If local was newer than remote, push merged back to Firestore so remote is refreshed!
-    if (localTime > remoteTime) {
+    if (hasLocalWins) {
       saveRemoteUserOverrides(merged).catch(() => {});
     }
     return merged;
@@ -934,14 +1092,23 @@ export function syncRemoteOverridesToLocal(remote: UserOverrides): UserOverrides
 export function markCustomerAsDeleted(customerName: string) {
   if (typeof window === "undefined" || !customerName) return;
   try {
+    const nowMs = Date.now();
+    const norm = normalizeArabicName(customerName);
     const current = getUserOverrides();
     const deleted = new Set(current.deletedCustomers || []);
     deleted.add(customerName);
     current.deletedCustomers = Array.from(deleted);
-    if (current.addedCustomers) {
-      current.addedCustomers = current.addedCustomers.filter((c) => c.customerName !== customerName);
+    current.deletedTimestamps = { ...(current.deletedTimestamps || {}), [norm]: nowMs };
+    current.itemTimestamps = { ...(current.itemTimestamps || {}), [norm]: nowMs };
+    if (current.addedTimestamps) {
+      delete current.addedTimestamps[norm];
     }
-    current.updatedAt = new Date().toISOString();
+    if (current.addedCustomers) {
+      current.addedCustomers = current.addedCustomers.filter(
+        (c) => c.customerName !== customerName && normalizeArabicName(c.customerName) !== norm
+      );
+    }
+    current.updatedAt = new Date(nowMs).toISOString();
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
     saveRemoteUserOverrides(current).catch(() => {});
   } catch (err) {
@@ -955,17 +1122,33 @@ export function markCustomerAsDeleted(customerName: string) {
 export function markMultipleCustomersAsDeleted(customerNames: string[]) {
   if (typeof window === "undefined" || !customerNames || customerNames.length === 0) return;
   try {
+    const nowMs = Date.now();
     const current = getUserOverrides();
     const deleted = new Set(current.deletedCustomers || []);
+    const deletedTimestamps = { ...(current.deletedTimestamps || {}) };
+    const itemTimestamps = { ...(current.itemTimestamps || {}) };
+    const addedTimestamps = { ...(current.addedTimestamps || {}) };
     const namesSet = new Set(customerNames);
+    const normsSet = new Set(customerNames.map((n) => normalizeArabicName(n)));
     customerNames.forEach((n) => {
-      if (n) deleted.add(n);
+      if (n) {
+        deleted.add(n);
+        const norm = normalizeArabicName(n);
+        deletedTimestamps[norm] = nowMs;
+        itemTimestamps[norm] = nowMs;
+        delete addedTimestamps[norm];
+      }
     });
     current.deletedCustomers = Array.from(deleted);
+    current.deletedTimestamps = deletedTimestamps;
+    current.itemTimestamps = itemTimestamps;
+    current.addedTimestamps = addedTimestamps;
     if (current.addedCustomers) {
-      current.addedCustomers = current.addedCustomers.filter((c) => !namesSet.has(c.customerName));
+      current.addedCustomers = current.addedCustomers.filter(
+        (c) => !namesSet.has(c.customerName) && !normsSet.has(normalizeArabicName(c.customerName))
+      );
     }
-    current.updatedAt = new Date().toISOString();
+    current.updatedAt = new Date(nowMs).toISOString();
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
     saveRemoteUserOverrides(current).catch(() => {});
   } catch (err) {
@@ -979,22 +1162,31 @@ export function markMultipleCustomersAsDeleted(customerNames: string[]) {
 export function saveManuallyAddedCustomer(customer: CashFlowCustomer) {
   if (typeof window === "undefined" || !customer.customerName) return;
   try {
+    const nowMs = Date.now();
+    const norm = normalizeArabicName(customer.customerName);
     const current = getUserOverrides();
     if (current.deletedCustomers) {
-      current.deletedCustomers = current.deletedCustomers.filter((n) => n !== customer.customerName);
+      current.deletedCustomers = current.deletedCustomers.filter(
+        (n) => n !== customer.customerName && normalizeArabicName(n) !== norm
+      );
     }
+    if (current.deletedTimestamps) {
+      delete current.deletedTimestamps[norm];
+    }
+    current.addedTimestamps = { ...(current.addedTimestamps || {}), [norm]: nowMs };
+    current.itemTimestamps = { ...(current.itemTimestamps || {}), [norm]: nowMs };
     const added = current.addedCustomers || [];
     const filtered = added.filter(
       (c) =>
         c.customerName !== customer.customerName &&
-        normalizeArabicName(c.customerName) !== normalizeArabicName(customer.customerName)
+        normalizeArabicName(c.customerName) !== norm
     );
     const activeCycle = getActiveCycleState();
     const wInfo = getCurrentCashFlowWeekWindow();
     const addedCycleId = activeCycle?.cycleId || `week_${wInfo.weekStart}_to_${wInfo.weekEnd}`;
     filtered.push({ ...customer, addedCycleId } as any);
     current.addedCustomers = filtered;
-    current.updatedAt = new Date().toISOString();
+    current.updatedAt = new Date(nowMs).toISOString();
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
     saveRemoteUserOverrides(current).catch(() => {});
   } catch (err) {
@@ -1562,7 +1754,8 @@ export function addCustomerToSummary(
 export function recalculateCashFlowSummary(
   currentSummary: CashFlowSummary,
   customerName: string,
-  updates: { expectedAmount: number; isPinned: boolean; notes: string }
+  updates: { expectedAmount: number; isPinned: boolean; notes: string },
+  options?: { skipSaveCycle?: boolean }
 ): CashFlowSummary {
   const todayStr = new Date().toISOString().split("T")[0];
   const normTarget = normalizeArabicName(customerName);
@@ -1660,14 +1853,16 @@ export function recalculateCashFlowSummary(
     };
   }
 
-  try {
-    const cycle = getActiveCycleState();
-    if (cycle) {
-      cycle.customers = updatedCustomers;
-      cycle.updatedAt = new Date().toISOString();
-      saveActiveCycleState(cycle);
-    }
-  } catch (e) {}
+  if (!options?.skipSaveCycle) {
+    try {
+      const cycle = getActiveCycleState();
+      if (cycle) {
+        cycle.customers = updatedCustomers;
+        cycle.updatedAt = new Date().toISOString();
+        saveActiveCycleState(cycle);
+      }
+    } catch (e) {}
+  }
 
   return {
     ...currentSummary,
@@ -1819,7 +2014,8 @@ export async function getLiveCashFlowData(options?: {
       const remoteTime = remoteCycle.updatedAt ? new Date(remoteCycle.updatedAt).getTime() : 0;
       const localTime = localSavedCycle?.updatedAt ? new Date(localSavedCycle.updatedAt).getTime() : 0;
       const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v12"));
-      if (!localSavedCycle || isRemoteFreshSeed || remoteTime >= localTime) {
+      // Cloud Firestore is authoritative across devices unless this browser has an un-flushed local edit in flight
+      if (!localSavedCycle || !hasPendingLocalCycleWrite() || isRemoteFreshSeed || remoteTime >= localTime) {
         savedCycle = remoteCycle;
         if (typeof window !== "undefined") {
           try {
@@ -1896,10 +2092,11 @@ export async function getLiveCashFlowData(options?: {
           expectedAmount = 0;
         }
 
-        // Notes: User override (from config) takes priority; fall back to Master_Data, then saved
+        // Notes: Explicit user override (even empty string when cleared) takes priority over Master_Data / saved
+        const overrideNote = getOverrideNote(overrides, c.customerName, rawConfig);
         let notes =
-          overrides.notes?.[c.customerName] !== undefined && overrides.notes[c.customerName] !== ""
-            ? overrides.notes[c.customerName]
+          overrideNote !== undefined
+            ? overrideNote
             : masterCust?.notes !== undefined
             ? masterCust.notes
             : c.notes || "";
