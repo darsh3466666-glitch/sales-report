@@ -80,8 +80,8 @@ async function main() {
   } catch (e) {}
 
   // 2. Get current authentic cashflow summary using cleaned Firestore overrides & live Master_Data
-  // If migrating from an older schema before seed_sync_v11, force refreshing non-pinned baseline from Master_Data
-  const forceRefreshNonPinnedBaseline = remoteCycleSource !== "seed_sync_v11";
+  // If migrating from an older schema before seed_sync_v12, force refreshing non-pinned baseline from Master_Data
+  const forceRefreshNonPinnedBaseline = remoteCycleSource !== "seed_sync_v12";
   const summary = await getLiveCashFlowData({ forceRefreshNonPinnedBaseline });
   console.log(`Extracted summary: ${summary.customers.length} customers, Total Expected: ${summary.totalExpected}, Total Collected: ${summary.totalCollected}`);
 
@@ -95,7 +95,7 @@ async function main() {
     customers: summary.customers,
     weeklyTreasuryTransactions: summary.weeklyTreasuryTransactions || [],
     updatedAt: new Date().toISOString(),
-    source: "seed_sync_v11",
+    source: "seed_sync_v12",
   };
 
   console.log("Saving active cycle state to Firestore...");

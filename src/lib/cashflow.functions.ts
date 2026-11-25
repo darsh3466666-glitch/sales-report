@@ -468,7 +468,7 @@ export interface ActiveCashFlowCycleState {
   source?: string;
 }
 
-export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v11";
+export const ACTIVE_CYCLE_STORAGE_KEY = "cashflow_active_cycle_state_v12";
 export const FIRESTORE_CF_COLLECTION = "cashflow_settings";
 export const FIRESTORE_CF_CYCLE_DOC = "active_cycle";
 export const FIRESTORE_CF_OVERRIDES_DOC = "user_overrides";
@@ -595,6 +595,7 @@ export function getActiveCycleState(): ActiveCashFlowCycleState | null {
   if (typeof window === "undefined") return null;
   try {
     // Purge old cached state versions to enforce clean bank vs cash transaction breakdown and restore all weekly customers
+    localStorage.removeItem("cashflow_active_cycle_state_v11");
     localStorage.removeItem("cashflow_active_cycle_state_v10");
     localStorage.removeItem("cashflow_active_cycle_state_v9");
     localStorage.removeItem("cashflow_active_cycle_state_v8");
@@ -660,11 +661,21 @@ export function pruneExpiredNonPinnedOverrides(
     }
   }
 
+  // Also strip stale manual additions from prior weeks unless pinned
+  const nextAdded = (overrides.addedCustomers || []).filter((ac: any) => {
+    const isPinned = Boolean(getOverridePinned(overrides, ac.customerName, rawConfig) ?? ac.isPinned);
+    if (isPinned) return true;
+    if (ac.addedCycleId === currentCycleId) return true;
+    changed = true;
+    return false;
+  });
+
   return {
     cleaned: {
       ...overrides,
       fixedAmounts: nextFixed,
       fixedCycleIds: nextCycleIds,
+      addedCustomers: nextAdded,
     },
     changed,
   };
@@ -898,7 +909,9 @@ export function syncRemoteOverridesToLocal(remote: UserOverrides): UserOverrides
       notes: mergedNotes,
       pinnedStatus: mergedPinned,
       deletedCustomers: Array.from(new Set([...(local.deletedCustomers || []), ...(remote.deletedCustomers || [])])),
-      addedCustomers: remote.addedCustomers && remote.addedCustomers.length > 0 ? remote.addedCustomers : (local.addedCustomers || []),
+      addedCustomers: Array.isArray(remote.addedCustomers)
+        ? (remoteTime >= localTime ? remote.addedCustomers : (local.addedCustomers || []))
+        : (local.addedCustomers || []),
       updatedAt: new Date(Math.max(localTime, remoteTime, Date.now())).toISOString(),
       itemTimestamps: mergedTimestamps,
     };
@@ -971,8 +984,15 @@ export function saveManuallyAddedCustomer(customer: CashFlowCustomer) {
       current.deletedCustomers = current.deletedCustomers.filter((n) => n !== customer.customerName);
     }
     const added = current.addedCustomers || [];
-    const filtered = added.filter((c) => c.customerName !== customer.customerName);
-    filtered.push(customer);
+    const filtered = added.filter(
+      (c) =>
+        c.customerName !== customer.customerName &&
+        normalizeArabicName(c.customerName) !== normalizeArabicName(customer.customerName)
+    );
+    const activeCycle = getActiveCycleState();
+    const wInfo = getCurrentCashFlowWeekWindow();
+    const addedCycleId = activeCycle?.cycleId || `week_${wInfo.weekStart}_to_${wInfo.weekEnd}`;
+    filtered.push({ ...customer, addedCycleId } as any);
     current.addedCustomers = filtered;
     current.updatedAt = new Date().toISOString();
     localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(current));
@@ -1798,7 +1818,7 @@ export async function getLiveCashFlowData(options?: {
     if (isRemoteValid && remoteCycle) {
       const remoteTime = remoteCycle.updatedAt ? new Date(remoteCycle.updatedAt).getTime() : 0;
       const localTime = localSavedCycle?.updatedAt ? new Date(localSavedCycle.updatedAt).getTime() : 0;
-      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v11"));
+      const isRemoteFreshSeed = Boolean(remoteCycle.source && remoteCycle.source.includes("seed_sync_v12"));
       if (!localSavedCycle || isRemoteFreshSeed || remoteTime >= localTime) {
         savedCycle = remoteCycle;
         if (typeof window !== "undefined") {
@@ -2135,18 +2155,7 @@ export async function getLiveCashFlowData(options?: {
       }
     }
 
-    // Filter out user-deleted customers for this active week (applies strictly to both saved cycle and fresh baseline)
-    if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
-      const deletedSet = new Set(
-        overrides.deletedCustomers.map((n) => normalizeArabicName(n))
-      );
-      baseCustomers = baseCustomers.filter((c) => {
-        const norm = c.normalizedName || normalizeArabicName(c.customerName);
-        return !deletedSet.has(norm) && !overrides.deletedCustomers!.includes(c.customerName);
-      });
-    }
-
-    // Append user-added customers for this active week
+    // Append user-added customers for this active week (updating live balance/due date from Master_Data)
     if (overrides.addedCustomers && overrides.addedCustomers.length > 0) {
       for (const ac of overrides.addedCustomers) {
         const norm = ac.normalizedName || normalizeArabicName(ac.customerName);
@@ -2155,12 +2164,34 @@ export async function getLiveCashFlowData(options?: {
             (c) => c.customerName === ac.customerName || normalizeArabicName(c.customerName) === norm
           )
         ) {
+          const masterCust = (rawData?.masterCustomers || []).find(
+            (mc: any) =>
+              mc.customerName === ac.customerName || normalizeArabicName(mc.customerName) === norm
+          );
+          const isCustPinned = Boolean(getOverridePinned(overrides, ac.customerName, rawConfig) ?? ac.isPinned);
+          const overrideAmt = getOverrideFixedAmount(overrides, ac.customerName, rawConfig, currentCycleId, isCustPinned);
+          const liveBal = masterCust?.currentBalance !== undefined ? Number(masterCust.currentBalance) : ac.currentBalance;
           baseCustomers.push({
             ...ac,
             index: baseCustomers.length + 1,
+            currentBalance: liveBal,
+            dueDate: masterCust?.dueDate !== undefined ? masterCust.dueDate : ac.dueDate,
+            isPinned: isCustPinned,
+            expectedAmount: overrideAmt !== undefined ? overrideAmt : ac.expectedAmount,
           });
         }
       }
+    }
+
+    // Filter out user-deleted customers for this active week (applied AFTER all additions so deleted customers never respawn)
+    if (overrides.deletedCustomers && overrides.deletedCustomers.length > 0) {
+      const deletedSet = new Set(
+        overrides.deletedCustomers.map((n) => normalizeArabicName(n))
+      );
+      baseCustomers = baseCustomers.filter((c) => {
+        const norm = c.normalizedName || normalizeArabicName(c.customerName);
+        return !deletedSet.has(norm) && !overrides.deletedCustomers!.includes(c.customerName);
+      });
     }
     // Ensure permanent Cash Customer exists and is pinned weekly
     const rawCashCust = (rawData?.customers || []).find(
