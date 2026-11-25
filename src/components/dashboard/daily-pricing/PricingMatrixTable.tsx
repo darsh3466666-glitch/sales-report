@@ -16,7 +16,7 @@ export function PricingMatrixTable({
   customers,
   productStats,
 }: PricingMatrixTableProps) {
-  const minTableWidth = Math.max(820, 210 + products.length * 130);
+  const minTableWidth = Math.max(820, 218 + products.length * 130);
 
   return (
     <div className="relative w-full overflow-hidden">
@@ -29,15 +29,15 @@ export function PricingMatrixTable({
           }}
         >
           <colgroup>
-            {/* 1. Sequence Number: strictly 36px */}
-            <col style={{ width: "36px" }} />
-            {/* 2. Customer Name: strictly 135px on mobile, fluid on desktop */}
-            <col className="w-[135px] min-w-[125px] max-w-[145px] md:w-[220px]" style={{ width: "135px" }} />
-            {/* 3. Product Subcolumns: Quantity 55px, Price 65px */}
+            {/* 1. Sequence Number: 38px */}
+            <col style={{ width: "38px" }} />
+            {/* 2. Customer Name: 180px */}
+            <col style={{ width: "180px" }} />
+            {/* 3. Product Subcolumns: Quantity 60px, Price 70px */}
             {products.map((p) => (
               <React.Fragment key={`col-${p}`}>
-                <col style={{ width: "55px" }} />
-                <col style={{ width: "65px" }} />
+                <col style={{ width: "60px" }} />
+                <col style={{ width: "70px" }} />
               </React.Fragment>
             ))}
           </colgroup>
@@ -46,13 +46,13 @@ export function PricingMatrixTable({
             <tr className="bg-slate-100 text-slate-800 font-bold border-b-2 border-slate-400">
               <th
                 rowSpan={2}
-                className="sticky right-0 z-20 border-l-2 border-r-2 border-slate-400 py-2 px-1 bg-slate-200 text-slate-900 font-bold text-center text-xs sm:text-base w-[36px] min-w-[36px] max-w-[36px]"
+                className="sticky right-0 z-20 border-l-2 border-r-2 border-slate-400 py-2 px-1 bg-slate-200 text-slate-900 font-bold text-center text-xs sm:text-base w-[38px]"
               >
                 م
               </th>
               <th
                 rowSpan={2}
-                className="sticky right-[36px] z-20 border-l-2 border-slate-400 py-2 px-2 text-right font-black bg-slate-200 text-slate-900 text-xs sm:text-base shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] w-[135px] min-w-[125px] max-w-[145px] md:w-[220px]"
+                className="sticky right-[38px] z-20 border-l-2 border-slate-400 py-2 px-2 text-right font-black bg-slate-200 text-slate-900 text-xs sm:text-base shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] w-[180px]"
               >
                 العميل
               </th>
@@ -99,12 +99,12 @@ export function PricingMatrixTable({
                 className="group hover:bg-slate-100/60 transition-colors odd:bg-white even:bg-slate-50/50"
               >
                 {/* Sequence Number - Sticky */}
-                <td className="sticky right-0 z-10 border-l-2 border-r-2 border-slate-400 py-1.5 px-1 font-bold text-slate-700 bg-slate-100 text-center text-xs sm:text-base w-[36px] min-w-[36px] max-w-[36px]">
+                <td className="sticky right-0 z-10 border-l-2 border-r-2 border-slate-400 py-1.5 px-1 font-bold text-slate-700 bg-slate-100 text-center text-xs sm:text-base w-[38px]">
                   {idx + 1}
                 </td>
 
-                {/* Customer Name - Sticky (125-145px width, 2-line clamp, no auto-expansion) */}
-                <td className="sticky right-[36px] z-10 border-l-2 border-slate-400 py-1.5 px-2 text-right bg-white group-hover:bg-slate-50 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] w-[135px] min-w-[125px] max-w-[145px] md:w-[220px] overflow-hidden">
+                {/* Customer Name - Sticky */}
+                <td className="sticky right-[38px] z-10 border-l-2 border-slate-400 py-1.5 px-2 text-right bg-white group-hover:bg-slate-50 shadow-[-3px_0_6px_-1px_rgba(0,0,0,0.12)] w-[180px] overflow-hidden">
                   <div
                     className="line-clamp-2 leading-tight break-words text-xs md:text-sm font-bold text-slate-900"
                     title={cust.name}

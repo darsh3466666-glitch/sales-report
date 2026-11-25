@@ -1550,8 +1550,8 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               </div>
             </div>
           )}
-          <ZoomableTableFrame desktopMinWidth={1120} label="عرض الكاش فلو كامل">
-            <Table disableOverflowWrapper className="w-full min-w-[1050px] [&_th]:px-2 [&_td]:px-2 print:min-w-0">
+          <ZoomableTableFrame desktopMinWidth={1220} label="عرض الكاش فلو كامل">
+            <Table disableOverflowWrapper className="w-full [&_th]:px-2 [&_td]:px-2 print:min-w-0">
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
                 <TableHead className="w-12 text-center py-3.5 no-print col-select">

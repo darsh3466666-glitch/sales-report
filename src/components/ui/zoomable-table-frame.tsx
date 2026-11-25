@@ -33,7 +33,6 @@ export function ZoomableTableFrame({
   const innerRef = useRef<HTMLDivElement>(null);
 
   const [containerWidth, setContainerWidth] = useState<number>(0);
-  const [contentWidth, setContentWidth] = useState<number>(desktopMinWidth);
   const [contentHeight, setContentHeight] = useState<number>(0);
   const [zoomMode, setZoomMode] = useState<"fit" | "custom">("fit");
   const [customScale, setCustomScale] = useState<number>(1);
@@ -55,10 +54,8 @@ export function ZoomableTableFrame({
 
     const updateSizes = () => {
       const nextWidth = outer.clientWidth;
-      const nextContentWidth = Math.max(desktopMinWidth, inner.scrollWidth);
       const nextHeight = inner.scrollHeight;
       if (nextWidth > 0) setContainerWidth(nextWidth);
-      if (nextContentWidth > 0) setContentWidth(nextContentWidth);
       if (nextHeight > 0) setContentHeight(nextHeight);
     };
 
@@ -73,12 +70,11 @@ export function ZoomableTableFrame({
     return () => ro.disconnect();
   }, [desktopMinWidth]);
 
-  const effectiveWidth = Math.max(desktopMinWidth, contentWidth);
   const isNarrowViewport =
     containerWidth > 0 && containerWidth < desktopMinWidth - 2;
 
   const fitScale = isNarrowViewport
-    ? Math.max(0.24, Math.min(1, containerWidth / effectiveWidth))
+    ? Math.max(0.24, Math.min(1, containerWidth / desktopMinWidth))
     : 1;
 
   const activeScale = !isNarrowViewport
@@ -178,7 +174,7 @@ export function ZoomableTableFrame({
 
   const pctDisplay = Math.round(activeScale * 100);
   const scaledWidth = isNarrowViewport
-    ? Math.max(containerWidth, Math.ceil(effectiveWidth * activeScale))
+    ? Math.max(containerWidth, Math.ceil(desktopMinWidth * activeScale))
     : undefined;
   const scaledHeight =
     isNarrowViewport && !isNativeScale && contentHeight > 0
@@ -282,13 +278,11 @@ export function ZoomableTableFrame({
               isNarrowViewport
                 ? isNativeScale
                   ? {
-                      minWidth: `${desktopMinWidth}px`,
-                      width: "max-content",
+                      width: `${desktopMinWidth}px`,
                       position: "relative",
                     }
                   : {
-                      minWidth: `${desktopMinWidth}px`,
-                      width: "max-content",
+                      width: `${desktopMinWidth}px`,
                       position: "absolute",
                       top: 0,
                       ...(isRtl ? { right: 0 } : { left: 0 }),
