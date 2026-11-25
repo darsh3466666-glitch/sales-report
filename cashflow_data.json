@@ -5,7 +5,7 @@
   "weeklyGoal": 4000000,
   "totalExpected": 15963589.777139,
   "totalCollected": 0.0,
-  "customerCount": 55,
+  "customerCount": 56,
   "remainingToTarget": 4000000.0,
   "collectionRate": 0.0,
   "masterCustomerNames": [
@@ -2988,7 +2988,7 @@
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
       "currentBalance": 531810.0,
-      "dueDate": "2026-11-24",
+      "dueDate": "2026-11-30",
       "notes": "الاحد من كل اسبوع",
       "isActive2026": true,
       "isKhalis": false,
@@ -4954,6 +4954,13 @@
       "description": "جمال مختار",
       "type": "ب مصر",
       "date": "2026-11-25"
+    },
+    {
+      "receipt": "live_2026-11-25_6",
+      "amount": 15000.0,
+      "description": "حمدي عبدالحميد",
+      "type": "كاش",
+      "date": "2026-11-25"
     }
   ],
   "customers": [
@@ -4972,20 +4979,6 @@
       "index": 1
     },
     {
-      "customerName": "المعلم/ عبد الفتاح ربيع",
-      "normalizedName": "المعلم عبدالفتاح ربيع",
-      "currentBalance": 531810.0,
-      "expectedAmount": 150000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-24",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 150000.0,
-      "notes": "الاحد من كل اسبوع",
-      "isPinned": true,
-      "index": 2
-    },
-    {
       "customerName": "د.هاني محمود يوسف (طاميه)",
       "normalizedName": "د هاني محمود يوسف طاميه",
       "currentBalance": 1529001.0,
@@ -4997,7 +4990,7 @@
       "remaining": 1529001.0,
       "notes": "",
       "isPinned": true,
-      "index": 3
+      "index": 2
     },
     {
       "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
@@ -5011,7 +5004,7 @@
       "remaining": 200000.0,
       "notes": "الاثنين",
       "isPinned": true,
-      "index": 4
+      "index": 3
     },
     {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
@@ -5025,7 +5018,7 @@
       "remaining": 100000.0,
       "notes": "جهينة",
       "isPinned": true,
-      "index": 5
+      "index": 4
     },
     {
       "customerName": "مزرعه الخيرات",
@@ -5039,7 +5032,7 @@
       "remaining": 200000.0,
       "notes": "جهينة الخميس القادم",
       "isPinned": true,
-      "index": 6
+      "index": 5
     },
     {
       "customerName": "ايمن محمود يوسف (طاميه)",
@@ -5053,7 +5046,7 @@
       "remaining": 150000.0,
       "notes": "وزود 123 الف عن بداية السنة",
       "isPinned": true,
-      "index": 7
+      "index": 6
     },
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
@@ -5066,6 +5059,20 @@
       "status": "لم يسدد",
       "remaining": 35488.85713900067,
       "notes": "هيجيب 100 الف",
+      "isPinned": true,
+      "index": 7
+    },
+    {
+      "customerName": "المعلم/ عبد الفتاح ربيع",
+      "normalizedName": "المعلم عبدالفتاح ربيع",
+      "currentBalance": 531810.0,
+      "expectedAmount": 150000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-30",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 150000.0,
+      "notes": "الاحد من كل اسبوع",
       "isPinned": true,
       "index": 8
     },
@@ -5714,6 +5721,20 @@
       "index": 54
     },
     {
+      "customerName": "حمدي عبد الحميد(سيلا)",
+      "normalizedName": "حمدي عبدالحميد سيلا",
+      "currentBalance": 80210.0,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-05",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "طالبه على القديم",
+      "isPinned": false,
+      "index": 55
+    },
+    {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
       "normalizedName": "ابراهيم عبدالمولي الهداهده",
       "currentBalance": 1440.0,
@@ -5725,7 +5746,7 @@
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 55
+      "index": 56
     }
   ]
 }
