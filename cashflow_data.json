@@ -1360,7 +1360,7 @@
       "customerName": "عارف صلاح قيصر",
       "currentBalance": 179635.0,
       "dueDate": "2026-11-25",
-      "notes": "عارف صلاح ممكن ياخد طن تاني ويطلع بهايمه",
+      "notes": "جي انهردة 25/11/2026",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -4167,8 +4167,8 @@
     {
       "customerName": "حسام عدلي عبود(قيصر)",
       "currentBalance": 11885.0,
-      "dueDate": "2026-11-18",
-      "notes": "بعد العصر",
+      "dueDate": "2026-11-25",
+      "notes": "انهردة اخر النهار  25/11/2026",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -5175,20 +5175,6 @@
       "index": 15
     },
     {
-      "customerName": "حسام عدلي عبود(قيصر)",
-      "normalizedName": "حسام عدلي عبود قيصر",
-      "currentBalance": 11885.0,
-      "expectedAmount": 11885.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-18",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 11885.0,
-      "notes": "بعد العصر",
-      "isPinned": false,
-      "index": 16
-    },
-    {
       "customerName": "محمد حمدين الغنام",
       "normalizedName": "محمد حمدين الغنام",
       "currentBalance": 233045.0,
@@ -5200,7 +5186,7 @@
       "remaining": 233045.0,
       "notes": "",
       "isPinned": false,
-      "index": 17
+      "index": 16
     },
     {
       "customerName": "الحاج /ايمن منصور - البحيرة",
@@ -5214,7 +5200,7 @@
       "remaining": 155750.0,
       "notes": "الاحد 23/11/2026",
       "isPinned": false,
-      "index": 18
+      "index": 17
     },
     {
       "customerName": "ناصر سيد جبالي (مهدي بيه)",
@@ -5228,7 +5214,7 @@
       "remaining": 70435.0,
       "notes": "يوم 18/11/2026 50 الف وتصفية  رمضان",
       "isPinned": false,
-      "index": 19
+      "index": 18
     },
     {
       "customerName": "شعبان فتحي(الشيخ علي)",
@@ -5242,7 +5228,7 @@
       "remaining": 1000.0,
       "notes": "",
       "isPinned": false,
-      "index": 20
+      "index": 19
     },
     {
       "customerName": "محمد سيد (مصطفي الصعيدي)",
@@ -5256,7 +5242,7 @@
       "remaining": 33485.0,
       "notes": "محمد سيد مصطفى السعيد على يوم الحد",
       "isPinned": false,
-      "index": 21
+      "index": 20
     },
     {
       "customerName": "عبد الغفورعلي عبد الباقي(كوم ابو راضي)",
@@ -5270,7 +5256,7 @@
       "remaining": 8700.0,
       "notes": "هيجي واحده",
       "isPinned": false,
-      "index": 22
+      "index": 21
     },
     {
       "customerName": "خميس محمد يتيم (قيصر)",
@@ -5284,7 +5270,7 @@
       "remaining": 6750.0,
       "notes": "بلاغ ا احمد",
       "isPinned": false,
-      "index": 23
+      "index": 22
     },
     {
       "customerName": "ربيع جابر عبد الحميد",
@@ -5298,7 +5284,7 @@
       "remaining": 151190.0,
       "notes": "اخر طن",
       "isPinned": false,
-      "index": 24
+      "index": 23
     },
     {
       "customerName": "الحاج/ عمرو صلاح الكومي",
@@ -5312,7 +5298,7 @@
       "remaining": 128900.0,
       "notes": "لما يبيع",
       "isPinned": false,
-      "index": 25
+      "index": 24
     },
     {
       "customerName": "جمال مختار - قمن العروس",
@@ -5326,7 +5312,7 @@
       "remaining": 50425.0,
       "notes": "جمال مختار باقي حسابه يوم الخميس أو الجمعة",
       "isPinned": false,
-      "index": 26
+      "index": 25
     },
     {
       "customerName": "جمعه محمد عبد الحميد (سرسنا)",
@@ -5340,7 +5326,7 @@
       "remaining": 6200.0,
       "notes": "جمعه محمد سرسنا يوم الاثنين  17/11/2026",
       "isPinned": false,
-      "index": 27
+      "index": 26
     },
     {
       "customerName": "عبود عدلي عبود قيصر",
@@ -5354,7 +5340,7 @@
       "remaining": 451644.92000000004,
       "notes": "شهرين واصفي الحساب",
       "isPinned": false,
-      "index": 28
+      "index": 27
     },
     {
       "customerName": "عارف صلاح قيصر",
@@ -5367,6 +5353,20 @@
       "status": "لم يسدد",
       "remaining": 179635.0,
       "notes": "عارف صلاح ممكن ياخد طن تاني ويطلع بهايمه",
+      "isPinned": false,
+      "index": 28
+    },
+    {
+      "customerName": "حسام عدلي عبود(قيصر)",
+      "normalizedName": "حسام عدلي عبود قيصر",
+      "currentBalance": 11885.0,
+      "expectedAmount": 11885.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-25",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 11885.0,
+      "notes": "بعد العصر",
       "isPinned": false,
       "index": 29
     },
