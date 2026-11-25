@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
+import { ZoomableTableFrame } from "@/components/ui/zoomable-table-frame";
 import { ArrowRight, Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -74,8 +75,9 @@ function HistoryPage() {
             {isLoading ? (
               <p>جاري التحميل...</p>
             ) : (
-              <div className="overflow-auto rounded-md border">
-                <Table>
+              <div className="rounded-md border overflow-hidden">
+                <ZoomableTableFrame desktopMinWidth={860} label="عرض سجل التقارير كامل">
+                <Table disableOverflowWrapper className="min-w-[860px]">
                   <TableHeader>
                     <TableRow>
                       <TableHead>التاريخ</TableHead>
@@ -152,6 +154,7 @@ function HistoryPage() {
                     )}
                   </TableBody>
                 </Table>
+                </ZoomableTableFrame>
               </div>
             )}
           </CardContent>

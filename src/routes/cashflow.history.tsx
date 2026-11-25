@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ZoomableTableFrame } from "@/components/ui/zoomable-table-frame";
 import {
   Archive,
   ArrowRight,
@@ -487,8 +488,9 @@ function CashFlowHistoryPage() {
           </div>
 
           {/* Customers Table */}
-          <div className="flex-1 overflow-auto rounded-xl border border-border">
-            <Table>
+          <div className="flex-1 overflow-y-auto rounded-xl border border-border">
+            <ZoomableTableFrame desktopMinWidth={960} label="عرض أرشيف الأسبوع كامل">
+            <Table disableOverflowWrapper className="min-w-[960px]">
               <TableHeader className="bg-muted/60 sticky top-0 z-10">
                 <TableRow>
                   <TableHead className="w-12 text-center font-bold">م</TableHead>
@@ -556,6 +558,7 @@ function CashFlowHistoryPage() {
                 )}
               </TableBody>
             </Table>
+            </ZoomableTableFrame>
           </div>
         </DialogContent>
       </Dialog>

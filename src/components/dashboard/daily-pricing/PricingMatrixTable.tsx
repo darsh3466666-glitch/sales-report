@@ -1,6 +1,7 @@
 import React from "react";
 import { fmtNumber } from "@/lib/formatters";
 import { CustomerMatrixRow, ProductStat } from "./pricing-types";
+import { ZoomableTableFrame } from "@/components/ui/zoomable-table-frame";
 
 interface PricingMatrixTableProps {
   products: string[];
@@ -15,20 +16,11 @@ export function PricingMatrixTable({
   customers,
   productStats,
 }: PricingMatrixTableProps) {
-  // Mobile-optimized minimum table width: 36px (sequence) + 135px (customer) + (120px per product)
-  const minTableWidth = Math.max(520, 171 + products.length * 120);
+  const minTableWidth = Math.max(820, 210 + products.length * 130);
 
   return (
     <div className="relative w-full overflow-hidden">
-      {/* Mobile Swipe Hint */}
-      <div className="block md:hidden bg-amber-50/90 text-amber-900 border-b border-amber-200 text-[11px] font-bold py-1.5 px-3 text-center no-print">
-        👈 اسحب الجدول أفقياً لتصفح بقية الأصناف والأسعار
-      </div>
-
-      <div
-        className="overflow-x-auto w-full smooth-touch-scroll"
-        style={{ WebkitOverflowScrolling: "touch" }}
-      >
+      <ZoomableTableFrame desktopMinWidth={minTableWidth} label="عرض مصفوفة الأسعار كاملة">
         <table
           className="pricing-table w-full border-collapse text-center"
           style={{
@@ -183,7 +175,7 @@ export function PricingMatrixTable({
             ))}
           </tbody>
         </table>
-      </div>
+      </ZoomableTableFrame>
     </div>
   );
 }

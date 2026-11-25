@@ -428,6 +428,22 @@
     background: #ffffff !important;
   }
 
+  .zoomable-table-outer {
+    overflow: visible !important;
+  }
+
+  .zoomable-table-sizer {
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .zoomable-table-inner {
+    position: static !important;
+    width: 100% !important;
+    transform: none !important;
+  }
+
   .cashflow-table-container > div,
   .cashflow-table-container [class*="overflow-"] {
     overflow: visible !important;
@@ -929,9 +945,9 @@
     scrollbar-width: none;
   }
 
-  /* iOS Safari Smooth momentum scrolling */
+  /* iOS Safari Smooth momentum scrolling (preserve native pinch-zoom) */
   .smooth-touch-scroll {
     -webkit-overflow-scrolling: touch;
-    touch-action: pan-x pan-y;
+    touch-action: pan-x pan-y pinch-zoom;
   }
 }

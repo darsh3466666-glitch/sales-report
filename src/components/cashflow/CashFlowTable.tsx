@@ -41,6 +41,7 @@ import {
 import { exportCashFlowToExcel } from "@/lib/export-cashflow";
 import { toast } from "sonner";
 import { CashFlowMobileCards } from "./CashFlowMobileCards";
+import { ZoomableTableFrame } from "@/components/ui/zoomable-table-frame";
 
 interface CashFlowTableProps {
   summary: CashFlowSummary;
@@ -128,11 +129,10 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [viewMode, setViewMode] = useState<"cards" | "table">(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("cashflow_view_mode");
+      const saved = localStorage.getItem("cashflow_view_mode_v2");
       if (saved === "cards" || saved === "table") return saved;
-      return window.innerWidth < 768 ? "cards" : "table";
     }
-    return "cards";
+    return "table";
   });
 
   // Multi-select bulk deletion state
@@ -1102,11 +1102,11 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
           )}
         </div>
 
-        {/* Dropdown Menu Popup rendered directly when open */}
+        {/* Dropdown Menu Popup rendered directly on wide desktop when open */}
         {isDropdownOpen && filterType && (
           <div
             className={cn(
-              "absolute top-full mt-1.5 z-50 no-print text-right",
+              "hidden xl:block absolute top-full mt-1.5 z-50 no-print text-right",
               align === "center" ? "left-1/2 -translate-x-1/2" : "right-0"
             )}
             onClick={(e) => e.stopPropagation()}
@@ -1168,7 +1168,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               type="button"
               onClick={() => {
                 setViewMode("cards");
-                localStorage.setItem("cashflow_view_mode", "cards");
+                localStorage.setItem("cashflow_view_mode_v2", "cards");
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
                 viewMode === "cards"
@@ -1184,7 +1184,7 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               type="button"
               onClick={() => {
                 setViewMode("table");
-                localStorage.setItem("cashflow_view_mode", "table");
+                localStorage.setItem("cashflow_view_mode_v2", "table");
               }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
                 viewMode === "table"
@@ -1531,22 +1531,27 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
       {/* 2. Cash Flow Main Data Table (Visible when viewMode === 'table', and always in print) */}
       <div className={viewMode === "table" ? "block" : "hidden print:block"}>
         <div className="bg-card rounded-2xl border-2 border-primary/20 shadow-md overflow-hidden cashflow-table-container">
-          {/* Mobile Swipe Hint */}
-          <div className="block md:hidden bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-b border-amber-200 dark:border-amber-800 text-[11px] font-bold py-1.5 px-3 text-center no-print">
-            👈 يمكنك سحب الجدول أفقياً لتصفح بقية الأعمدة
-          </div>
-          <div
-            className="overflow-x-auto w-full smooth-touch-scroll"
-            style={{ WebkitOverflowScrolling: "touch" }}
-          >
-            {/* Click-away backdrop for header filter dropdowns */}
-            {activeHeaderFilter && (
-              <div
-                className="fixed inset-0 z-40 bg-black/5 no-print"
-                onClick={() => setActiveHeaderFilter(null)}
-              />
-            )}
-            <Table className="min-w-[1050px] print:min-w-0">
+          {/* Desktop Click-away backdrop for header filter dropdowns */}
+          {activeHeaderFilter && (
+            <div
+              className="hidden xl:block fixed inset-0 z-40 bg-black/5 no-print"
+              onClick={() => setActiveHeaderFilter(null)}
+            />
+          )}
+          {/* Mobile / Tablet Full-Size Filter Overlay (keeps filter controls legible when scaled) */}
+          {activeHeaderFilter && (
+            <div
+              className="xl:hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/55 backdrop-blur-xs no-print"
+              dir="rtl"
+              onClick={() => setActiveHeaderFilter(null)}
+            >
+              <div onClick={(e) => e.stopPropagation()}>
+                {renderFilterDropdown(activeHeaderFilter)}
+              </div>
+            </div>
+          )}
+          <ZoomableTableFrame desktopMinWidth={1120} label="عرض الكاش فلو كامل">
+            <Table disableOverflowWrapper className="w-full min-w-[1050px] [&_th]:px-2 [&_td]:px-2 print:min-w-0">
             <TableHeader className="bg-muted/80">
               <TableRow className="border-b-2 border-primary/30 hover:bg-transparent">
                 <TableHead className="w-12 text-center py-3.5 no-print col-select">
@@ -1972,10 +1977,9 @@ export const CashFlowTable: React.FC<CashFlowTableProps> = ({
               )}
             </TableBody>
           </Table>
+          </ZoomableTableFrame>
         </div>
       </div>
-    </div>
-
 
       {/* Add Customer Modal - Pure React Modal (Zero freeze, Zero lag, No Radix Focus Lock) */}
       {isAddModalOpen && (

@@ -13,6 +13,7 @@ import {
 import { Search, ArrowUpDown, UserPlus } from "lucide-react";
 import { fmtMoney, fmtNumber, fmtPct } from "@/lib/formatters";
 import { Button } from "@/components/ui/button";
+import { ZoomableTableFrame } from "@/components/ui/zoomable-table-frame";
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
 
 export interface CustomerRow {
@@ -247,18 +248,9 @@ export function CustomerTable({
         </div>
       </CardHeader>
       <CardContent className="p-0 sm:p-6">
-        {/* Mobile Swipe Hint */}
-        <div className="block md:hidden bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-200 border-b border-amber-200 dark:border-amber-800 text-[11px] font-bold py-1.5 px-3 text-center no-print">
-          👈 يمكنك سحب الجدول أفقياً لتصفح بقية البيانات
-        </div>
-
-        {/* Table View (All Screens with Mobile Sticky Customer Column) */}
-        <div
-          className="block overflow-x-auto w-full smooth-touch-scroll"
-          style={{ WebkitOverflowScrolling: "touch" }}
-          dir="rtl"
-        >
-          <Table style={{ minWidth: "900px" }}>
+        <ZoomableTableFrame desktopMinWidth={1050} label="عرض جدول عملاء المبيعات كامل">
+          <div dir="rtl">
+            <Table disableOverflowWrapper style={{ minWidth: "1050px" }}>
             <TableHeader className="bg-muted/60">
               <TableRow>
                 <TableHead className="sticky right-0 z-20 w-[36px] min-w-[36px] max-w-[36px] text-center font-bold text-foreground bg-muted/95 border-l border-border/60 p-1" title="مسلسل">
@@ -474,7 +466,8 @@ export function CustomerTable({
               )}
             </TableBody>
           </Table>
-        </div>
+          </div>
+        </ZoomableTableFrame>
 
         {/* Pagination Controls */}
         {totalPages > 1 && (

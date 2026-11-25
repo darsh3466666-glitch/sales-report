@@ -27,11 +27,10 @@ export function DailyPricingReport({
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<"cards" | "table">(() => {
     if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("daily_pricing_view_mode");
+      const saved = localStorage.getItem("daily_pricing_view_mode_v2");
       if (saved === "cards" || saved === "table") return saved;
-      return window.innerWidth < 768 ? "cards" : "table";
     }
-    return "cards";
+    return "table";
   });
 
   // Process products, customers, matrix, and statistics
@@ -413,7 +412,7 @@ export function DailyPricingReport({
             type="button"
             onClick={() => {
               setViewMode("cards");
-              localStorage.setItem("daily_pricing_view_mode", "cards");
+              localStorage.setItem("daily_pricing_view_mode_v2", "cards");
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
               viewMode === "cards"
@@ -429,7 +428,7 @@ export function DailyPricingReport({
             type="button"
             onClick={() => {
               setViewMode("table");
-              localStorage.setItem("daily_pricing_view_mode", "table");
+              localStorage.setItem("daily_pricing_view_mode_v2", "table");
             }}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-black transition-all cursor-pointer ${
               viewMode === "table"
