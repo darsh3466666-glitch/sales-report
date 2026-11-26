@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T13:44:38.610289",
+  "generatedAt": "2026-11-26T13:50:35.974354",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -523,8 +523,8 @@
     {
       "customerName": "محمد مصطفي محمد حسين قيصر",
       "currentBalance": 562346.5,
-      "dueDate": "2026-12-22",
-      "notes": "3 شهور ويصفي",
+      "dueDate": "2026-12-16",
+      "notes": "هيصفي 15/12/2026",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -5101,6 +5101,13 @@
       "amount": 250000.0,
       "description": "محمد يونس عبداللطيف",
       "type": "ب مصر",
+      "date": "2026-11-26"
+    },
+    {
+      "receipt": "live_2026-11-26_9",
+      "amount": 300.0,
+      "description": "ربع نقل",
+      "type": "أ احمد",
       "date": "2026-11-26"
     }
   ],
