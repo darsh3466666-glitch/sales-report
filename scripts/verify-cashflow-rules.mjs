@@ -75,5 +75,23 @@ if (checkName === "non-negative-remaining") {
   process.exit(0);
 }
 
+if (checkName === "treasury-matching") {
+  // Verify surname-preservation and global best-score matching rules
+  assert(
+    fnCode.includes("scoreTreasuryMatch"),
+    "scoreTreasuryMatch must be present in cashflow.functions.ts"
+  );
+  assert(
+    fnCode.includes("p1.length < 5 || p2.length < 5"),
+    "Short 3-4 letter Arabic names must not use 1-edit fuzzy matching"
+  );
+  assert(
+    fnCode.includes("bestTier1Score >= bestTier2Score"),
+    "Tier 1 matching must defer to strictly higher-scoring Master_Data matches"
+  );
+  console.log("PASS: treasury matching safety verified");
+  process.exit(0);
+}
+
 console.error("Unknown check:", checkName);
 process.exit(1);

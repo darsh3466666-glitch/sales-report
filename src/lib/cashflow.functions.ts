@@ -235,7 +235,11 @@ export const isCashNorm = (s: string) => {
 
 const GENERIC_SINGLE_NAMES = new Set([
   "احمد", "محمد", "محمود", "علي", "حسن", "حسين", "سيد", "ابراهيم", "مصطفي", "مصطفى",
-  "خالد", "طارق", "عمرو", "عمر", "يوسف", "سعيد", "اشرف", "جمال", "عادل", "رضا", "نقدي", "كاش"
+  "خالد", "طارق", "عمرو", "عمر", "يوسف", "سعيد", "اشرف", "جمال", "عادل", "رضا", "نقدي", "كاش",
+  "رمضان", "شعبان", "ربيع", "صلاح", "عدلي", "مراد", "جمعه", "سعد", "منصور", "سلامه",
+  "عطيه", "فايز", "فتحي", "سامي", "هاني", "حسام", "ايمن", "توفيق", "سمير", "عمران",
+  "صالح", "عبدالله", "محسن", "كمال", "وحيد", "خميس", "عثمان", "رجب", "مرسي", "فؤاد",
+  "ناصر", "سالم", "سليم", "مدحت", "شريف", "هشام", "وليد", "ياسر", "مجدي", "نبيل", "عصام"
 ]);
 
 function isOneEditApart(s1: string, s2: string): boolean {
@@ -245,7 +249,8 @@ function isOneEditApart(s1: string, s2: string): boolean {
   const p2 = normPhonetic(s2);
   if (p1 === p2) return true;
   if (Math.abs(p1.length - p2.length) > 1) return false;
-  if (p1.length < 3 || p2.length < 3) return false;
+  // Guard short 3-4 letter Arabic names where 1 edit turns one distinct name into another (e.g. سعد vs سعيد, حسن vs حسين, جمال vs جلال, عمر vs عمرو)
+  if (p1.length < 5 || p2.length < 5) return false;
   let edits = 0;
   let i = 0, j = 0;
   while (i < p1.length && j < p2.length) {
@@ -291,6 +296,7 @@ export const TREASURY_CUSTOMER_ALIASES: Record<string, string> = {
   "سلامه حمدي": "سلامه حمدي ( البرنسة)",
   "حسام عدلي عبود": "حسام عدلي عبود(قيصر)",
   "محمد احمد مرداش": "احمد محمد مرداشي (وحيد كامل)",
+  "الخيرات": "مزرعه الخيرات",
 };
 
 export function resolveTreasuryCustomerAlias(desc: string): string {
@@ -299,26 +305,34 @@ export function resolveTreasuryCustomerAlias(desc: string): string {
   return TREASURY_CUSTOMER_ALIASES[nd] || desc;
 }
 
-export function matchTreasuryDescriptionToCustomer(
+/**
+ * Computes a match confidence score between a Treasury description and a Customer name.
+ * Returns 0 for no match, up to 100 for exact normalized / explicit alias match.
+ * Comparing scores globally across active-cycle and Master_Data customers guarantees
+ * a weaker partial/prefix match never steals a payment from a stronger exact customer match.
+ */
+export function scoreTreasuryMatch(
   desc: string,
   customerName: string
-): boolean {
-  if (!desc || !customerName) return false;
+): number {
+  if (!desc || !customerName) return 0;
+  const rawNd = normalizeArabicName(desc);
   const resolvedDesc = resolveTreasuryCustomerAlias(desc);
   const nd = normalizeArabicName(resolvedDesc);
   const nc = normalizeArabicName(customerName);
-  if (!nd || !nc) return false;
+  if (!nd || !nc) return 0;
 
-  // 1. Exact full normalized match (e.g. "مزرعة السلام" === "مزرعه السلام")
-  if (nd === nc) return true;
+  // 1. Exact full normalized match or explicit alias match
+  if (nd === nc) return 100;
+  if (nd !== rawNd && nd === nc) return 100;
 
   // 2. Generic cash matching
   const isDescCash = isCashNorm(nd);
   const isCustCash = isCashNorm(nc);
-  if (isDescCash && isCustCash) return true;
-  if (isDescCash || isCustCash) return false;
+  if (isDescCash && isCustCash) return 95;
+  if (isDescCash || isCustCash) return 0;
 
-  // 3. Honorific & entity prefixes at start only: "المعلم عبدالفتاح ربيع" === "عبدالفتاح ربيع", "مزرعه الخيرات" === "الخيرات"
+  // 3. Honorific & entity prefixes at start only
   const stripPrefixHonorific = (s: string) =>
     s
       .replace(
@@ -329,12 +343,12 @@ export function matchTreasuryDescriptionToCustomer(
 
   const sd = stripPrefixHonorific(nd);
   const sc = stripPrefixHonorific(nc);
-  if (sd && sc && (sd === sc || wordsMatch(sd, sc, false))) return true;
+  if (sd && sc && (sd === sc || wordsMatch(sd, sc, false))) return 92;
 
   // 4. Clean match (handling colloquial ذ/ز, compound prefixes عبد/ابو, and trailing annotations)
   const cd = cleanCustomerMatchingName(desc);
   const cc = cleanCustomerMatchingName(customerName);
-  if (cd && cc && (cd === cc || wordsMatch(cd, cc, false))) return true;
+  if (cd && cc && (cd === cc || wordsMatch(cd, cc, false))) return 90;
 
   // 5. Match full name ignoring parenthesized nickname/branch annotation
   const cleanParens = (s: string) => {
@@ -343,19 +357,19 @@ export function matchTreasuryDescriptionToCustomer(
   };
   const bd = normalizeArabicName(cleanParens(desc));
   const bc = normalizeArabicName(cleanParens(customerName));
-  if (bd && bc && (bd === bc || sd === bc || bd === sc || wordsMatch(bd, bc, false))) return true;
+  if (bd && bc && (bd === bc || sd === bc || bd === sc || wordsMatch(bd, bc, false))) return 88;
 
   // 6. STRICT ENTITY GUARD:
   const isEntity = Array.from(GENERIC_PREFIXES).some(
     (k) => nd.includes(k) || nc.includes(k)
   );
-  if (isEntity) return false;
+  if (isEntity) return 0;
 
   // 7. Token-based smart matching
   const cdWords = cd.split(" ").filter((w) => w.length >= 2);
   const ccWords = cc.split(" ").filter((w) => w.length >= 2);
 
-  // 7a. Prefix matching on primary customer name (handles مرداش/مرداشي, ديب/الديب, and phonetic typos on final word)
+  // 7a. Prefix matching on primary customer name
   if (cdWords.length >= 2 && ccWords.length >= 2) {
     let mCount = 0;
     const minLen = Math.min(cdWords.length, ccWords.length);
@@ -368,11 +382,11 @@ export function matchTreasuryDescriptionToCustomer(
       }
     }
     if (mCount >= 2 && mCount === cdWords.length) {
-      return true;
+      return mCount === ccWords.length ? 86 : 75;
     }
   }
 
-  // 7b. Order-invariant & full tokens match across all customer words (including paren annotations like "مرسي مدشه" or "حلوان احمد سلامه")
+  // 7b. Order-invariant & full tokens match across all customer words
   // Every word written by the treasury clerk MUST match a word in the full customer name (never drop a distinct surname like "مرداش").
   const allCustWords = normalizeArabicName(customerName)
     .replace(/عبد\s+/g, "عبد")
@@ -395,27 +409,34 @@ export function matchTreasuryDescriptionToCustomer(
       }
     }
     if (matchedTokens >= 2 && matchedTokens === cdWords.length) {
-      return true;
+      return matchedTokens === allCustWords.length ? 84 : 78;
     }
   }
 
-  // 7c. Distinctive single entity or compound surname (e.g. "الخيرات" or "ابوحمزه")
-  if (cdWords.length === 1 && !GENERIC_SINGLE_NAMES.has(cdWords[0])) {
+  // 7c. Distinctive single entity or compound surname (strictly >= 4 chars & non-generic)
+  if (cdWords.length === 1 && cdWords[0].length >= 4 && !GENERIC_SINGLE_NAMES.has(cdWords[0])) {
     if (ccWords.some((w) => wordsMatch(cdWords[0], w, false))) {
-      return true;
+      return 45;
     }
   }
 
   const dWords = nd.split(" ").filter((w) => w.length >= 2);
   const cWords = bc.split(" ").filter((w) => w.length >= 2);
   if (dWords.length >= 2 && (nc.startsWith(nd + " ") || bc.startsWith(nd + " "))) {
-    return true;
+    return 70;
   }
   if (cWords.length >= 2 && nd === bc) {
-    return true;
+    return 85;
   }
 
-  return false;
+  return 0;
+}
+
+export function matchTreasuryDescriptionToCustomer(
+  desc: string,
+  customerName: string
+): boolean {
+  return scoreTreasuryMatch(desc, customerName) > 0;
 }
 
 /**
@@ -2609,17 +2630,37 @@ export async function getLiveCashFlowData(options?: {
     for (const tx of cycleTreasuryTx) {
       let matched = false;
 
-      // Find all candidate customers that match the transaction description
-      const candidateCusts = tier1Customers.filter((c) =>
-        matchTreasuryDescriptionToCustomer(tx.description, c.customerName)
-      );
+      // Evaluate match confidence globally across BOTH Tier 1 (active week) and Tier 2 (Master_Data)
+      // so a weaker partial/prefix match in Tier 1 can never steal a payment from a stronger exact match in Tier 2!
+      const tier1Scored = tier1Customers
+        .map((c) => ({ cust: c, score: scoreTreasuryMatch(tx.description, c.customerName) }))
+        .filter((item) => item.score > 0);
+      const bestTier1Score = tier1Scored.reduce((m, item) => Math.max(m, item.score), 0);
 
-      // If multiple candidates match (e.g. "محمد رمضان" or "باديه فارم"),
-      // prioritize the one whose collectedFromSheet matches tx.amount, or who has an expected amount
+      const masterListAll = Array.isArray(rawData?.masterCustomers) && rawData.masterCustomers.length > 0
+        ? rawData.masterCustomers
+        : (rawData?.masterCustomerNames || []).map((n: string) => ({ customerName: n }));
+
+      let bestTier2Score = 0;
+      const tier2Scored: Array<{ mc: any; score: number }> = [];
+      for (const mc of masterListAll) {
+        if (!mc?.customerName) continue;
+        const s = scoreTreasuryMatch(tx.description, mc.customerName);
+        if (s > 0) {
+          tier2Scored.push({ mc, score: s });
+          if (s > bestTier2Score) bestTier2Score = s;
+        }
+      }
+
+      // Only allow Tier 1 to claim the payment when no Master_Data customer has a strictly higher match score
+      const candidateCusts =
+        bestTier1Score > 0 && bestTier1Score >= bestTier2Score
+          ? tier1Scored.filter((item) => item.score === bestTier1Score).map((item) => item.cust)
+          : [];
+
       let prioritizedCandidates = candidateCusts;
       if (candidateCusts.length > 1) {
         prioritizedCandidates = [...candidateCusts].sort((a, b) => {
-          // Exact clean name match should ALWAYS win over partial prefix match!
           const cleanDesc = cleanCustomerMatchingName(resolveTreasuryCustomerAlias(tx.description));
           const cleanA = cleanCustomerMatchingName(a.customerName);
           const cleanB = cleanCustomerMatchingName(b.customerName);
@@ -2664,48 +2705,37 @@ export async function getLiveCashFlowData(options?: {
         break;
       }
 
-      // Tier 2: If not matched in Tier 1, search Master Data narrowed by:
-      // 1. Exact normalized name match in O(1)
-      // 2. Active debtors sorted by closest due date to tx.date
-      // 3. Remaining master customers
+      // Tier 2: Highest-scoring Master_Data match
       if (!matched) {
         const resolvedTxDesc = resolveTreasuryCustomerAlias(tx.description);
         const normTxDesc = normalizeArabicName(resolvedTxDesc);
         let matchedMasterName = masterExactNormMap.get(normTxDesc) || "";
 
-        // Narrow candidates by active balance & due date proximity
-        if (!matchedMasterName) {
+        if (!matchedMasterName && tier2Scored.length > 0) {
           const txDate = tx.date || liveReportDate || todayStr;
-          const masterList = Array.isArray(rawData?.masterCustomers) && rawData.masterCustomers.length > 0
-            ? [...rawData.masterCustomers]
-            : (rawData?.masterCustomerNames || []).map((n: string) => ({ customerName: n }));
+          const getDiff = (dStr?: string) => {
+            if (!dStr || dStr.length < 10) return 9999;
+            const d = new Date(dStr.slice(0, 10)).getTime();
+            const t = new Date(txDate.slice(0, 10)).getTime();
+            return isNaN(d) || isNaN(t) ? 9999 : Math.abs(d - t);
+          };
 
-          masterList.sort((a: any, b: any) => {
-            const aBal = Number(a.currentBalance) || 0;
-            const bBal = Number(b.currentBalance) || 0;
-            const aActive = !a.isKhalis && aBal > 0 ? 1 : 0;
-            const bActive = !b.isKhalis && bBal > 0 ? 1 : 0;
+          const sortedTier2 = [...tier2Scored].sort((a, b) => {
+            if (b.score !== a.score) return b.score - a.score;
+            const aBal = Number(a.mc.currentBalance) || 0;
+            const bBal = Number(b.mc.currentBalance) || 0;
+            const aActive = !a.mc.isKhalis && aBal > 0 ? 1 : 0;
+            const bActive = !b.mc.isKhalis && bBal > 0 ? 1 : 0;
             if (bActive !== aActive) return bActive - aActive;
 
-            const getDiff = (dStr?: string) => {
-              if (!dStr || dStr.length < 10) return 9999;
-              const d = new Date(dStr.slice(0, 10)).getTime();
-              const t = new Date(txDate.slice(0, 10)).getTime();
-              return isNaN(d) || isNaN(t) ? 9999 : Math.abs(d - t);
-            };
-            const aDiff = getDiff(a.dueDate);
-            const bDiff = getDiff(b.dueDate);
+            const aDiff = getDiff(a.mc.dueDate);
+            const bDiff = getDiff(b.mc.dueDate);
             if (aDiff !== bDiff) return aDiff - bDiff;
 
             return bBal - aBal;
           });
 
-          for (const mc of masterList) {
-            if (matchTreasuryDescriptionToCustomer(tx.description, mc.customerName)) {
-              matchedMasterName = mc.customerName;
-              break;
-            }
-          }
+          matchedMasterName = sortedTier2[0].mc.customerName;
         }
 
         const validCustName = matchedMasterName;
