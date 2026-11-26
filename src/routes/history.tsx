@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/table";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import { ZoomableTableFrame } from "@/components/ui/zoomable-table-frame";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { ArrowRight, Eye, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -54,18 +55,21 @@ function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      <header className="border-b bg-card">
-        <div className="container mx-auto px-4 py-3 flex items-center justify-between">
-          <h1 className="text-lg font-bold">سجل التقارير</h1>
+      <AppHeader
+        title="سجل التقارير"
+        activeSection="dashboard"
+        actions={
           <Button
-            variant="ghost"
+            variant="outline"
+            size="sm"
             onClick={() => navigate({ to: "/dashboard" })}
+            className="h-8 sm:h-9 px-3 rounded-full font-bold border border-primary/30 hover:bg-primary/10 gap-1.5 text-xs sm:text-sm"
           >
-            <ArrowRight className="h-4 w-4 ml-1" />
-            الرئيسية
+            <ArrowRight className="h-3.5 w-3.5" />
+            <span>العودة للتقرير</span>
           </Button>
-        </div>
-      </header>
+        }
+      />
       <main className="container mx-auto px-4 py-6">
         <Card>
           <CardHeader>

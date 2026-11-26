@@ -5,13 +5,12 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLatestReportFull } from "@/lib/reports.functions";
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
-import { Moon, Sun, History, Download, BarChart3, Wallet, RefreshCw } from "lucide-react";
+import { History, RefreshCw } from "lucide-react";
 import { CustomerProductsDrawer } from "@/components/dashboard/CustomerProductsDrawer";
-import { PrintDialog } from "@/components/dashboard/PrintDialog";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { exportReportToExcel } from "@/lib/export-excel";
 import {
   DashboardContent,
   type DashData,
@@ -77,26 +76,8 @@ function Dashboard() {
     };
   }, [queryClient]);
 
-  const [dark, setDark] = useState(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
-
-  useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
-  }, []);
-
   const [printLayout, setPrintLayout] = useState<"pc" | "mobile">("mobile");
   const [selectedCustomer, setSelectedCustomer] = useState<string | null>(null);
-
-  function toggleTheme() {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
 
   const customerProductsForSelected = useMemo(() => {
     if (!selectedCustomer || !data) return [];
@@ -125,20 +106,6 @@ function Dashboard() {
       </div>
     );
 
-  function handleExport() {
-    if (!data) {
-      toast.error("لا توجد بيانات للتصدير");
-      return;
-    }
-    try {
-      exportReportToExcel(data as any);
-      toast.success("تم تصدير الملف");
-    } catch (e) {
-      toast.error("فشل التصدير");
-      console.error(e);
-    }
-  }
-
   return (
     <div
       className={`min-h-screen bg-background print-layout-container print-layout-${printLayout}`}
@@ -161,55 +128,21 @@ function Dashboard() {
         />
       )}
 
-      <header className="sticky top-0 z-10 border-b-4 border-primary/20 bg-card/90 backdrop-blur no-print overflow-hidden relative">
-        <div className="absolute inset-0 pointer-events-none opacity-5">
-          <div className="absolute -top-10 -right-10 w-32 h-48 bg-primary rounded-xl rotate-12" />
-          <div className="absolute -top-12 right-10 w-32 h-48 bg-accent rounded-xl -rotate-6" />
-          <div className="absolute -top-8 right-24 w-32 h-48 bg-destructive rounded-xl rotate-[24deg]" />
-        </div>
-        <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 flex flex-wrap items-center justify-between gap-3 relative z-10">
-          <div className="flex items-center gap-2 sm:gap-4 scale-75 sm:scale-100 origin-right">
-            <div className="relative">
-              {/* Folded ribbon for title */}
-              <div className="relative bg-cream border-2 border-primary-dark px-3 py-1 z-10 shadow-md flex items-center justify-center">
-                <h1 className="text-base sm:text-lg font-black text-primary-dark tracking-widest whitespace-nowrap">
-                  تقرير المبيعات اليومي الشامل
-                </h1>
-              </div>
-              {/* Ribbon Tails */}
-              <div className="absolute top-1.5 -left-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 skew-y-[20deg]"></div>
-              <div className="absolute top-1.5 -right-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 -skew-y-[20deg]"></div>
-            </div>
-
-            {/* Navigation Tabs Switcher */}
-            <div className="hidden md:flex items-center p-1 bg-muted/80 rounded-full border border-border text-xs font-bold shadow-inner">
-              <Button
-                variant="default"
-                size="sm"
-                className="rounded-full h-7 px-3 bg-primary text-primary-foreground shadow-sm gap-1.5"
-              >
-                <BarChart3 className="h-3.5 w-3.5" />
-                <span>المبيعات والتحصيل</span>
-              </Button>
-              <Link to="/cashflow">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-7 px-3 text-muted-foreground hover:text-foreground gap-1.5"
-                >
-                  <Wallet className="h-3.5 w-3.5 text-emerald-600" />
-                  <span>الكاش فلو (Cash Flow)</span>
-                </Button>
-              </Link>
-            </div>
+      <AppHeader
+        title="تقرير المبيعات اليومي الشامل"
+        activeSection="dashboard"
+        decorativeBg
+        printLayout={printLayout}
+        setPrintLayout={setPrintLayout}
+        statusBadge={
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-400 whitespace-nowrap">
+            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span className="hidden xl:inline">شاشة حية (تحديث كل 30 ثانية)</span>
+            <span className="xl:hidden">بث مباشر</span>
           </div>
-          <div className="flex items-center gap-1 sm:gap-2">
-            {/* Live Indicator like treasury dashboard */}
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>شاشة حية (تحديث كل 30 ثانية)</span>
-            </div>
-
+        }
+        actions={
+          <>
             <Button
               variant="ghost"
               size="sm"
@@ -222,65 +155,29 @@ function Dashboard() {
                 }
               }}
               disabled={isFetching}
-              className="px-2.5 sm:px-3 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
+              className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full font-bold text-xs sm:text-sm bg-card shadow-xs border border-muted hover:border-primary/30 gap-1.5"
               title="تحديث لحظي"
             >
               <RefreshCw
-                className={`h-4 w-4 sm:ml-1.5 text-primary ${isFetching ? "animate-spin" : ""}`}
+                className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0 ${isFetching ? "animate-spin" : ""}`}
               />
               <span className="hidden sm:inline">تحديث</span>
             </Button>
 
-            <Link to="/cashflow" className="md:hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="px-2.5 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
-                title="الكاش فلو"
-              >
-                <Wallet className="h-4 w-4 text-emerald-600" />
-                <span className="text-xs">كاش فلو</span>
-              </Button>
-            </Link>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleExport}
-              className="px-3 sm:px-4 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
-              title="تصدير Excel"
-            >
-              <Download className="h-4 w-4 sm:ml-2 text-info" />
-              <span className="hidden sm:inline">تصدير</span>
-            </Button>
             <Link to="/history">
               <Button
                 variant="ghost"
                 size="sm"
-                className="px-3 sm:px-4 rounded-full font-bold bg-card shadow-sm border border-muted hover:border-primary/30"
+                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full font-bold text-xs sm:text-sm bg-card shadow-xs border border-muted hover:border-primary/30 gap-1.5"
+                title="السجل"
               >
-                <History className="h-4 w-4 sm:ml-2 text-accent-dark" />
+                <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent-dark shrink-0" />
                 <span className="hidden sm:inline">السجل</span>
               </Button>
             </Link>
-            <PrintDialog
-              printLayout={printLayout}
-              setPrintLayout={setPrintLayout}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full bg-card shadow-sm border border-muted hover:border-primary/30 ml-2"
-            >
-              {dark ? (
-                <Sun className="h-4 w-4 text-accent" />
-              ) : (
-                <Moon className="h-4 w-4 text-primary" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <div className="print-only px-4 py-3 border-b" dir="rtl">
         <div className="flex items-center justify-between">

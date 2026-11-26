@@ -30,21 +30,18 @@ import { ZoomableTableFrame } from "@/components/ui/zoomable-table-frame";
 import {
   Archive,
   ArrowRight,
-  BarChart3,
   Calendar,
   CheckCircle2,
   Clock,
   Download,
   Eye,
   FileSpreadsheet,
-  Moon,
   Search,
-  Sun,
   Target,
   TrendingUp,
-  Wallet,
   Zap,
 } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
@@ -63,20 +60,6 @@ function CashFlowHistoryPage() {
     queryKey: ["archivedCashFlowWeeks"],
     queryFn: () => getArchivedCashFlowWeeks(),
   });
-
-  const [dark, setDark] = useState(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
-
-  function toggleTheme() {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
 
   // Filter archived weeks by label or date
   const filteredWeeks = useMemo(() => {
@@ -156,82 +139,23 @@ function CashFlowHistoryPage() {
 
   return (
     <div className="min-h-screen bg-background" dir="rtl">
-      {/* Top Header */}
-      <header className="sticky top-0 z-20 border-b-4 border-primary/20 bg-card/90 backdrop-blur no-print overflow-hidden relative">
-        <div className="container mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-          {/* Title Ribbon & Navigation Switcher */}
-          <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
-            <div className="relative">
-              <div className="relative bg-cream border-2 border-primary-dark px-3 py-1 z-10 shadow-md flex items-center justify-center">
-                <h1 className="text-base sm:text-lg font-black text-primary-dark tracking-widest whitespace-nowrap flex items-center gap-2">
-                  <Archive className="h-5 w-5 text-primary" />
-                  أرشيف وسجل الكاش فلو
-                </h1>
-              </div>
-              <div className="absolute top-1.5 -left-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 skew-y-[20deg]" />
-              <div className="absolute top-1.5 -right-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 -skew-y-[20deg]" />
-            </div>
-
-            {/* Navigation Tabs Switcher */}
-            <div className="flex items-center p-1 bg-muted/80 rounded-full border border-border text-xs font-bold shadow-inner">
-              <Link to="/dashboard">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-7 px-3 text-muted-foreground hover:text-foreground gap-1.5"
-                >
-                  <BarChart3 className="h-3.5 w-3.5 text-primary" />
-                  <span>تقرير المبيعات</span>
-                </Button>
-              </Link>
-              <Link to="/cashflow">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-7 px-3 text-muted-foreground hover:text-foreground gap-1.5"
-                >
-                  <Wallet className="h-3.5 w-3.5 text-primary" />
-                  <span>الكاش فلو الحالي</span>
-                </Button>
-              </Link>
-              <Button
-                variant="default"
-                size="sm"
-                className="rounded-full h-7 px-3 bg-primary text-primary-foreground shadow-sm gap-1.5"
-              >
-                <Archive className="h-3.5 w-3.5" />
-                <span>سجل الأسابيع</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Action Toolbar */}
-          <div className="flex items-center gap-2 mr-auto">
-            <Link to="/cashflow">
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full font-bold border-2 border-primary/30 hover:bg-primary/10 gap-1.5 text-xs sm:text-sm"
-              >
-                <ArrowRight className="h-4 w-4" />
-                <span>العودة للكاش فلو</span>
-              </Button>
-            </Link>
+      <AppHeader
+        title="أرشيف وسجل الكاش فلو"
+        titleIcon={<Archive className="h-4 w-4 sm:h-5 sm:w-5 text-primary shrink-0" />}
+        activeSection="cashflow"
+        actions={
+          <Link to="/cashflow">
             <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full bg-card shadow-sm border border-muted hover:border-primary/30"
+              variant="outline"
+              size="sm"
+              className="h-8 sm:h-9 px-3 rounded-full font-bold border border-primary/30 hover:bg-primary/10 gap-1.5 text-xs sm:text-sm"
             >
-              {dark ? (
-                <Sun className="h-4 w-4 text-accent" />
-              ) : (
-                <Moon className="h-4 w-4 text-primary" />
-              )}
+              <ArrowRight className="h-3.5 w-3.5" />
+              <span>العودة للكاش فلو</span>
             </Button>
-          </div>
-        </div>
-      </header>
+          </Link>
+        }
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-3 sm:px-4 py-6 space-y-6">

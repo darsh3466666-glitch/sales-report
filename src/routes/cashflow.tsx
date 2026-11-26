@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
@@ -22,9 +22,7 @@ import {
 import { CashFlowHeader } from "@/components/cashflow/CashFlowHeader";
 import { CashFlowTable } from "@/components/cashflow/CashFlowTable";
 import { EndCycleModal } from "@/components/cashflow/EndCycleModal";
-import { PrintDialog } from "@/components/dashboard/PrintDialog";
-import { Button } from "@/components/ui/button";
-import { Moon, Sun, BarChart3, Wallet } from "lucide-react";
+import { AppHeader } from "@/components/layout/AppHeader";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/cashflow")({
@@ -179,24 +177,9 @@ function CashFlowPage() {
     []
   );
 
-  const [dark, setDark] = useState(() => {
-    if (typeof document !== "undefined") {
-      return document.documentElement.classList.contains("dark");
-    }
-    return false;
-  });
-
   useEffect(() => {
-    setDark(document.documentElement.classList.contains("dark"));
     document.title = "تقرير التدفقات النقدية (Cash Flow)";
   }, []);
-
-  function toggleTheme() {
-    const next = !dark;
-    setDark(next);
-    document.documentElement.classList.toggle("dark", next);
-    localStorage.setItem("theme", next ? "dark" : "light");
-  }
 
   const [printLayout, setPrintLayout] = useState<"pc" | "mobile">("mobile");
 
@@ -222,92 +205,41 @@ function CashFlowPage() {
         />
       )}
 
-      {/* Top Header */}
-      <header className="sticky top-0 z-20 border-b-4 border-primary/20 bg-card/90 backdrop-blur no-print overflow-hidden relative">
-        <div className="container mx-auto px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-          {/* Title Ribbon & Navigation Switcher */}
-          <div className="flex items-center gap-3 sm:gap-6 flex-wrap">
-            <div className="relative">
-              <div className="relative bg-cream border-2 border-primary-dark px-3 py-1 z-10 shadow-md flex items-center justify-center">
-                <h1 className="text-base sm:text-lg font-black text-primary-dark tracking-widest whitespace-nowrap">
-                  التدفقات النقدية (Cash Flow)
-                </h1>
-              </div>
-              <div className="absolute top-1.5 -left-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 skew-y-[20deg]" />
-              <div className="absolute top-1.5 -right-2 w-3 h-full bg-[#E5DFCA] border-2 border-primary-dark -z-10 -skew-y-[20deg]" />
-            </div>
-
-            {/* Navigation Tabs Switcher */}
-            <div className="flex items-center p-1 bg-muted/80 rounded-full border border-border text-xs font-bold shadow-inner">
-              <Link to="/dashboard">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="rounded-full h-7 px-3 text-muted-foreground hover:text-foreground gap-1.5"
-                >
-                  <BarChart3 className="h-3.5 w-3.5 text-primary" />
-                  <span>تقرير المبيعات والتحصيل</span>
-                </Button>
-              </Link>
-              <Button
-                variant="default"
-                size="sm"
-                className="rounded-full h-7 px-3 bg-primary text-primary-foreground shadow-sm gap-1.5"
-              >
-                <Wallet className="h-3.5 w-3.5" />
-                <span>الكاش فلو الأسبوعي</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Action Toolbar */}
-          <div className="flex items-center gap-1.5 sm:gap-2 mr-auto">
-            <div
-              className={`hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
+      <AppHeader
+        title="التدفقات النقدية (Cash Flow)"
+        activeSection="cashflow"
+        printLayout={printLayout}
+        setPrintLayout={setPrintLayout}
+        statusBadge={
+          <div
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap ${
+              cloudSyncStatus === "syncing"
+                ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300"
+                : cloudSyncStatus === "error"
+                ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300"
+                : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
+            }`}
+            title="حالة المزامنة اللحظية بين الكمبيوتر والموبايل"
+          >
+            <span
+              className={`h-2 w-2 rounded-full shrink-0 ${
                 cloudSyncStatus === "syncing"
-                  ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300"
+                  ? "bg-amber-500 animate-ping"
                   : cloudSyncStatus === "error"
-                  ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300"
-                  : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  ? "bg-rose-500"
+                  : "bg-emerald-500 animate-pulse"
               }`}
-              title="حالة المزامنة اللحظية بين الكمبيوتر والموبايل"
-            >
-              <span
-                className={`h-2 w-2 rounded-full ${
-                  cloudSyncStatus === "syncing"
-                    ? "bg-amber-500 animate-ping"
-                    : cloudSyncStatus === "error"
-                    ? "bg-rose-500"
-                    : "bg-emerald-500 animate-pulse"
-                }`}
-              />
-              <span>
-                {cloudSyncStatus === "syncing"
-                  ? "جاري المزامنة..."
-                  : cloudSyncStatus === "error"
-                  ? "خطأ مزامنة"
-                  : "متزامن لحظياً"}
-              </span>
-            </div>
-            <PrintDialog
-              printLayout={printLayout}
-              setPrintLayout={setPrintLayout}
             />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full bg-card shadow-sm border border-muted hover:border-primary/30"
-            >
-              {dark ? (
-                <Sun className="h-4 w-4 text-accent" />
-              ) : (
-                <Moon className="h-4 w-4 text-primary" />
-              )}
-            </Button>
+            <span>
+              {cloudSyncStatus === "syncing"
+                ? "جاري المزامنة..."
+                : cloudSyncStatus === "error"
+                ? "خطأ مزامنة"
+                : "متزامن لحظياً"}
+            </span>
           </div>
-        </div>
-      </header>
+        }
+      />
 
       {/* Main Content Area */}
       <main className="container mx-auto px-3 sm:px-4 py-6 space-y-6">

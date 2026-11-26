@@ -11,13 +11,11 @@ import {
   Moon,
   Sun,
   History,
-  Download,
   RotateCw,
   Smartphone,
   ShieldCheck,
 } from "lucide-react";
 import { toast } from "sonner";
-import { exportReportToExcel } from "@/lib/export-excel";
 import {
   DashboardContent,
   type DashData,
@@ -94,20 +92,6 @@ function ManagementView() {
     );
   }, [selectedCustomer, data]);
 
-  function handleExport() {
-    if (!data) {
-      toast.error("لا توجد بيانات للتصدير");
-      return;
-    }
-    try {
-      exportReportToExcel(data as any);
-      toast.success("تم تصدير ملف الإكسل");
-    } catch (e) {
-      toast.error("فشل التصدير");
-      console.error(e);
-    }
-  }
-
   return (
     <div
       className={`min-h-screen bg-background print-layout-container print-layout-${printLayout} selection:bg-primary/20 pb-12`}
@@ -176,17 +160,6 @@ function ManagementView() {
               <RotateCw
                 className={`h-4 w-4 text-primary ${isFetching ? "animate-spin" : ""}`}
               />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleExport}
-              className="h-8 sm:h-9 px-2.5 sm:px-3.5 rounded-full font-bold bg-card shadow-xs border border-muted hover:border-primary/30"
-              title="تصدير Excel"
-            >
-              <Download className="h-3.5 w-3.5 sm:ml-1.5 text-info" />
-              <span className="hidden sm:inline text-xs">تصدير</span>
             </Button>
 
             <Link to="/history">
