@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T14:21:55.243553",
+  "generatedAt": "2026-11-26T14:22:40.852539",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -3088,7 +3088,7 @@
     {
       "customerName": "مجدي محمد عبد العال",
       "currentBalance": 4408450.0,
-      "dueDate": "2026-11-26",
+      "dueDate": "2026-11-29",
       "notes": "هيوصلنا 2,800,000 ج   والاحد 29/11/2026",
       "isActive2026": true,
       "isKhalis": false,
@@ -5491,20 +5491,6 @@
       "index": 26
     },
     {
-      "customerName": "مجدي محمد عبد العال",
-      "normalizedName": "مجدي محمد عبدالعال",
-      "currentBalance": 4408450.0,
-      "expectedAmount": 4408450.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-26",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 4408450.0,
-      "notes": "هيوصلنا 2,800,000 ج   والاحد 29/11/2026",
-      "isPinned": false,
-      "index": 27
-    },
-    {
       "customerName": "حاج / حازم برغوت",
       "normalizedName": "حاج حازم برغوت",
       "currentBalance": 136700.0,
@@ -5516,7 +5502,7 @@
       "remaining": 136700.0,
       "notes": "يوم الاثنين 100 الف",
       "isPinned": false,
-      "index": 28
+      "index": 27
     },
     {
       "customerName": "محمود اسماعيل",
@@ -5530,7 +5516,7 @@
       "remaining": 89850.0,
       "notes": "باقي الفاتورة يوم الخميس 26/11/2026",
       "isPinned": false,
-      "index": 29
+      "index": 28
     },
     {
       "customerName": "حماده ابو خضره سيلا",
@@ -5544,7 +5530,7 @@
       "remaining": 1077920.0,
       "notes": "",
       "isPinned": false,
-      "index": 30
+      "index": 29
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -5558,7 +5544,7 @@
       "remaining": 156275.0,
       "notes": "السبت 28/11/2026",
       "isPinned": false,
-      "index": 31
+      "index": 30
     },
     {
       "customerName": "جمعه محمد حسن (الحطي)",
@@ -5572,7 +5558,7 @@
       "remaining": 76325.0,
       "notes": "هيدفع قديم 55175 يوم28/11/2026",
       "isPinned": false,
-      "index": 32
+      "index": 31
     },
     {
       "customerName": "محمود دبور",
@@ -5586,7 +5572,7 @@
       "remaining": 28900.0,
       "notes": "السبت 28/11/2026",
       "isPinned": false,
-      "index": 33
+      "index": 32
     },
     {
       "customerName": "محمد احمد (الوسطى)",
@@ -5600,7 +5586,7 @@
       "remaining": 22040.0,
       "notes": "السبت 28/11/2026",
       "isPinned": false,
-      "index": 34
+      "index": 33
     },
     {
       "customerName": "احمد سامي (الخيرات)",
@@ -5614,7 +5600,7 @@
       "remaining": 19450.0,
       "notes": "يوم 28/11 هيسدد ال الفاتورتين",
       "isPinned": false,
-      "index": 35
+      "index": 34
     },
     {
       "customerName": "محمد عدلي (الوسطى)",
@@ -5628,7 +5614,7 @@
       "remaining": 13250.0,
       "notes": "بكرا  28/1/2026",
       "isPinned": false,
-      "index": 36
+      "index": 35
     },
     {
       "customerName": "سعداوي عبدالجواد (صالح مسعود)",
@@ -5642,7 +5628,7 @@
       "remaining": 12065.0,
       "notes": "بعد 10 ايام بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 37
+      "index": 36
     },
     {
       "customerName": "عبدالرحمن محمد فراج (مدحت محمد)",
@@ -5655,6 +5641,20 @@
       "status": "لم يسدد",
       "remaining": 10125.0,
       "notes": "جي واحده  هياخد علف ويدفع هيكلمه السبت 28/11/2026",
+      "isPinned": false,
+      "index": 37
+    },
+    {
+      "customerName": "مجدي محمد عبد العال",
+      "normalizedName": "مجدي محمد عبدالعال",
+      "currentBalance": 4408450.0,
+      "expectedAmount": 4408450.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-29",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 4408450.0,
+      "notes": "هيوصلنا 2,800,000 ج   والاحد 29/11/2026",
       "isPinned": false,
       "index": 38
     },
