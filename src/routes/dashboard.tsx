@@ -1,15 +1,13 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { getLatestReportFull } from "@/lib/reports.functions";
 import { normalizeArabicName } from "@/lib/excel-parser.functions";
-import { History, RefreshCw } from "lucide-react";
 import { CustomerProductsDrawer } from "@/components/dashboard/CustomerProductsDrawer";
 import { AppHeader } from "@/components/layout/AppHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
   DashboardContent,
@@ -132,51 +130,21 @@ function Dashboard() {
         title="تقرير المبيعات اليومي الشامل"
         activeSection="dashboard"
         decorativeBg
+        liveStatus="live"
+        liveStatusTitle="بث مباشر (تحديث تلقائي كل 30 ثانية)"
+        onRefresh={async () => {
+          try {
+            await refetch();
+            toast.success("تم تحديث البيانات لحظياً بنجاح");
+          } catch {
+            toast.error("فشل تحديث البيانات");
+          }
+        }}
+        isRefreshing={isFetching}
+        historyTo="/history"
+        historyTitle="سجل التقارير السابقة"
         printLayout={printLayout}
         setPrintLayout={setPrintLayout}
-        statusBadge={
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-400 whitespace-nowrap">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span className="hidden xl:inline">شاشة حية (تحديث كل 30 ثانية)</span>
-            <span className="xl:hidden">بث مباشر</span>
-          </div>
-        }
-        actions={
-          <>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={async () => {
-                try {
-                  await refetch();
-                  toast.success("تم تحديث البيانات لحظياً بنجاح");
-                } catch {
-                  toast.error("فشل تحديث البيانات");
-                }
-              }}
-              disabled={isFetching}
-              className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full font-bold text-xs sm:text-sm bg-card shadow-xs border border-muted hover:border-primary/30 gap-1.5"
-              title="تحديث لحظي"
-            >
-              <RefreshCw
-                className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0 ${isFetching ? "animate-spin" : ""}`}
-              />
-              <span className="hidden sm:inline">تحديث</span>
-            </Button>
-
-            <Link to="/history">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full font-bold text-xs sm:text-sm bg-card shadow-xs border border-muted hover:border-primary/30 gap-1.5"
-                title="السجل"
-              >
-                <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent-dark shrink-0" />
-                <span className="hidden sm:inline">السجل</span>
-              </Button>
-            </Link>
-          </>
-        }
       />
 
       <div className="print-only px-4 py-3 border-b" dir="rtl">

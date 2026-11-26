@@ -208,37 +208,27 @@ function CashFlowPage() {
       <AppHeader
         title="التدفقات النقدية (Cash Flow)"
         activeSection="cashflow"
+        liveStatus={
+          cloudSyncStatus === "syncing"
+            ? "syncing"
+            : cloudSyncStatus === "error"
+            ? "error"
+            : "live"
+        }
+        liveStatusTitle="بث مباشر ومزامنة لحظية بين الكمبيوتر والموبايل"
+        onRefresh={async () => {
+          try {
+            await refetch();
+            toast.success("تم تحديث بيانات الكاش فلو لحظياً بنجاح");
+          } catch {
+            toast.error("فشل تحديث البيانات");
+          }
+        }}
+        isRefreshing={isFetching}
+        historyTo="/cashflow/history"
+        historyTitle="سجل وأرشيف الأسابيع السابقة"
         printLayout={printLayout}
         setPrintLayout={setPrintLayout}
-        statusBadge={
-          <div
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border whitespace-nowrap ${
-              cloudSyncStatus === "syncing"
-                ? "bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300"
-                : cloudSyncStatus === "error"
-                ? "bg-rose-50 text-rose-700 border-rose-300 dark:bg-rose-950/40 dark:text-rose-300"
-                : "bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300"
-            }`}
-            title="حالة المزامنة اللحظية بين الكمبيوتر والموبايل"
-          >
-            <span
-              className={`h-2 w-2 rounded-full shrink-0 ${
-                cloudSyncStatus === "syncing"
-                  ? "bg-amber-500 animate-ping"
-                  : cloudSyncStatus === "error"
-                  ? "bg-rose-500"
-                  : "bg-emerald-500 animate-pulse"
-              }`}
-            />
-            <span>
-              {cloudSyncStatus === "syncing"
-                ? "جاري المزامنة..."
-                : cloudSyncStatus === "error"
-                ? "خطأ مزامنة"
-                : "متزامن لحظياً"}
-            </span>
-          </div>
-        }
       />
 
       {/* Main Content Area */}
@@ -254,8 +244,6 @@ function CashFlowPage() {
           <>
             <CashFlowHeader
               summary={activeSummary}
-              isFetching={isFetching}
-              onRefresh={() => refetch()}
               lastUpdatedTime={lastUpdatedTime || "الآن"}
               onEndCycle={() => setIsEndCycleModalOpen(true)}
             />

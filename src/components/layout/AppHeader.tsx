@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   BarChart3,
+  History,
   Moon,
+  RefreshCw,
   Sun,
   Wallet,
   type LucideIcon,
@@ -40,6 +42,8 @@ export const APP_SECTIONS: AppSectionItem[] = [
   },
 ];
 
+export type LiveStatusState = "live" | "syncing" | "error";
+
 interface AppHeaderProps {
   /** Folded ribbon title shown at the top-right */
   title: string;
@@ -47,9 +51,19 @@ interface AppHeaderProps {
   titleIcon?: React.ReactNode;
   /** Currently active section id matching an item in APP_SECTIONS */
   activeSection: string;
-  /** Optional status pill (e.g. live sync indicator) */
-  statusBadge?: React.ReactNode;
-  /** Page-specific action buttons (Refresh, Export, History, Back, etc.) */
+  /** Unified live status indicator rendered identically across reports */
+  liveStatus?: LiveStatusState | false;
+  /** Tooltip title for live status badge */
+  liveStatusTitle?: string;
+  /** Unified live refresh action rendered identically across reports */
+  onRefresh?: () => void;
+  /** Spinner state for the refresh button */
+  isRefreshing?: boolean;
+  /** Unified history route link rendered identically across reports */
+  historyTo?: string;
+  /** Tooltip title for the history button */
+  historyTitle?: string;
+  /** Any additional page-specific action buttons */
   actions?: React.ReactNode;
   /** Optional print layout state; when provided, renders PrintDialog */
   printLayout?: "pc" | "mobile";
@@ -58,11 +72,55 @@ interface AppHeaderProps {
   decorativeBg?: boolean;
 }
 
+function LiveStatusPill({
+  status,
+  title,
+}: {
+  status: LiveStatusState;
+  title?: string;
+}) {
+  const styles =
+    status === "syncing"
+      ? "bg-amber-100 text-amber-800 border-amber-400 dark:bg-amber-950 dark:text-amber-300"
+      : status === "error"
+      ? "bg-rose-100 text-rose-700 border-rose-400 dark:bg-rose-950 dark:text-rose-300"
+      : "bg-emerald-100 text-emerald-800 border-emerald-400 dark:bg-emerald-950 dark:text-emerald-300";
+
+  const dotClass =
+    status === "syncing"
+      ? "bg-amber-500 animate-ping"
+      : status === "error"
+      ? "bg-rose-500"
+      : "bg-emerald-500 animate-pulse";
+
+  const label =
+    status === "syncing"
+      ? "جاري المزامنة..."
+      : status === "error"
+      ? "خطأ مزامنة"
+      : "بث مباشر";
+
+  return (
+    <div
+      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-black border whitespace-nowrap ${styles}`}
+      title={title || "بث مباشر لحظي"}
+    >
+      <span className={`h-2 w-2 rounded-full shrink-0 ${dotClass}`} />
+      <span>{label}</span>
+    </div>
+  );
+}
+
 export function AppHeader({
   title,
   titleIcon,
   activeSection,
-  statusBadge,
+  liveStatus = false,
+  liveStatusTitle,
+  onRefresh,
+  isRefreshing = false,
+  historyTo,
+  historyTitle = "السجل",
   actions,
   printLayout,
   setPrintLayout,
@@ -85,6 +143,10 @@ export function AppHeader({
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
   }
+
+  const statusPill = liveStatus ? (
+    <LiveStatusPill status={liveStatus} title={liveStatusTitle} />
+  ) : null;
 
   return (
     <header className="sticky top-0 z-20 border-b-4 border-primary/20 bg-card/95 backdrop-blur-md no-print shadow-xs relative">
@@ -114,7 +176,7 @@ export function AppHeader({
 
             {/* Mobile-only right-end controls: Status + Theme Toggle */}
             <div className="flex sm:hidden items-center gap-1.5 shrink-0">
-              {statusBadge}
+              {statusPill}
               <Button
                 variant="ghost"
                 size="icon"
@@ -168,12 +230,43 @@ export function AppHeader({
           </nav>
         </div>
 
-        {/* Bottom / Left Group: Status Badge + Page Actions + Print + Desktop Theme Toggle */}
+        {/* Bottom / Left Group: Status Badge + Refresh + History + Extra Actions + Print + Desktop Theme Toggle */}
         <div className="flex flex-wrap items-center justify-between sm:justify-end gap-1.5 sm:gap-2">
-          <div className="hidden sm:flex items-center">{statusBadge}</div>
+          <div className="hidden sm:flex items-center">{statusPill}</div>
 
           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+            {onRefresh && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRefresh}
+                disabled={isRefreshing}
+                className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full font-bold text-xs sm:text-sm bg-card shadow-xs border border-muted hover:border-primary/30 gap-1.5 cursor-pointer"
+                title="تحديث لحظي"
+              >
+                <RefreshCw
+                  className={`h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0 ${isRefreshing ? "animate-spin" : ""}`}
+                />
+                <span className="hidden sm:inline">تحديث</span>
+              </Button>
+            )}
+
+            {historyTo && (
+              <Link to={historyTo as any}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full font-bold text-xs sm:text-sm bg-card shadow-xs border border-muted hover:border-primary/30 gap-1.5 cursor-pointer"
+                  title={historyTitle}
+                >
+                  <History className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-accent-dark shrink-0" />
+                  <span className="hidden sm:inline">السجل</span>
+                </Button>
+              </Link>
+            )}
+
             {actions}
+
             {printLayout && setPrintLayout && (
               <PrintDialog
                 printLayout={printLayout}

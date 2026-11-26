@@ -1,5 +1,4 @@
 import React from "react";
-import { Link } from "@tanstack/react-router";
 import { CashFlowSummary } from "@/lib/cashflow.functions";
 import { fmtMoney, fmtPct } from "@/lib/formatters";
 import {
@@ -8,12 +7,10 @@ import {
   TrendingUp,
   Clock,
   AlertCircle,
-  RefreshCw,
   ArrowUp,
   ArrowDown,
   Percent,
   Wallet,
-  Archive,
   RotateCcw,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,16 +19,12 @@ import { Button } from "@/components/ui/button";
 
 interface CashFlowHeaderProps {
   summary: CashFlowSummary;
-  isFetching: boolean;
-  onRefresh: () => void;
   lastUpdatedTime: string;
   onEndCycle?: () => void;
 }
 
 export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
   summary,
-  isFetching,
-  onRefresh,
   lastUpdatedTime,
   onEndCycle,
 }) => {
@@ -87,22 +80,11 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
           </div>
         </div>
 
-        {/* Live sync status, History link, End cycle trigger & refresh button */}
+        {/* Last updated timestamp & End cycle trigger */}
         <div className="flex items-center gap-2 mr-auto flex-wrap no-print">
           <div className="text-left text-xs text-muted-foreground hidden lg:block">
             <div className="font-semibold">آخر تحديث: {lastUpdatedTime}</div>
           </div>
-          <Link to="/cashflow/history">
-            <Button
-              variant="outline"
-              size="sm"
-              className="rounded-full gap-1.5 border-2 border-primary/30 hover:bg-primary/10 font-bold h-10 px-3.5 text-xs sm:text-sm cursor-pointer shadow-xs"
-              title="سجل وأرشيف الأسابيع السابقة"
-            >
-              <Archive className="h-4 w-4 text-primary" />
-              <span>سجل الأسابيع</span>
-            </Button>
-          </Link>
           {onEndCycle && (
             <Button
               variant="default"
@@ -115,18 +97,6 @@ export const CashFlowHeader: React.FC<CashFlowHeaderProps> = ({
               <span>إنهاء وبدء أسبوع جديد</span>
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onRefresh}
-            disabled={isFetching}
-            className="rounded-full gap-2 border-2 border-primary/30 hover:bg-primary/10 font-black h-10 px-4 text-xs sm:text-sm cursor-pointer shadow-xs"
-          >
-            <RefreshCw
-              className={`h-4 w-4 text-primary ${isFetching ? "animate-spin" : ""}`}
-            />
-            <span className="hidden sm:inline">تحديث لحظي</span>
-          </Button>
         </div>
       </div>
 
