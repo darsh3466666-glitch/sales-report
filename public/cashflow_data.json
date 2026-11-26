@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T16:44:58.655527",
+  "generatedAt": "2026-11-26T17:04:44.038831",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -3286,8 +3286,8 @@
     {
       "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
       "currentBalance": 4199080.0,
-      "dueDate": "2026-11-29",
-      "notes": "السبت 21/11/2026 بلاغ علي",
+      "dueDate": "2026-12-01",
+      "notes": "من الثلاثاء للخميس حسابه هيكون صفر",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -5151,6 +5151,20 @@
       "description": "محيسن ابو حمره",
       "type": "كاش",
       "date": "2026-11-26"
+    },
+    {
+      "receipt": "live_2026-11-26_16",
+      "amount": 850.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-26"
+    },
+    {
+      "receipt": "live_2026-11-26_17",
+      "amount": 1130.0,
+      "description": "نقدي",
+      "type": "كاش",
+      "date": "2026-11-26"
     }
   ],
   "customers": [
@@ -5673,20 +5687,6 @@
       "index": 37
     },
     {
-      "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
-      "normalizedName": "احمد فرحات عبدالحميد منشاه دمو",
-      "currentBalance": 4199080.0,
-      "expectedAmount": 4199080.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-29",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 4199080.0,
-      "notes": "السبت 21/11/2026 بلاغ علي",
-      "isPinned": false,
-      "index": 38
-    },
-    {
       "customerName": "احمد شعبان (البيضاء)",
       "normalizedName": "احمد شعبان البيضاء",
       "currentBalance": 277760.0,
@@ -5698,7 +5698,7 @@
       "remaining": 277760.0,
       "notes": "مطالبة بعد 10 ايام يخف الحساب",
       "isPinned": false,
-      "index": 39
+      "index": 38
     },
     {
       "customerName": "خالد عبد الوهاب (البيضاء)",
@@ -5712,7 +5712,7 @@
       "remaining": 114130.0,
       "notes": "اسبوع بلاغ محمد شعبان",
       "isPinned": false,
-      "index": 40
+      "index": 39
     },
     {
       "customerName": "الحمد للاعلاف",
@@ -5726,7 +5726,7 @@
       "remaining": 52650.0,
       "notes": "الباقي يوم الاحد 29/11/2026",
       "isPinned": false,
-      "index": 41
+      "index": 40
     },
     {
       "customerName": "طارق ايوب (باديه فارم)",
@@ -5740,7 +5740,7 @@
       "remaining": 24480.0,
       "notes": "مطالبة تاني حتى التصفية",
       "isPinned": false,
-      "index": 42
+      "index": 41
     },
     {
       "customerName": "جمال مختار - قمن العروس",
@@ -5754,7 +5754,7 @@
       "remaining": 20425.0,
       "notes": "يومين او 3",
       "isPinned": false,
-      "index": 43
+      "index": 42
     },
     {
       "customerName": "محمود عباس (القطوري)",
@@ -5768,7 +5768,7 @@
       "remaining": 7325.0,
       "notes": "المرة الجاية هصفي  مش هيبقي تاني",
       "isPinned": false,
-      "index": 44
+      "index": 43
     },
     {
       "customerName": "هليل عبدالحليم(الهداهده)",
@@ -5782,7 +5782,7 @@
       "remaining": 514600.0,
       "notes": "دورة + دفعات 50% من المسحوب يوصل 500 الف يدفع 250 الف وهكذا",
       "isPinned": false,
-      "index": 45
+      "index": 44
     },
     {
       "customerName": "نزيه حسني (الخرابة)",
@@ -5796,7 +5796,7 @@
       "remaining": 106280.0,
       "notes": "اخر الشهر بلاغ م علي",
       "isPinned": false,
-      "index": 46
+      "index": 45
     },
     {
       "customerName": "احمد سعد (السحابه)",
@@ -5810,7 +5810,7 @@
       "remaining": 72285.0,
       "notes": "قربي يبيع بلاغ ا احمد",
       "isPinned": false,
-      "index": 47
+      "index": 46
     },
     {
       "customerName": "كرم مسعود ابو بكر (الهداهده)",
@@ -5824,7 +5824,7 @@
       "remaining": 72280.0,
       "notes": "الباقي بعد 15 ايام +دورة جديدة  ودفعة الفلوس الجاية ف او اسبوع رمضان",
       "isPinned": false,
-      "index": 48
+      "index": 47
     },
     {
       "customerName": "نصر لملوم",
@@ -5837,6 +5837,20 @@
       "status": "لم يسدد",
       "remaining": 38620.0,
       "notes": "اخر الشهر بلاغ محمد شعبان",
+      "isPinned": false,
+      "index": 48
+    },
+    {
+      "customerName": "احمد فرحات عبد الحميد (منشأة دمو)",
+      "normalizedName": "احمد فرحات عبدالحميد منشاه دمو",
+      "currentBalance": 4199080.0,
+      "expectedAmount": 4199080.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-01",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 4199080.0,
+      "notes": "من الثلاثاء للخميس حسابه هيكون صفر",
       "isPinned": false,
       "index": 49
     },
