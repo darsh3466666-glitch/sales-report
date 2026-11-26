@@ -345,19 +345,21 @@ export function scoreTreasuryMatch(
   const sc = stripPrefixHonorific(nc);
   if (sd && sc && (sd === sc || wordsMatch(sd, sc, false))) return 92;
 
-  // 4. Clean match (handling colloquial ذ/ز, compound prefixes عبد/ابو, and trailing annotations)
-  const cd = cleanCustomerMatchingName(desc);
-  const cc = cleanCustomerMatchingName(customerName);
-  if (cd && cc && (cd === cc || wordsMatch(cd, cc, false))) return 90;
+  const hasDescParensOrDash = resolvedDesc.includes("(") || resolvedDesc.includes(" - ");
 
-  // 5. Match full name ignoring parenthesized nickname/branch annotation
+  // 4. Clean match (only allowed when treasury desc has NO paren/dash qualifiers that could be discarded)
+  const cd = cleanCustomerMatchingName(resolvedDesc);
+  const cc = cleanCustomerMatchingName(customerName);
+  if (!hasDescParensOrDash && cd && cc && (cd === cc || wordsMatch(cd, cc, false))) return 90;
+
+  // 5. Match customer ignoring customer's parenthesized branch annotation ONLY when desc itself has no paren/dash annotation
   const cleanParens = (s: string) => {
     const idx = s.indexOf("(");
     return idx >= 0 ? s.slice(0, idx).trim() : s;
   };
-  const bd = normalizeArabicName(cleanParens(desc));
+  const bd = normalizeArabicName(cleanParens(resolvedDesc));
   const bc = normalizeArabicName(cleanParens(customerName));
-  if (bd && bc && (bd === bc || sd === bc || bd === sc || wordsMatch(bd, bc, false))) return 88;
+  if (!hasDescParensOrDash && bd && bc && (bd === bc || sd === bc || bd === sc || wordsMatch(bd, bc, false))) return 88;
 
   // 6. STRICT ENTITY GUARD:
   const isEntity = Array.from(GENERIC_PREFIXES).some(
@@ -365,67 +367,84 @@ export function scoreTreasuryMatch(
   );
   if (isEntity) return 0;
 
-  // 7. Token-based smart matching
-  const cdWords = cd.split(" ").filter((w) => w.length >= 2);
+  // 7. Token-based smart matching: NEVER ignore ANY word (including branch/village in parens or after '-') written by treasury clerk!
+  const extractAllWords = (raw: string, stripLeadingTitle: boolean) => {
+    let cleaned = normalizeArabicName(raw)
+      .replace(/ذ/g, "ز")
+      .replace(/ظ/g, "ض");
+    if (stripLeadingTitle) {
+      cleaned = cleaned
+        .replace(
+          /^(المعلم|حاج|الحاج|مهندس|المهندس|م|استاذ|الاستاذ|أ|شيخ|الشيخ|دكتور|د)[\.\/\\\s\-_]+/g,
+          ""
+        )
+        .replace(/^[\.\/\\\-_]+/, "");
+    }
+    return cleaned
+      .replace(/عيد\s*التواب/g, "عبدالتواب")
+      .replace(/عبد\s+/g, "عبد")
+      .replace(/ابو\s+/g, "ابو")
+      .replace(/بن\s+/g, "بن")
+      .replace(/[\.\/\\\s\-_()]+/g, " ")
+      .trim()
+      .split(" ")
+      .filter((w) => w.length >= 2);
+  };
+
+  const allDescWords = extractAllWords(resolvedDesc, true);
   const ccWords = cc.split(" ").filter((w) => w.length >= 2);
 
-  // 7a. Prefix matching on primary customer name
-  if (cdWords.length >= 2 && ccWords.length >= 2) {
+  // 7a. Prefix matching on primary customer name (only when treasury clerk wrote no uncompared paren/dash tokens)
+  if (!hasDescParensOrDash && allDescWords.length >= 2 && ccWords.length >= 2) {
     let mCount = 0;
-    const minLen = Math.min(cdWords.length, ccWords.length);
+    const minLen = Math.min(allDescWords.length, ccWords.length);
     for (let i = 0; i < minLen; i++) {
       const isLast = i === minLen - 1 && i >= 2;
-      if (wordsMatch(cdWords[i], ccWords[i], isLast)) {
+      if (wordsMatch(allDescWords[i], ccWords[i], isLast)) {
         mCount++;
       } else {
         break;
       }
     }
-    if (mCount >= 2 && mCount === cdWords.length) {
+    if (mCount >= 2 && mCount === allDescWords.length) {
       return mCount === ccWords.length ? 86 : 75;
     }
   }
 
-  // 7b. Order-invariant & full tokens match across all customer words
-  // Every word written by the treasury clerk MUST match a word in the full customer name (never drop a distinct surname like "مرداش").
-  const allCustWords = normalizeArabicName(customerName)
-    .replace(/عبد\s+/g, "عبد")
-    .replace(/ابو\s+/g, "ابو")
-    .replace(/بن\s+/g, "بن")
-    .replace(/[\.\/\\\s\-_()]+/g, " ")
-    .split(" ")
-    .filter((w) => w.length >= 2);
-  if (cdWords.length >= 2 && allCustWords.length >= 2) {
+  // 7b. Order-invariant full-token matching across ALL words written by treasury clerk vs ALL words of customer
+  // Guarantees ZERO words written by the treasury clerk are ever ignored!
+  const allCustWords = extractAllWords(customerName, false);
+  if (allDescWords.length >= 2 && allCustWords.length >= 2) {
     let matchedTokens = 0;
     const used = new Set<number>();
-    for (let i = 0; i < cdWords.length; i++) {
+    for (let i = 0; i < allDescWords.length; i++) {
       const isFuzzy = i >= 2;
       for (let idx = 0; idx < allCustWords.length; idx++) {
-        if (!used.has(idx) && wordsMatch(cdWords[i], allCustWords[idx], isFuzzy)) {
+        if (!used.has(idx) && wordsMatch(allDescWords[i], allCustWords[idx], isFuzzy)) {
           matchedTokens++;
           used.add(idx);
           break;
         }
       }
     }
-    if (matchedTokens >= 2 && matchedTokens === cdWords.length) {
+    if (matchedTokens >= 2 && matchedTokens === allDescWords.length) {
       return matchedTokens === allCustWords.length ? 84 : 78;
     }
   }
 
-  // 7c. Distinctive single entity or compound surname (strictly >= 4 chars & non-generic)
-  if (cdWords.length === 1 && cdWords[0].length >= 4 && !GENERIC_SINGLE_NAMES.has(cdWords[0])) {
-    if (ccWords.some((w) => wordsMatch(cdWords[0], w, false))) {
+  // 7c. Distinctive single entity or compound surname (strictly >= 4 chars & non-generic, no ignored extra words)
+  if (allDescWords.length === 1 && allDescWords[0].length >= 4 && !GENERIC_SINGLE_NAMES.has(allDescWords[0])) {
+    if (allCustWords.some((w) => wordsMatch(allDescWords[0], w, false))) {
       return 45;
     }
   }
 
   const dWords = nd.split(" ").filter((w) => w.length >= 2);
   const cWords = bc.split(" ").filter((w) => w.length >= 2);
-  if (dWords.length >= 2 && (nc.startsWith(nd + " ") || bc.startsWith(nd + " "))) {
+  if (!hasDescParensOrDash && dWords.length >= 2 && (nc.startsWith(nd + " ") || bc.startsWith(nd + " "))) {
     return 70;
   }
-  if (cWords.length >= 2 && nd === bc) {
+  if (!hasDescParensOrDash && cWords.length >= 2 && nd === bc) {
     return 85;
   }
 

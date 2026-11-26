@@ -89,6 +89,10 @@ if (checkName === "treasury-matching") {
     fnCode.includes("bestTier1Score >= bestTier2Score"),
     "Tier 1 matching must defer to strictly higher-scoring Master_Data matches"
   );
+  assert(
+    fnCode.includes("allDescWords") && fnCode.includes("hasDescParensOrDash"),
+    "All words written by treasury clerk (including branch/parens/dash) must be honored"
+  );
   console.log("PASS: treasury matching safety verified");
   process.exit(0);
 }
