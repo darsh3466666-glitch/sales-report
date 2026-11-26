@@ -2825,17 +2825,36 @@ export async function getLiveCashFlowData(options?: {
     const todayStr = new Date().toISOString().split("T")[0];
 
     for (const cust of baseCustomers) {
-      // Avoid double-counting only if a specific treasury transaction already represents the sheet collection (same amount within 1 EGP)
+      // Avoid double-counting when treasury transactions already represent the sheet collection
+      // (single matching tx, total treasAmt equal to sheetAmt, any single day's sum equal to sheetAmt, or Cash customer cumulative receipts)
       const sheetAmt = Number(cust.collectedFromSheet) || 0;
       const treasAmt = Number(cust.collectedFromTreasury) || 0;
       const treasTxs = cust.treasuryTransactions || [];
 
-      const hasMatchingTreasTx = treasTxs.some(
-        (tx) => Math.abs((Number(tx.amount) || 0) - sheetAmt) < 1
-      );
+      const isCashCust =
+        cust.customerName === "عميل نقدي (كاش)" ||
+        cust.customerName === "نقدي كاش" ||
+        cust.customerName.includes("نقدي");
+
+      const hasMatchingTreasTx =
+        Math.abs(treasAmt - sheetAmt) < 1 ||
+        treasTxs.some((tx) => Math.abs((Number(tx.amount) || 0) - sheetAmt) < 1) ||
+        (() => {
+          const byDate = new Map<string, number>();
+          for (const tx of treasTxs) {
+            const d = tx.date || "";
+            byDate.set(d, (byDate.get(d) || 0) + (Number(tx.amount) || 0));
+          }
+          for (const daySum of byDate.values()) {
+            if (Math.abs(daySum - sheetAmt) < 1) return true;
+          }
+          return false;
+        })();
 
       if (sheetAmt > 0 && treasAmt > 0) {
-        if (hasMatchingTreasTx) {
+        if (isCashCust) {
+          cust.totalCollected = Math.max(treasAmt, sheetAmt);
+        } else if (hasMatchingTreasTx) {
           cust.totalCollected = treasAmt;
         } else {
           cust.totalCollected = treasAmt + sheetAmt;
@@ -2845,10 +2864,6 @@ export async function getLiveCashFlowData(options?: {
       }
 
       // Special rule for Cash customer: always increase expectedAmount so incoming is exactly identical to expected!
-      const isCashCust =
-        cust.customerName === "عميل نقدي (كاش)" ||
-        cust.customerName === "نقدي كاش" ||
-        cust.customerName.includes("نقدي");
 
       if (isCashCust) {
         cust.expectedAmount = Math.max(cust.expectedAmount || 0, cust.totalCollected);
