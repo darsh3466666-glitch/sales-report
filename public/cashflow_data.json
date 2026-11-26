@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T13:14:11.218605",
+  "generatedAt": "2026-11-26T13:44:38.610289",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -3304,8 +3304,8 @@
     {
       "customerName": "محمود دبور",
       "currentBalance": 28900.0,
-      "dueDate": "2026-11-25",
-      "notes": "",
+      "dueDate": "2026-11-28",
+      "notes": "السبت 28/11/2026",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -5470,20 +5470,6 @@
       "index": 26
     },
     {
-      "customerName": "محمود دبور",
-      "normalizedName": "محمود دبور",
-      "currentBalance": 28900.0,
-      "expectedAmount": 28900.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-25",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 28900.0,
-      "notes": "",
-      "isPinned": false,
-      "index": 27
-    },
-    {
       "customerName": "حسام عدلي عبود(قيصر)",
       "normalizedName": "حسام عدلي عبود قيصر",
       "currentBalance": 17375.0,
@@ -5495,7 +5481,7 @@
       "remaining": 17375.0,
       "notes": "انهردة اخر النهار  25/11/2026",
       "isPinned": false,
-      "index": 28
+      "index": 27
     },
     {
       "customerName": "مجدي محمد عبد العال",
@@ -5509,7 +5495,7 @@
       "remaining": 4408450.0,
       "notes": "هيوصلنا 2,800,000 ج   والاحد 29/11/2026",
       "isPinned": false,
-      "index": 29
+      "index": 28
     },
     {
       "customerName": "حاج / حازم برغوت",
@@ -5523,7 +5509,7 @@
       "remaining": 136700.0,
       "notes": "يوم الاثنين 100 الف",
       "isPinned": false,
-      "index": 30
+      "index": 29
     },
     {
       "customerName": "محمود اسماعيل",
@@ -5537,7 +5523,7 @@
       "remaining": 89850.0,
       "notes": "باقي الفاتورة يوم الخميس 26/11/2026",
       "isPinned": false,
-      "index": 31
+      "index": 30
     },
     {
       "customerName": "حماده ابو خضره سيلا",
@@ -5551,7 +5537,7 @@
       "remaining": 1077920.0,
       "notes": "",
       "isPinned": false,
-      "index": 32
+      "index": 31
     },
     {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
@@ -5565,7 +5551,7 @@
       "remaining": 156275.0,
       "notes": "السبت 28/11/2026",
       "isPinned": false,
-      "index": 33
+      "index": 32
     },
     {
       "customerName": "جمعه محمد حسن (الحطي)",
@@ -5578,6 +5564,20 @@
       "status": "لم يسدد",
       "remaining": 76325.0,
       "notes": "هيدفع قديم 55175 يوم28/11/2026",
+      "isPinned": false,
+      "index": 33
+    },
+    {
+      "customerName": "محمود دبور",
+      "normalizedName": "محمود دبور",
+      "currentBalance": 28900.0,
+      "expectedAmount": 28900.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-28",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 28900.0,
+      "notes": "السبت 28/11/2026",
       "isPinned": false,
       "index": 34
     },
