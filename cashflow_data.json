@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T10:04:22.387207",
+  "generatedAt": "2026-11-26T10:39:10.525464",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -1226,7 +1226,7 @@
       "customerName": "عبود عدلي عبود قيصر",
       "currentBalance": 451644.92000000004,
       "dueDate": "2026-11-25",
-      "notes": "عبود هيوزن بكرة",
+      "notes": "هيصفي الباقي بعد  رمضان و ع العيد الكبير",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -5416,7 +5416,7 @@
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 451644.92000000004,
-      "notes": "عبود هيوزن بكرة",
+      "notes": "هيصفي الباقي بعد  رمضان و ع العيد الكبير",
       "isPinned": false,
       "index": 27
     },
