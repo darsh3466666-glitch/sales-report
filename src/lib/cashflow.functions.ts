@@ -290,6 +290,7 @@ export const TREASURY_CUSTOMER_ALIASES: Record<string, string> = {
   "توفيق محمد": "توفيق محمد (نجع العرب)",
   "سلامه حمدي": "سلامه حمدي ( البرنسة)",
   "حسام عدلي عبود": "حسام عدلي عبود(قيصر)",
+  "محمد احمد مرداش": "احمد محمد مرداشي (وحيد كامل)",
 };
 
 export function resolveTreasuryCustomerAlias(desc: string): string {
@@ -366,12 +367,13 @@ export function matchTreasuryDescriptionToCustomer(
         break;
       }
     }
-    if (mCount >= 2 && (mCount === cdWords.length || mCount === ccWords.length)) {
+    if (mCount >= 2 && mCount === cdWords.length) {
       return true;
     }
   }
 
   // 7b. Order-invariant & full tokens match across all customer words (including paren annotations like "مرسي مدشه" or "حلوان احمد سلامه")
+  // Every word written by the treasury clerk MUST match a word in the full customer name (never drop a distinct surname like "مرداش").
   const allCustWords = normalizeArabicName(customerName)
     .replace(/عبد\s+/g, "عبد")
     .replace(/ابو\s+/g, "ابو")
@@ -392,7 +394,7 @@ export function matchTreasuryDescriptionToCustomer(
         }
       }
     }
-    if (matchedTokens >= 2 && (matchedTokens === cdWords.length || matchedTokens === allCustWords.length)) {
+    if (matchedTokens >= 2 && matchedTokens === cdWords.length) {
       return true;
     }
   }
@@ -409,7 +411,7 @@ export function matchTreasuryDescriptionToCustomer(
   if (dWords.length >= 2 && (nc.startsWith(nd + " ") || bc.startsWith(nd + " "))) {
     return true;
   }
-  if (cWords.length >= 2 && (nd.startsWith(bc + " ") || nd === bc)) {
+  if (cWords.length >= 2 && nd === bc) {
     return true;
   }
 

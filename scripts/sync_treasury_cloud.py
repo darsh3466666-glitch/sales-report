@@ -29,6 +29,7 @@ TREASURY_CUSTOMER_ALIASES = {
     normalize_arabic("توفيق محمد"): "توفيق محمد (نجع العرب)",
     normalize_arabic("سلامه حمدي"): "سلامه حمدي ( البرنسة)",
     normalize_arabic("حسام عدلي عبود"): "حسام عدلي عبود(قيصر)",
+    normalize_arabic("محمد احمد مرداش"): "احمد محمد مرداشي (وحيد كامل)",
 }
 
 def get_current_week_window(ref_date=None):
