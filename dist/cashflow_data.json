@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T10:45:29.585249",
+  "generatedAt": "2026-11-26T10:46:12.397012",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -3007,7 +3007,7 @@
     {
       "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
       "currentBalance": 1232073.0500000007,
-      "dueDate": "2026-11-27",
+      "dueDate": "2026-12-01",
       "notes": "خلال الاسبوع ده هيجيب من 450 ل500 الف",
       "isActive2026": true,
       "isKhalis": false,
@@ -5085,20 +5085,6 @@
       "index": 3
     },
     {
-      "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
-      "normalizedName": "محمد يونس عبداللطيف قلمشاه",
-      "currentBalance": 1232073.0500000007,
-      "expectedAmount": 200000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-27",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 200000.0,
-      "notes": "خلال الاسبوع ده هيجيب من 450 ل500 الف",
-      "isPinned": true,
-      "index": 4
-    },
-    {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
       "normalizedName": "ايه بي ديري هشام فؤادطارق حسن وشركاه",
       "currentBalance": 822821.0999999996,
@@ -5110,7 +5096,7 @@
       "remaining": 100000.0,
       "notes": "جهينة",
       "isPinned": true,
-      "index": 5
+      "index": 4
     },
     {
       "customerName": "ايمن محمود يوسف (طاميه)",
@@ -5124,7 +5110,7 @@
       "remaining": 150000.0,
       "notes": "وزود 123 الف عن بداية السنة",
       "isPinned": true,
-      "index": 6
+      "index": 5
     },
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
@@ -5138,7 +5124,7 @@
       "remaining": 35488.85713900067,
       "notes": "بكرا 23/11/2026",
       "isPinned": true,
-      "index": 7
+      "index": 6
     },
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
@@ -5152,7 +5138,7 @@
       "remaining": 150000.0,
       "notes": "الاحد من كل اسبوع",
       "isPinned": true,
-      "index": 8
+      "index": 7
     },
     {
       "customerName": "ابو حمزة للأعلاف",
@@ -5165,6 +5151,20 @@
       "status": "لم يسدد",
       "remaining": 140000.0,
       "notes": "عميل كاش",
+      "isPinned": true,
+      "index": 8
+    },
+    {
+      "customerName": "محمد يونس عبد اللطيف(قلمشاه)",
+      "normalizedName": "محمد يونس عبداللطيف قلمشاه",
+      "currentBalance": 1232073.0500000007,
+      "expectedAmount": 200000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-01",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 200000.0,
+      "notes": "خلال الاسبوع ده هيجيب من 450 ل500 الف",
       "isPinned": true,
       "index": 9
     },
