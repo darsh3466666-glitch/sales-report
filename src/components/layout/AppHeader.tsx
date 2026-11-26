@@ -4,6 +4,7 @@ import {
   BarChart3,
   History,
   Moon,
+  Package,
   RefreshCw,
   Sun,
   Wallet,
@@ -39,6 +40,13 @@ export const APP_SECTIONS: AppSectionItem[] = [
     label: "الكاش فلو الأسبوعي",
     icon: Wallet,
     iconColorClass: "text-emerald-600 dark:text-emerald-400",
+  },
+  {
+    id: "inventory",
+    to: "/inventory",
+    label: "المخزون",
+    icon: Package,
+    iconColorClass: "text-amber-600 dark:text-amber-400",
   },
 ];
 
@@ -142,6 +150,9 @@ export function AppHeader({
     setDark(next);
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
+    window.dispatchEvent(
+      new CustomEvent("app-theme-change", { detail: next ? "dark" : "light" }),
+    );
   }
 
   const statusPill = liveStatus ? (

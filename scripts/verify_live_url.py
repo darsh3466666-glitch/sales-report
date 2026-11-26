@@ -54,6 +54,34 @@ def main():
         print(f"Error fetching Cash Flow JSON: {e}")
         sys.exit(1)
 
+    # 4. Check Inventory page & JSON data
+    url_inv_page = "https://darsh3466666-glitch.github.io/sales-report/inventory/"
+    req_inv_page = urllib.request.Request(url_inv_page, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        with urllib.request.urlopen(req_inv_page, context=ctx, timeout=15) as res:
+            if res.status != 200:
+                print(f"Inventory page status: {res.status}")
+                sys.exit(1)
+    except Exception as e:
+        print(f"Error fetching Inventory page: {e}")
+        sys.exit(1)
+
+    url_inv_json = "https://darsh3466666-glitch.github.io/sales-report/inventory_data.json"
+    req_inv_json = urllib.request.Request(url_inv_json, headers={'User-Agent': 'Mozilla/5.0'})
+    try:
+        with urllib.request.urlopen(req_inv_json, context=ctx, timeout=15) as res:
+            if res.status != 200:
+                print(f"Inventory JSON status: {res.status}")
+                sys.exit(1)
+            inv_data = json.loads(res.read().decode('utf-8'))
+            if not inv_data.get('inventory'):
+                print("Missing inventory list in Inventory JSON")
+                sys.exit(1)
+            print(f"Inventory verified: {len(inv_data['inventory'])} items")
+    except Exception as e:
+        print(f"Error fetching Inventory JSON: {e}")
+        sys.exit(1)
+
     print("SUCCESS_LIVE_REPORT_ONLINE")
     sys.exit(0)
 

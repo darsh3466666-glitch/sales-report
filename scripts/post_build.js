@@ -16,7 +16,7 @@ if (fs.existsSync(distDir)) {
     fs.copyFileSync(indexHtml, notFoundHtml);
     console.log('✓ Created 404.html from index.html');
 
-    const staticRoutes = ['cashflow', 'dashboard', 'history', 'cashflow/history'];
+    const staticRoutes = ['cashflow', 'dashboard', 'history', 'cashflow/history', 'inventory'];
     for (const route of staticRoutes) {
       const targetDir = path.join(distDir, route);
       fs.mkdirSync(targetDir, { recursive: true });
@@ -29,8 +29,8 @@ if (fs.existsSync(distDir)) {
   fs.writeFileSync(path.join(distDir, '.nojekyll'), '');
   console.log('✓ Created .nojekyll');
 
-  // 3. Ensure sales_data.json, cashflow_data.json, cashflow_config.json, cashflow_history.json are in dist
-  for (const fileName of ['sales_data.json', 'cashflow_data.json', 'cashflow_config.json', 'cashflow_history.json']) {
+  // 3. Ensure sales_data.json, cashflow_data.json, cashflow_config.json, cashflow_history.json, inventory_data.json are in dist
+  for (const fileName of ['sales_data.json', 'cashflow_data.json', 'cashflow_config.json', 'cashflow_history.json', 'inventory_data.json']) {
     const publicFile = path.join(publicDir, fileName);
     const distFile = path.join(distDir, fileName);
     if (fs.existsSync(publicFile)) {
