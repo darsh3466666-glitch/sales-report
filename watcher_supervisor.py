@@ -144,19 +144,6 @@ def revive_daemon():
     except Exception as e:
         log(f"Failed to spawn daemon: {e}")
 
-    try:
-        subprocess.run(
-            [python_exe, WATCHER_SCRIPT, '--check'],
-            cwd=REPO_DIR,
-            capture_output=True,
-            text=True,
-            encoding='utf-8',
-            creationflags=CREATE_NO_WINDOW if os.name == 'nt' else 0,
-            timeout=180,
-        )
-    except Exception as e:
-        log(f"Warning running immediate sync check: {e}")
-
 
 def main():
     if is_daemon_healthy(max_age_seconds=60):
