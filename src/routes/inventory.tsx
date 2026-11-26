@@ -15,6 +15,7 @@ function InventoryPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [printDate, setPrintDate] = useState<string>("");
   const [printLayout, setPrintLayout] = useState<"pc" | "mobile">("mobile");
+  const [iframePrintHeight, setIframePrintHeight] = useState<number>(3000);
 
   const basePath =
     typeof window !== "undefined" &&
@@ -66,6 +67,8 @@ function InventoryPage() {
         if (data.printDate) {
           setPrintDate(String(data.printDate));
         }
+      } else if (data.type === "INVENTORY_HEIGHT" && typeof data.height === "number") {
+        setIframePrintHeight(Math.max(800, Math.ceil(data.height) + 40));
       }
     };
 
@@ -109,7 +112,16 @@ function InventoryPage() {
   };
 
   return (
-    <div className="h-dvh flex flex-col overflow-hidden bg-background" dir="rtl">
+    <div
+      className="h-dvh flex flex-col overflow-hidden bg-background print:block print:h-auto print:overflow-visible"
+      dir="rtl"
+    >
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `@media print { #inventory-iframe { height: ${iframePrintHeight}px !important; min-height: ${iframePrintHeight}px !important; } }`,
+        }}
+      />
+
       <AppHeader
         title="إدارة المخزون"
         activeSection="inventory"
@@ -129,12 +141,13 @@ function InventoryPage() {
         onPrint={handlePrint}
       />
 
-      <main className="flex-1 min-h-0 w-full relative">
+      <main className="flex-1 min-h-0 w-full relative print:block print:h-auto print:overflow-visible">
         <iframe
+          id="inventory-iframe"
           ref={iframeRef}
           src={iframeSrc}
           title="تطبيق إدارة المخزون - شركة النور"
-          className="w-full h-full border-0 block bg-background"
+          className="w-full h-full border-0 block bg-background print:overflow-visible"
           onLoad={() => syncThemeToIframe()}
         />
       </main>

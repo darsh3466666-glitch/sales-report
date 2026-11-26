@@ -262,26 +262,29 @@ if (new URLSearchParams(window.location.search).get('embedded') === '1') {
   .footer { text-align: center; padding: 20px 16px; color: var(--ink-3); font-size: 12px; font-weight: 600; }
   .footer strong { color: var(--ink-2); }
 
-  @media print {
-    .update-bar, .tabs, .search-box, .view-toggle, .inv-toolbar, .filters, .date-filters, .date-range, .btn-refresh, .print-btn, .theme-btn, .live-pill, .footer, .rec-history-toggle, .rec-actions-bar, #minutesModal { display: none !important; }
-    body { background: #fff !important; color: #000 !important; font-size: 12px; }
-    .header { position: static !important; background: transparent !important; border-bottom: 2px solid #1a2151 !important; margin: 0 0 16px 0 !important; padding: 0 0 10px 0 !important; }
-    .header-actions { display: none !important; }
-    .app { max-width: 100%; padding: 0; }
-    .kpi-grid { grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
-    .kpi-card { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; }
-    .items-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-    .inv-group { break-inside: avoid-page; }
-    .group-header { break-after: avoid; box-shadow: none; border: 1px solid #cbd5e1; }
-    .bar-item, .cust-item, .price-item { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; margin-bottom: 0; }
-    [data-theme] { --bg: #fff; --bg-card: #fff; --ink: #000; --ink-2: #333; --line: #ccc; --line-soft: #eee; --accent-soft: #eef; }
-    html.embedded-mode .header { display: block !important; }
-  }
   html.embedded-mode .header,
   html.embedded-mode .footer,
   html.embedded-mode .btn-refresh { display: none !important; }
   html.embedded-mode .app { padding-top: 12px; padding-bottom: 36px; }
   html.embedded-mode .update-bar { padding: 8px 14px; margin-bottom: 12px; }
+
+  @media print {
+    .update-bar, .tabs, .search-box, .view-toggle, .inv-toolbar, .filters, .date-filters, .date-range, .btn-refresh, .print-btn, .theme-btn, .live-pill, .footer, .rec-history-toggle, .rec-actions-bar, #minutesModal { display: none !important; }
+    html, body { background: #fff !important; color: #000 !important; font-size: 12px; height: auto !important; overflow: visible !important; overflow-x: visible !important; }
+    .header { position: static !important; background: transparent !important; border-bottom: 2px solid #1a2151 !important; margin: 0 0 16px 0 !important; padding: 0 0 10px 0 !important; }
+    html.embedded-mode .header { display: block !important; }
+    .header-actions { display: none !important; }
+    .app { max-width: 100%; padding: 0 !important; margin: 0 auto !important; }
+    .kpi-grid { grid-template-columns: repeat(4,1fr); gap: 10px; margin-bottom: 16px; }
+    .kpi-card { border: 1px solid #ccc; box-shadow: none; break-inside: avoid; overflow: visible !important; }
+    .inv-groups, .inv-group, .bar-list { display: block !important; }
+    .inv-group { break-inside: auto !important; margin-bottom: 14px !important; }
+    .group-header { break-after: avoid; box-shadow: none; border: 1px solid #cbd5e1; margin-bottom: 8px !important; }
+    .bar-list > * { margin-bottom: 8px !important; }
+    .items-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    .bar-item, .cust-item, .price-item { break-inside: avoid; box-shadow: none; border: 1px solid #ddd; margin-bottom: 0; }
+    [data-theme] { --bg: #fff; --bg-card: #fff; --ink: #000; --ink-2: #333; --line: #ccc; --line-soft: #eee; --accent-soft: #eef; }
+  }
 
   /* Reconciliation Tab Styles */
   .rec-banner { display: flex; gap: 10px; align-items: flex-start; padding: 10px 14px; background: var(--accent-soft); border: 1.5px solid var(--line); border-inline-start: 4px solid var(--accent); border-radius: var(--r-md); margin-bottom: 14px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
@@ -668,17 +671,18 @@ if (new URLSearchParams(window.location.search).get('embedded') === '1') {
     .sig-block:last-child { border-bottom: none; }
   }
 
-  /* Dedicated Print Rules for Minutes Paper - Strictly Single Page A4 Landscape */
-  @page {
-    size: A4 landscape !important;
-    margin: 6mm 10mm 6mm 10mm !important;
-  }
+  /* Dedicated Print Rules for Minutes Paper - Scoped ONLY when printing minutes */
   @media print {
     html, body {
       margin: 0 !important;
       padding: 0 !important;
       background: #ffffff !important;
       color: #0f172a !important;
+      height: auto !important;
+      overflow: visible !important;
+    }
+    html:has(body.printing-minutes),
+    body.printing-minutes {
       height: 100% !important;
       overflow: hidden !important;
     }
@@ -1921,7 +1925,18 @@ function onMinutesBatchChange(date) {
   renderMinutesDocument(date);
 }
 
+function ensurePrintPageStyle(cssText) {
+  let styleEl = document.getElementById('dynamic-print-page');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'dynamic-print-page';
+    document.head.appendChild(styleEl);
+  }
+  styleEl.textContent = cssText;
+}
+
 function printMinutes() {
+  ensurePrintPageStyle('@media print { @page { size: A4 landscape !important; margin: 6mm 10mm 6mm 10mm !important; } }');
   document.body.classList.add('printing-minutes');
   window.print();
 }
@@ -2674,22 +2689,16 @@ document.getElementById('printBtn').addEventListener('click',()=>window.print())
 document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click',()=>{ activeTab=t.dataset.tab; activeFilter='all'; dateFilter='all'; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t)); renderContent(); }); });
 
 function triggerInventoryPrint(layout) {
-  let styleEl = document.getElementById('dynamic-print-page');
-  if (!styleEl) {
-    styleEl = document.createElement('style');
-    styleEl.id = 'dynamic-print-page';
-    document.head.appendChild(styleEl);
-  }
   const modal = document.getElementById('minutesModal');
   const isMinutesOpen = modal && modal.style.display !== 'none';
   if (!isMinutesOpen) {
     if (layout === 'pc') {
-      styleEl.textContent = '@media print { @page { size: A4 landscape !important; margin: 6mm 8mm !important; } .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; } .items-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }';
+      ensurePrintPageStyle('@media print { @page { size: A4 landscape !important; margin: 6mm 8mm !important; } .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; } .items-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }');
     } else {
-      styleEl.textContent = '@media print { @page { size: A4 portrait !important; margin: 6mm 7mm !important; } .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; } .items-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }';
+      ensurePrintPageStyle('@media print { @page { size: A4 portrait !important; margin: 6mm 7mm !important; } .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; } .items-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }');
     }
   } else {
-    styleEl.textContent = '';
+    ensurePrintPageStyle('@media print { @page { size: A4 landscape !important; margin: 6mm 10mm 6mm 10mm !important; } }');
   }
 
   const prevTheme = document.documentElement.getAttribute('data-theme') || 'light';
@@ -2705,6 +2714,20 @@ function triggerInventoryPrint(layout) {
   window.addEventListener('afterprint', restoreTheme);
   setTimeout(restoreTheme, 1500);
   requestAnimationFrame(() => setTimeout(() => window.print(), 80));
+}
+
+function notifyParentHeight() {
+  if (window.parent && window.parent !== window) {
+    try {
+      const appEl = document.querySelector('.app');
+      const h = Math.max(document.documentElement.scrollHeight || 0, appEl ? appEl.scrollHeight : 0);
+      window.parent.postMessage({ type: 'INVENTORY_HEIGHT', height: h }, window.location.origin);
+    } catch(e) {}
+  }
+}
+if (typeof ResizeObserver !== 'undefined') {
+  const ro = new ResizeObserver(() => notifyParentHeight());
+  ro.observe(document.body);
 }
 
 window.addEventListener('message', (event) => {
