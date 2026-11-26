@@ -16,7 +16,7 @@ if (fs.existsSync(distDir)) {
     fs.copyFileSync(indexHtml, notFoundHtml);
     console.log('✓ Created 404.html from index.html');
 
-    const staticRoutes = ['cashflow', 'dashboard', 'history', 'cashflow/history', 'inventory', 'inventory/history'];
+    const staticRoutes = ['cashflow', 'dashboard', 'history', 'cashflow/history', 'inventory'];
     for (const route of staticRoutes) {
       const targetDir = path.join(distDir, route);
       fs.mkdirSync(targetDir, { recursive: true });

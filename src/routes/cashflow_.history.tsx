@@ -45,7 +45,7 @@ import { AppHeader } from "@/components/layout/AppHeader";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/cashflow/history")({
+export const Route = createFileRoute("/cashflow_/history")({
   ssr: false,
   component: CashFlowHistoryPage,
 });

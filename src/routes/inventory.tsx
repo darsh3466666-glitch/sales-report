@@ -134,8 +134,6 @@ function InventoryPage() {
         }
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
-        historyTo="/inventory/history"
-        historyTitle="سجل جلسات الجرد والتسويات السابقة"
         printLayout={printLayout}
         setPrintLayout={setPrintLayout}
         onPrint={handlePrint}
