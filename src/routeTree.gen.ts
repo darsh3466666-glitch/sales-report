@@ -15,6 +15,7 @@ import { Route as HistoryRouteImport } from './routes/history'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CashflowRouteImport } from './routes/cashflow'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as InventoryHistoryRouteImport } from './routes/inventory.history'
 import { Route as CashflowHistoryRouteImport } from './routes/cashflow.history'
 
 const ViewRoute = ViewRouteImport.update({
@@ -47,6 +48,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InventoryHistoryRoute = InventoryHistoryRouteImport.update({
+  id: '/history',
+  path: '/history',
+  getParentRoute: () => InventoryRoute,
+} as any)
 const CashflowHistoryRoute = CashflowHistoryRouteImport.update({
   id: '/history',
   path: '/history',
@@ -58,18 +64,20 @@ export interface FileRoutesByFullPath {
   '/cashflow': typeof CashflowRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
-  '/inventory': typeof InventoryRoute
+  '/inventory': typeof InventoryRouteWithChildren
   '/view': typeof ViewRoute
   '/cashflow/history': typeof CashflowHistoryRoute
+  '/inventory/history': typeof InventoryHistoryRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cashflow': typeof CashflowRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
-  '/inventory': typeof InventoryRoute
+  '/inventory': typeof InventoryRouteWithChildren
   '/view': typeof ViewRoute
   '/cashflow/history': typeof CashflowHistoryRoute
+  '/inventory/history': typeof InventoryHistoryRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -77,9 +85,10 @@ export interface FileRoutesById {
   '/cashflow': typeof CashflowRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/history': typeof HistoryRoute
-  '/inventory': typeof InventoryRoute
+  '/inventory': typeof InventoryRouteWithChildren
   '/view': typeof ViewRoute
   '/cashflow/history': typeof CashflowHistoryRoute
+  '/inventory/history': typeof InventoryHistoryRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +100,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/view'
     | '/cashflow/history'
+    | '/inventory/history'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +110,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/view'
     | '/cashflow/history'
+    | '/inventory/history'
   id:
     | '__root__'
     | '/'
@@ -109,6 +120,7 @@ export interface FileRouteTypes {
     | '/inventory'
     | '/view'
     | '/cashflow/history'
+    | '/inventory/history'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -116,7 +128,7 @@ export interface RootRouteChildren {
   CashflowRoute: typeof CashflowRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   HistoryRoute: typeof HistoryRoute
-  InventoryRoute: typeof InventoryRoute
+  InventoryRoute: typeof InventoryRouteWithChildren
   ViewRoute: typeof ViewRoute
 }
 
@@ -164,6 +176,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/inventory/history': {
+      id: '/inventory/history'
+      path: '/history'
+      fullPath: '/inventory/history'
+      preLoaderRoute: typeof InventoryHistoryRouteImport
+      parentRoute: typeof InventoryRoute
+    }
     '/cashflow/history': {
       id: '/cashflow/history'
       path: '/history'
@@ -186,12 +205,24 @@ const CashflowRouteWithChildren = CashflowRoute._addFileChildren(
   CashflowRouteChildren,
 )
 
+interface InventoryRouteChildren {
+  InventoryHistoryRoute: typeof InventoryHistoryRoute
+}
+
+const InventoryRouteChildren: InventoryRouteChildren = {
+  InventoryHistoryRoute: InventoryHistoryRoute,
+}
+
+const InventoryRouteWithChildren = InventoryRoute._addFileChildren(
+  InventoryRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CashflowRoute: CashflowRouteWithChildren,
   DashboardRoute: DashboardRoute,
   HistoryRoute: HistoryRoute,
-  InventoryRoute: InventoryRoute,
+  InventoryRoute: InventoryRouteWithChildren,
   ViewRoute: ViewRoute,
 }
 export const routeTree = rootRouteImport

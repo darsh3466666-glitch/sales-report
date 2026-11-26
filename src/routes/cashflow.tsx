@@ -208,6 +208,7 @@ function CashFlowPage() {
       <AppHeader
         title="التدفقات النقدية (Cash Flow)"
         activeSection="cashflow"
+        decorativeBg
         liveStatus={
           cloudSyncStatus === "syncing"
             ? "syncing"

@@ -7,17 +7,24 @@ interface PrintDialogProps {
   printLayout: "pc" | "mobile";
   setPrintLayout: (layout: "pc" | "mobile") => void;
   trigger?: React.ReactNode;
+  onPrint?: (layout: "pc" | "mobile") => void;
 }
 
 export function PrintDialog({
   printLayout = "mobile",
   setPrintLayout,
   trigger,
+  onPrint,
 }: PrintDialogProps) {
   // Clean, freeze-free print execution with immediate style & page rule application
   const handlePrint = (layout: "pc" | "mobile") => {
     // 1. Update React state
     setPrintLayout(layout);
+
+    if (onPrint) {
+      onPrint(layout);
+      return;
+    }
 
     // 2. Synchronously apply class to container so CSS matches immediately without waiting for React cycle
     const container =

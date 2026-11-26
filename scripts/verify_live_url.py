@@ -55,16 +55,19 @@ def main():
         sys.exit(1)
 
     # 4. Check Inventory page & JSON data
-    url_inv_page = "https://darsh3466666-glitch.github.io/sales-report/inventory/"
-    req_inv_page = urllib.request.Request(url_inv_page, headers={'User-Agent': 'Mozilla/5.0'})
-    try:
-        with urllib.request.urlopen(req_inv_page, context=ctx, timeout=15) as res:
-            if res.status != 200:
-                print(f"Inventory page status: {res.status}")
-                sys.exit(1)
-    except Exception as e:
-        print(f"Error fetching Inventory page: {e}")
-        sys.exit(1)
+    for inv_url in (
+        "https://darsh3466666-glitch.github.io/sales-report/inventory/",
+        "https://darsh3466666-glitch.github.io/sales-report/inventory/history/",
+    ):
+        req_inv_page = urllib.request.Request(inv_url, headers={'User-Agent': 'Mozilla/5.0'})
+        try:
+            with urllib.request.urlopen(req_inv_page, context=ctx, timeout=15) as res:
+                if res.status != 200:
+                    print(f"Inventory page status ({inv_url}): {res.status}")
+                    sys.exit(1)
+        except Exception as e:
+            print(f"Error fetching Inventory page ({inv_url}): {e}")
+            sys.exit(1)
 
     url_inv_json = "https://darsh3466666-glitch.github.io/sales-report/inventory_data.json"
     req_inv_json = urllib.request.Request(url_inv_json, headers={'User-Agent': 'Mozilla/5.0'})

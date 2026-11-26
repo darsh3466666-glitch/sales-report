@@ -76,6 +76,8 @@ interface AppHeaderProps {
   /** Optional print layout state; when provided, renders PrintDialog */
   printLayout?: "pc" | "mobile";
   setPrintLayout?: (layout: "pc" | "mobile") => void;
+  /** Optional custom print callback (used by embedded sections like /inventory) */
+  onPrint?: (layout: "pc" | "mobile") => void;
   /** Show decorative background shapes */
   decorativeBg?: boolean;
 }
@@ -132,6 +134,7 @@ export function AppHeader({
   actions,
   printLayout,
   setPrintLayout,
+  onPrint,
   decorativeBg = false,
 }: AppHeaderProps) {
   const [dark, setDark] = useState(() => {
@@ -282,6 +285,7 @@ export function AppHeader({
               <PrintDialog
                 printLayout={printLayout}
                 setPrintLayout={setPrintLayout}
+                onPrint={onPrint}
               />
             )}
           </div>

@@ -2673,6 +2673,40 @@ document.getElementById('themeBtn').addEventListener('click',toggleTheme);
 document.getElementById('printBtn').addEventListener('click',()=>window.print());
 document.querySelectorAll('.tab').forEach(t=>{ t.addEventListener('click',()=>{ activeTab=t.dataset.tab; activeFilter='all'; dateFilter='all'; document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===t)); renderContent(); }); });
 
+function triggerInventoryPrint(layout) {
+  let styleEl = document.getElementById('dynamic-print-page');
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'dynamic-print-page';
+    document.head.appendChild(styleEl);
+  }
+  const modal = document.getElementById('minutesModal');
+  const isMinutesOpen = modal && modal.style.display !== 'none';
+  if (!isMinutesOpen) {
+    if (layout === 'pc') {
+      styleEl.textContent = '@media print { @page { size: A4 landscape !important; margin: 6mm 8mm !important; } .kpi-grid { grid-template-columns: repeat(4, 1fr) !important; } .items-grid { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; } }';
+    } else {
+      styleEl.textContent = '@media print { @page { size: A4 portrait !important; margin: 6mm 7mm !important; } .kpi-grid { grid-template-columns: repeat(2, 1fr) !important; } .items-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }';
+    }
+  } else {
+    styleEl.textContent = '';
+  }
+
+  const prevTheme = document.documentElement.getAttribute('data-theme') || 'light';
+  if (prevTheme === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }
+  const restoreTheme = () => {
+    if (prevTheme === 'dark') {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+    window.removeEventListener('afterprint', restoreTheme);
+  };
+  window.addEventListener('afterprint', restoreTheme);
+  setTimeout(restoreTheme, 1500);
+  requestAnimationFrame(() => setTimeout(() => window.print(), 80));
+}
+
 window.addEventListener('message', (event) => {
   if (event.origin !== window.location.origin) return;
   const msg = event.data;
@@ -2682,7 +2716,7 @@ window.addEventListener('message', (event) => {
   } else if (msg.type === 'REFRESH_DATA') {
     refresh(false);
   } else if (msg.type === 'PRINT_VIEW') {
-    window.print();
+    triggerInventoryPrint(msg.layout === 'pc' ? 'pc' : 'mobile');
   }
 });
 

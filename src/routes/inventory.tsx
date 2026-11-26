@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Printer } from "lucide-react";
 import { AppHeader, type LiveStatusState } from "@/components/layout/AppHeader";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/inventory")({
   ssr: false,
@@ -11,9 +10,11 @@ export const Route = createFileRoute("/inventory")({
 
 function InventoryPage() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
+  const manualRefreshPendingRef = useRef(false);
   const [liveStatus, setLiveStatus] = useState<LiveStatusState>("syncing");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [printDate, setPrintDate] = useState<string>("");
+  const [printLayout, setPrintLayout] = useState<"pc" | "mobile">("mobile");
 
   const basePath =
     typeof window !== "undefined" &&
@@ -36,7 +37,7 @@ function InventoryPage() {
   }, []);
 
   useEffect(() => {
-    document.title = "المخزون والأرصدة - شركة النور";
+    document.title = "إدارة المخزون - شركة النور";
   }, []);
 
   useEffect(() => {
@@ -48,11 +49,19 @@ function InventoryPage() {
         if (data.status === "live") {
           setLiveStatus("live");
           setIsRefreshing(false);
+          if (manualRefreshPendingRef.current) {
+            manualRefreshPendingRef.current = false;
+            toast.success("تم تحديث بيانات المخزون لحظياً بنجاح");
+          }
         } else if (data.status === "syncing") {
           setLiveStatus("syncing");
         } else if (data.status === "stale" || data.status === "error") {
           setLiveStatus("error");
           setIsRefreshing(false);
+          if (manualRefreshPendingRef.current) {
+            manualRefreshPendingRef.current = false;
+            toast.error("فشل تحديث بيانات المخزون");
+          }
         }
         if (data.printDate) {
           setPrintDate(String(data.printDate));
@@ -84,15 +93,19 @@ function InventoryPage() {
   const handleRefresh = () => {
     const win = iframeRef.current?.contentWindow;
     if (!win) return;
+    manualRefreshPendingRef.current = true;
     setIsRefreshing(true);
     setLiveStatus("syncing");
     win.postMessage({ type: "REFRESH_DATA" }, window.location.origin);
   };
 
-  const handlePrint = () => {
+  const handlePrint = (layout: "pc" | "mobile") => {
     const win = iframeRef.current?.contentWindow;
-    if (!win) return;
-    win.postMessage({ type: "PRINT_VIEW" }, window.location.origin);
+    if (!win) {
+      toast.error("تعذر الوصول لصفحة المخزون للطباعة");
+      return;
+    }
+    win.postMessage({ type: "PRINT_VIEW", layout }, window.location.origin);
   };
 
   return (
@@ -100,6 +113,7 @@ function InventoryPage() {
       <AppHeader
         title="إدارة المخزون"
         activeSection="inventory"
+        decorativeBg
         liveStatus={liveStatus}
         liveStatusTitle={
           printDate
@@ -108,18 +122,11 @@ function InventoryPage() {
         }
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
-        actions={
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handlePrint}
-            className="h-8 sm:h-9 px-2.5 sm:px-3 rounded-full font-bold text-xs sm:text-sm bg-card shadow-xs border border-muted hover:border-primary/30 gap-1.5 cursor-pointer"
-            title="طباعة تقرير المخزون"
-          >
-            <Printer className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary shrink-0" />
-            <span className="hidden sm:inline">طباعة</span>
-          </Button>
-        }
+        historyTo="/inventory/history"
+        historyTitle="سجل جلسات الجرد والتسويات السابقة"
+        printLayout={printLayout}
+        setPrintLayout={setPrintLayout}
+        onPrint={handlePrint}
       />
 
       <main className="flex-1 min-h-0 w-full relative">
