@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T10:50:36.109241",
+  "generatedAt": "2026-11-26T10:53:34.864709",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -1009,7 +1009,7 @@
     {
       "customerName": "مزرعه الخيرات",
       "currentBalance": 1623098.4700000007,
-      "dueDate": "2026-11-26",
+      "dueDate": "2026-12-01",
       "notes": "الخيرات بكرا 26/11/2026",
       "isActive2026": true,
       "isKhalis": false,
@@ -5057,20 +5057,6 @@
       "index": 1
     },
     {
-      "customerName": "مزرعه الخيرات",
-      "normalizedName": "مزرعه الخيرات",
-      "currentBalance": 1623098.4700000007,
-      "expectedAmount": 200000.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-26",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 200000.0,
-      "notes": "الخيرات بكرا 26/11/2026",
-      "isPinned": true,
-      "index": 2
-    },
-    {
       "customerName": "د.هاني محمود يوسف (طاميه)",
       "normalizedName": "د هاني محمود يوسف طاميه",
       "currentBalance": 1529001.0,
@@ -5082,7 +5068,7 @@
       "remaining": 1529001.0,
       "notes": "",
       "isPinned": true,
-      "index": 3
+      "index": 2
     },
     {
       "customerName": "ايه بي ديري /هشام فؤادطارق حسن وشركاه",
@@ -5096,7 +5082,7 @@
       "remaining": 100000.0,
       "notes": "جهينة",
       "isPinned": true,
-      "index": 4
+      "index": 3
     },
     {
       "customerName": "ايمن محمود يوسف (طاميه)",
@@ -5110,7 +5096,7 @@
       "remaining": 150000.0,
       "notes": "وزود 123 الف عن بداية السنة",
       "isPinned": true,
-      "index": 5
+      "index": 4
     },
     {
       "customerName": "بادية فارم (كوم ابو راضي)",
@@ -5124,7 +5110,7 @@
       "remaining": 35488.85713900067,
       "notes": "بكرا 23/11/2026",
       "isPinned": true,
-      "index": 6
+      "index": 5
     },
     {
       "customerName": "المعلم/ عبد الفتاح ربيع",
@@ -5138,7 +5124,7 @@
       "remaining": 150000.0,
       "notes": "الاحد من كل اسبوع",
       "isPinned": true,
-      "index": 7
+      "index": 6
     },
     {
       "customerName": "ابو حمزة للأعلاف",
@@ -5151,6 +5137,20 @@
       "status": "لم يسدد",
       "remaining": 140000.0,
       "notes": "عميل كاش",
+      "isPinned": true,
+      "index": 7
+    },
+    {
+      "customerName": "مزرعه الخيرات",
+      "normalizedName": "مزرعه الخيرات",
+      "currentBalance": 1623098.4700000007,
+      "expectedAmount": 200000.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-01",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 200000.0,
+      "notes": "الخيرات بكرا 26/11/2026",
       "isPinned": true,
       "index": 8
     },
