@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T10:48:11.102076",
+  "generatedAt": "2026-11-26T10:50:36.109241",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -1333,7 +1333,7 @@
     {
       "customerName": "احمد محمد مرداشي (وحيد كامل)",
       "currentBalance": 329424.5,
-      "dueDate": "2026-12-22",
+      "dueDate": "2026-12-26",
       "notes": "",
       "isActive2026": true,
       "isKhalis": false,
@@ -5841,20 +5841,6 @@
       "index": 57
     },
     {
-      "customerName": "احمد محمد مرداشي (وحيد كامل)",
-      "normalizedName": "احمد محمد مرداشي وحيد كامل",
-      "currentBalance": 329424.5,
-      "expectedAmount": 0.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-12-22",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 0.0,
-      "notes": "",
-      "isPinned": false,
-      "index": 58
-    },
-    {
       "customerName": "ابراهيم عبدالمولى - الهداهدة",
       "normalizedName": "ابراهيم عبدالمولي الهداهده",
       "currentBalance": 440.0,
@@ -5865,6 +5851,20 @@
       "status": "لم يسدد",
       "remaining": 0.0,
       "notes": "بلاغ ا احمد",
+      "isPinned": false,
+      "index": 58
+    },
+    {
+      "customerName": "احمد محمد مرداشي (وحيد كامل)",
+      "normalizedName": "احمد محمد مرداشي وحيد كامل",
+      "currentBalance": 329424.5,
+      "expectedAmount": 0.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-12-26",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 0.0,
+      "notes": "",
       "isPinned": false,
       "index": 59
     }
