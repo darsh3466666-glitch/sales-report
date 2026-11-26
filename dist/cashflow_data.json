@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T16:39:17.148285",
+  "generatedAt": "2026-11-26T16:40:08.071974",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -2566,7 +2566,7 @@
     {
       "customerName": "محمد سيد (مصطفي الصعيدي)",
       "currentBalance": 33485.0,
-      "dueDate": "2026-11-26",
+      "dueDate": "2026-11-27",
       "notes": "بكرا هياخد علف ويدفع 10",
       "isActive2026": true,
       "isKhalis": false,
@@ -5533,20 +5533,6 @@
       "index": 27
     },
     {
-      "customerName": "محمد سيد (مصطفي الصعيدي)",
-      "normalizedName": "محمد سيد مصطفي الصعيدي",
-      "currentBalance": 33485.0,
-      "expectedAmount": 33485.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-26",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 33485.0,
-      "notes": "بكرا هياخد علف ويدفع 10",
-      "isPinned": false,
-      "index": 28
-    },
-    {
       "customerName": "حماده ابو خضره سيلا",
       "normalizedName": "حماده ابو خضره سيلا",
       "currentBalance": 1077920.0,
@@ -5557,6 +5543,20 @@
       "status": "لم يسدد",
       "remaining": 1077920.0,
       "notes": "",
+      "isPinned": false,
+      "index": 28
+    },
+    {
+      "customerName": "محمد سيد (مصطفي الصعيدي)",
+      "normalizedName": "محمد سيد مصطفي الصعيدي",
+      "currentBalance": 33485.0,
+      "expectedAmount": 33485.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-27",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 33485.0,
+      "notes": "بكرا هياخد علف ويدفع 10",
       "isPinned": false,
       "index": 29
     },
