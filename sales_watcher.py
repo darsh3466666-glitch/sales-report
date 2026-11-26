@@ -62,6 +62,8 @@ INVENTORY_DIRS = [
 ]
 
 _MUTEX_HANDLE = None
+_SELF_PATH = os.path.abspath(__file__)
+_SELF_MTIME = os.path.getmtime(_SELF_PATH) if os.path.exists(_SELF_PATH) else 0.0
 
 
 def acquire_single_instance_lock():
@@ -79,6 +81,43 @@ def acquire_single_instance_lock():
             log(f"Warning acquiring mutex: {e}")
             return True
     return True
+
+
+def release_single_instance_lock():
+    global _MUTEX_HANDLE
+    if os.name == 'nt' and _MUTEX_HANDLE:
+        try:
+            import ctypes
+            ctypes.windll.kernel32.CloseHandle(_MUTEX_HANDLE)
+        except Exception:
+            pass
+        _MUTEX_HANDLE = None
+
+
+def restart_if_code_updated():
+    try:
+        cur_mtime = os.path.getmtime(_SELF_PATH)
+    except Exception:
+        return
+    if abs(cur_mtime - _SELF_MTIME) <= 0.01:
+        return
+    try:
+        import py_compile
+        time.sleep(0.3)
+        py_compile.compile(_SELF_PATH, doraise=True)
+    except Exception as e:
+        log(f"Skipping self-restart; updated script failed syntax check: {e}")
+        return
+    log("sales_watcher.py updated on disk; restarting daemon with latest code...")
+    release_single_instance_lock()
+    flags = (CREATE_NO_WINDOW | 0x00000008) if os.name == 'nt' else 0
+    subprocess.Popen(
+        [sys.executable, _SELF_PATH],
+        cwd=REPO_DIR,
+        creationflags=flags,
+        close_fds=True,
+    )
+    sys.exit(0)
 
 
 def log(msg):
@@ -99,7 +138,7 @@ def log(msg):
 def update_heartbeat():
     try:
         with open(HEARTBEAT_FILE, 'w', encoding='utf-8') as f:
-            f.write(f"{time.time()}|{os.getpid()}")
+            f.write(f"{time.time()}|{os.getpid()}|{_SELF_MTIME}")
     except Exception:
         pass
 
@@ -295,13 +334,30 @@ def push_data_to_github():
         creationflags=CREATE_NO_WINDOW,
         timeout=60,
     )
-    subprocess.run(
+    push_main = subprocess.run(
         ['git', 'push', 'origin', 'main'],
         cwd=REPO_DIR,
         capture_output=True,
+        text=True,
         creationflags=CREATE_NO_WINDOW,
         timeout=60,
     )
+    if push_main.returncode != 0:
+        log(f"git push origin main failed, attempting pull --rebase: {push_main.stderr.strip()}")
+        subprocess.run(
+            ['git', 'pull', '--rebase', '--autostash', 'origin', 'main'],
+            cwd=REPO_DIR,
+            capture_output=True,
+            creationflags=CREATE_NO_WINDOW,
+            timeout=60,
+        )
+        subprocess.run(
+            ['git', 'push', 'origin', 'main'],
+            cwd=REPO_DIR,
+            capture_output=True,
+            creationflags=CREATE_NO_WINDOW,
+            timeout=60,
+        )
 
     # Push dist to gh-pages branch instantaneously (< 1 second) via direct tree commit
     log("Updating gh-pages branch (fast tree-commit)...")
@@ -356,6 +412,7 @@ def run_once(force=False):
     try:
         cur_sales_mtimes = get_mtimes_for_paths(SALES_WATCHED_FILES)
         cur_inv_mtimes = get_mtimes_for_paths(get_inventory_watched_files())
+        inv_script_mtime = os.path.getmtime(INV_EXTRACT_SCRIPT) if os.path.exists(INV_EXTRACT_SCRIPT) else 0.0
 
         last_mtimes = {}
         if os.path.exists(MTIMES_FILE):
@@ -367,7 +424,8 @@ def run_once(force=False):
 
         sales_changed = force or any(last_mtimes.get(f) != m for f, m in cur_sales_mtimes.items())
         inv_missing = not os.path.exists(os.path.join(REPO_DIR, 'public', 'inventory_data.json'))
-        inv_changed = force or inv_missing or any(last_mtimes.get(f) != m for f, m in cur_inv_mtimes.items())
+        inv_script_changed = abs(float(last_mtimes.get('__script_extract_inventory__', 0.0)) - inv_script_mtime) > 0.01
+        inv_changed = force or inv_missing or inv_script_changed or any(last_mtimes.get(f) != m for f, m in cur_inv_mtimes.items())
 
         if not sales_changed and not inv_changed:
             return True
@@ -395,6 +453,7 @@ def run_once(force=False):
             updated_mtimes.update(cur_sales_mtimes)
         if inv_changed and inv_ok:
             updated_mtimes.update(cur_inv_mtimes)
+            updated_mtimes['__script_extract_inventory__'] = inv_script_mtime
 
         with open(MTIMES_FILE, 'w', encoding='utf-8') as mf:
             json.dump(updated_mtimes, mf)
@@ -418,6 +477,7 @@ def run_loop(interval_seconds=20):
 
     while True:
         try:
+            restart_if_code_updated()
             update_heartbeat()
             run_once(force=False)
         except Exception as e:
