@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-26",
-  "generatedAt": "2026-11-26T13:11:19.961777",
+  "generatedAt": "2026-11-26T13:13:25.731646",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -1225,7 +1225,7 @@
     {
       "customerName": "عبود عدلي عبود قيصر",
       "currentBalance": 451644.92000000004,
-      "dueDate": "2027-03-06",
+      "dueDate": "2027-03-01",
       "notes": "هيصفي الباقي بعد  رمضان و ع العيد الكبير",
       "isActive2026": true,
       "isKhalis": false,
@@ -2575,8 +2575,8 @@
     {
       "customerName": "محمد عدلي (الوسطى)",
       "currentBalance": 13250.0,
-      "dueDate": "2026-11-27",
-      "notes": "يومين وهيحول",
+      "dueDate": "2026-11-28",
+      "notes": "بكرا  28/1/2026",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -5568,20 +5568,6 @@
       "index": 33
     },
     {
-      "customerName": "محمد عدلي (الوسطى)",
-      "normalizedName": "محمد عدلي الوسطي",
-      "currentBalance": 13250.0,
-      "expectedAmount": 13250.0,
-      "collectedFromSheet": 0.0,
-      "dueDate": "2026-11-27",
-      "rate": 0.0,
-      "status": "لم يسدد",
-      "remaining": 13250.0,
-      "notes": "يومين وهيحول",
-      "isPinned": false,
-      "index": 34
-    },
-    {
       "customerName": "عدلي عبدالهادي (ابو شويقي)",
       "normalizedName": "عدلي عبدالهادي ابو شويقي",
       "currentBalance": 156275.0,
@@ -5593,7 +5579,7 @@
       "remaining": 156275.0,
       "notes": "السبت 28/11/2026",
       "isPinned": false,
-      "index": 35
+      "index": 34
     },
     {
       "customerName": "جمعه محمد حسن (الحطي)",
@@ -5607,7 +5593,7 @@
       "remaining": 76325.0,
       "notes": "هيدفع قديم 55175 يوم28/11/2026",
       "isPinned": false,
-      "index": 36
+      "index": 35
     },
     {
       "customerName": "محمد احمد (الوسطى)",
@@ -5621,7 +5607,7 @@
       "remaining": 22040.0,
       "notes": "السبت 28/11/2026",
       "isPinned": false,
-      "index": 37
+      "index": 36
     },
     {
       "customerName": "احمد سامي (الخيرات)",
@@ -5634,6 +5620,20 @@
       "status": "لم يسدد",
       "remaining": 19450.0,
       "notes": "يوم 28/11 هيسدد ال الفاتورتين",
+      "isPinned": false,
+      "index": 37
+    },
+    {
+      "customerName": "محمد عدلي (الوسطى)",
+      "normalizedName": "محمد عدلي الوسطي",
+      "currentBalance": 13250.0,
+      "expectedAmount": 13250.0,
+      "collectedFromSheet": 0.0,
+      "dueDate": "2026-11-28",
+      "rate": 0.0,
+      "status": "لم يسدد",
+      "remaining": 13250.0,
+      "notes": "بكرا  28/1/2026",
       "isPinned": false,
       "index": 38
     },
@@ -5937,7 +5937,7 @@
       "currentBalance": 451644.92000000004,
       "expectedAmount": 0.0,
       "collectedFromSheet": 0.0,
-      "dueDate": "2027-03-06",
+      "dueDate": "2027-03-01",
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 0.0,
