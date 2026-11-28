@@ -1,6 +1,6 @@
 {
   "reportDate": "2026-11-28",
-  "generatedAt": "2026-11-28T10:11:03.308321",
+  "generatedAt": "2026-11-28T10:26:20.848016",
   "weekStart": "2026-11-25",
   "weekEnd": "2026-12-01",
   "weeklyGoal": 4000000,
@@ -2063,7 +2063,7 @@
       "customerName": "حاج / حازم برغوت",
       "currentBalance": 136700.0,
       "dueDate": "2026-11-28",
-      "notes": "يوم الاثنين 100 الف",
+      "notes": "",
       "isActive2026": true,
       "isKhalis": false,
       "collectedFromSheet": 0.0
@@ -4303,7 +4303,7 @@
     {
       "customerName": "عويس سيف(ابو شويقي)",
       "currentBalance": 200.0,
-      "dueDate": "2026-11-28",
+      "dueDate": "2026-12-08",
       "notes": "عويس سيف بكره",
       "isActive2026": true,
       "isKhalis": false,
@@ -5591,7 +5591,7 @@
       "rate": 0.0,
       "status": "لم يسدد",
       "remaining": 136700.0,
-      "notes": "يوم الاثنين 100 الف",
+      "notes": "",
       "isPinned": false,
       "index": 29
     },
